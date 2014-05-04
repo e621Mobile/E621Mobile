@@ -14,9 +14,13 @@ import android.os.Message;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
@@ -34,6 +38,9 @@ public class SearchActivity extends Activity {
 	public String search = "";
 	public int page = 0;
 	public int limit = 20;
+	
+	private ArrayList<E621Image> e621Images = null;
+	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
 	
 	E621 e621 = new E621();
 	
@@ -69,19 +76,82 @@ public class SearchActivity extends Activity {
 	    }).start();
 	}
 	
-	public void update_results(ArrayList<E621Image> images)
+	@Override
+	public void onStart()
+	{
+		Log.d("ASD", "onStart");
+		
+		super.onStart();
+		
+		if(e621Images != null)
+		{
+			update_results();
+		}
+	}
+	
+	@Override
+	public void onStop()
+	{
+		Log.d("ASD", "onStop");
+		
+		super.onStop();
+		
+		for(ImageView img : imageViews)
+		{
+			Log.d("Msg", "Unloading image");
+			
+			Drawable drawable = img.getDrawable();
+			if (drawable instanceof BitmapDrawable) {
+			    BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+			    Bitmap bitmap = bitmapDrawable.getBitmap();
+			    bitmap.recycle();
+			}
+		}
+		
+		imageViews.clear();
+		
+		LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
+		layout.removeAllViews();
+	}
+	
+	public void update_results()
 	{
 		LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
 		
+		if(e621Images == null)
+		{
+			TextView t = new TextView(getApplicationContext());
+			t.setText(R.string.no_internet_no_results);
+			t.setGravity(Gravity.CENTER_HORIZONTAL);
+			t.setPadding(0, 24, 0, 0);
+			
+			layout.addView(t);
+			
+			return;
+		}
+		else if(e621Images.size() == 0)
+		{
+			TextView t = new TextView(getApplicationContext());
+			t.setText(R.string.no_results);
+			t.setGravity(Gravity.CENTER_HORIZONTAL);
+			t.setPadding(0, 24, 0, 0);
+			
+			layout.addView(t);
+			
+			return;
+		}
+		
 		DisplayMetrics dm = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(dm);
 		
-		for(final E621Image img : images)
+		for(final E621Image img : e621Images)
 		{
 			ImageView imgView = new ImageView(getApplicationContext());
 			RelativeLayout rel = new RelativeLayout(getApplicationContext());
 			ProgressBar bar = new ProgressBar(getApplicationContext());
+			
+			imageViews.add(imgView);
 			
 			rel.addView(bar);
 			rel.addView(imgView);
@@ -148,7 +218,8 @@ public class SearchActivity extends Activity {
 		public void handleMessage(Message msg)
 		{
 			ArrayList<E621Image> result = (ArrayList<E621Image>)msg.obj;
-			activity.update_results(result);
+			activity.e621Images = result;
+			activity.update_results();
 		}
 	};
 	

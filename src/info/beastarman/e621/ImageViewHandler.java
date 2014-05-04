@@ -31,6 +31,7 @@ public class ImageViewHandler extends Handler
 		{
 			InputStream in = (InputStream)msg.obj;
 			Bitmap bitmap = BitmapFactory.decodeStream(in);
+			in.close();
 			
 			int width = dm.widthPixels;
 			int height = width * bitmap.getHeight() / bitmap.getWidth();

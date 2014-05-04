@@ -92,7 +92,8 @@
             android:layout_centerHorizontal="true"
             android:gravity="center"
             android:text="@string/page_counter"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/white" />
 
     </RelativeLayout>
 
