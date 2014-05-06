@@ -1,4 +1,4 @@
-package info.beastarman.e621;
+package info.beastarman.e621.frontend;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;

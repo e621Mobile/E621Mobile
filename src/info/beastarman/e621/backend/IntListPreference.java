@@ -1,4 +1,4 @@
-package info.beastarman.e621;
+package info.beastarman.e621.backend;
 
 import android.content.Context;
 import android.preference.ListPreference;

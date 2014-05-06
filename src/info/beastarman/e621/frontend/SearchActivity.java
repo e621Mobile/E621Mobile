@@ -1,9 +1,12 @@
-package info.beastarman.e621;
+package info.beastarman.e621.frontend;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
+import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.middleware.E621Middleware;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +19,7 @@ import android.graphics.drawable.Drawable;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -28,204 +32,212 @@ public class SearchActivity extends Activity {
 	public static String SEARCH = "search";
 	public static String PAGE = "page";
 	public static String LIMIT = "limit";
-	
+
 	public String search = "";
 	public int page = 0;
 	public int limit = 20;
-	
+
 	private ArrayList<E621Image> e621Images = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
-	
+
 	E621Middleware e621 = null;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_search);
-		
+
 		e621 = new E621Middleware(getApplicationContext());
-		
-		search = getIntent().getExtras().getString(SearchActivity.SEARCH,"");
-		page = getIntent().getExtras().getInt(SearchActivity.PAGE,0);
-		limit = getIntent().getExtras().getInt(SearchActivity.LIMIT,20);
-		
-		((EditText)findViewById(R.id.searchInput)).setText(search);
-		
+
+		search = getIntent().getExtras().getString(SearchActivity.SEARCH, "");
+		page = getIntent().getExtras().getInt(SearchActivity.PAGE, 0);
+		limit = getIntent().getExtras().getInt(SearchActivity.LIMIT, 20);
+
+		((EditText) findViewById(R.id.searchInput)).setText(search);
+
 		Resources res = getResources();
-		String text = String.format(res.getString(R.string.page_counter), page+1);
-		
+		String text = String.format(res.getString(R.string.page_counter),
+				page + 1);
+
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
-		
+
 		final Handler handler = new SearchHandler(this);
-		
+
 		new Thread(new Runnable() {
-	        public void run() {
-	        	Message msg = handler.obtainMessage();
-	        	try {
+			public void run() {
+				Message msg = handler.obtainMessage();
+				try {
 					msg.obj = e621.post__index(search, page, limit);
 				} catch (IOException e) {
 					msg.obj = null;
 				}
-	        	handler.sendMessage(msg);
-	        }
-	    }).start();
+				handler.sendMessage(msg);
+			}
+		}).start();
 	}
-	
+
 	@Override
-	public void onStart()
-	{
+	public void onStart() {
 		super.onStart();
-		
-		if(e621Images != null)
-		{
+
+		if (e621Images != null) {
 			update_results();
 		}
 	}
-	
+
 	@Override
-	public void onStop()
-	{
+	public void onStop() {
 		super.onStop();
-		
-		for(ImageView img : imageViews)
-		{
+
+		for (ImageView img : imageViews) {
 			Drawable drawable = img.getDrawable();
 			if (drawable instanceof BitmapDrawable) {
-			    BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-			    Bitmap bitmap = bitmapDrawable.getBitmap();
-			    bitmap.recycle();
+				BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+				Bitmap bitmap = bitmapDrawable.getBitmap();
+				bitmap.recycle();
 			}
 		}
-		
+
 		imageViews.clear();
-		
+
 		LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
 	}
-	
-	public void update_results()
-	{
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		switch (item.getItemId()) {
+		case R.id.action_settings:
+			open_settings();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
+	public void open_settings() {
+		Intent intent;
+		if (Build.VERSION.SDK_INT < 11) {
+			intent = new Intent(this, SettingsActivityOld.class);
+		} else {
+			intent = new Intent(this, SettingsActivityNew.class);
+		}
+		startActivity(intent);
+	}
+
+	public void update_results() {
 		LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
-		
-		if(e621Images == null)
-		{
+
+		if (e621Images == null) {
 			TextView t = new TextView(getApplicationContext());
 			t.setText(R.string.no_internet_no_results);
 			t.setGravity(Gravity.CENTER_HORIZONTAL);
 			t.setPadding(0, 24, 0, 0);
-			
+
 			layout.addView(t);
-			
+
 			return;
-		}
-		else if(e621Images.size() == 0)
-		{
+		} else if (e621Images.size() == 0) {
 			TextView t = new TextView(getApplicationContext());
 			t.setText(R.string.no_results);
 			t.setGravity(Gravity.CENTER_HORIZONTAL);
 			t.setPadding(0, 24, 0, 0);
-			
+
 			layout.addView(t);
-			
+
 			return;
 		}
-		
+
 		DisplayMetrics dm = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(dm);
 		dm.widthPixels = layout.getWidth();
-		
-		for(final E621Image img : e621Images)
-		{
+
+		for (final E621Image img : e621Images) {
 			ImageView imgView = new ImageView(getApplicationContext());
 			RelativeLayout rel = new RelativeLayout(getApplicationContext());
 			ProgressBar bar = new ProgressBar(getApplicationContext());
-			
+
 			rel.setPadding(0, 20, 0, 20);
-			
+
 			imageViews.add(imgView);
-			
+
 			rel.addView(bar);
 			rel.addView(imgView);
 			layout.addView(rel);
-			
+
 			imgView.setTag(R.id.imageId, img.id);
-			
+
 			imgView.setOnClickListener(new View.OnClickListener() {
-			    @Override
-			    public void onClick(View v) {
-			        imageClick(v);
-			    }
+				@Override
+				public void onClick(View v) {
+					imageClick(v);
+				}
 			});
-			
-			RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)bar.getLayoutParams();
-			layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+
+			RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) bar
+					.getLayoutParams();
+			layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT,
+					RelativeLayout.TRUE);
 			bar.setLayoutParams(layoutParams);
-			
-			ImageViewHandler handler = new ImageViewHandler(imgView,dm,bar);
-			
-			new Thread(new ImageLoadRunnable(handler,img,e621,E621Image.PREVIEW)).start();
+
+			ImageViewHandler handler = new ImageViewHandler(imgView, dm, bar);
+
+			new Thread(new ImageLoadRunnable(handler, img, e621,
+					E621Image.PREVIEW)).start();
 		}
 	}
-	
-	public void imageClick(View view)
-	{
+
+	public void imageClick(View view) {
 		String id = (String) view.getTag(R.id.imageId);
-		
+
 		Intent intent = new Intent(this, ImageActivity.class);
-		intent.putExtra(ImageActivity.ID,id);
+		intent.putExtra(ImageActivity.ID, id);
 		startActivity(intent);
 	}
-	
-	public void search(View view)
-    {
-    	EditText editText = (EditText) findViewById(R.id.searchInput);
-    	String search = editText.getText().toString().trim();
-    	
-    	if(search.length() > 0)
-    	{
-    		Intent intent = new Intent(this, SearchActivity.class);
-    		intent.putExtra(SearchActivity.SEARCH,search);
-    		startActivity(intent);
-    	}
-    }
-	
-	public void prev(View view)
-	{
-		if(page > 0)
-		{
+
+	public void search(View view) {
+		EditText editText = (EditText) findViewById(R.id.searchInput);
+		String search = editText.getText().toString().trim();
+
+		if (search.length() > 0) {
 			Intent intent = new Intent(this, SearchActivity.class);
-			intent.putExtra(SearchActivity.SEARCH,search);
-			intent.putExtra(SearchActivity.PAGE,page-1);
-			intent.putExtra(SearchActivity.LIMIT,limit);
+			intent.putExtra(SearchActivity.SEARCH, search);
 			startActivity(intent);
 		}
 	}
-	
-	public void next(View view)
-	{
+
+	public void prev(View view) {
+		if (page > 0) {
+			Intent intent = new Intent(this, SearchActivity.class);
+			intent.putExtra(SearchActivity.SEARCH, search);
+			intent.putExtra(SearchActivity.PAGE, page - 1);
+			intent.putExtra(SearchActivity.LIMIT, limit);
+			startActivity(intent);
+		}
+	}
+
+	public void next(View view) {
 		Intent intent = new Intent(this, SearchActivity.class);
-		intent.putExtra(SearchActivity.SEARCH,search);
-		intent.putExtra(SearchActivity.PAGE,page+1);
-		intent.putExtra(SearchActivity.LIMIT,limit);
+		intent.putExtra(SearchActivity.SEARCH, search);
+		intent.putExtra(SearchActivity.PAGE, page + 1);
+		intent.putExtra(SearchActivity.LIMIT, limit);
 		startActivity(intent);
 	}
-	
-	private static class SearchHandler extends Handler
-	{
+
+	private static class SearchHandler extends Handler {
 		SearchActivity activity;
-		
-		public SearchHandler(SearchActivity activity)
-		{
+
+		public SearchHandler(SearchActivity activity) {
 			this.activity = activity;
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		@Override
-		public void handleMessage(Message msg)
-		{
-			ArrayList<E621Image> result = (ArrayList<E621Image>)msg.obj;
+		public void handleMessage(Message msg) {
+			ArrayList<E621Image> result = (ArrayList<E621Image>) msg.obj;
 			activity.e621Images = result;
 			activity.update_results();
 		}

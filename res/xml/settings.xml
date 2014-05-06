@@ -6,7 +6,7 @@
             android:summary="Hides downloaded images from apps such as Galery"
             android:title="Hide downloads" >
         </CheckBoxPreference>
-        <info.beastarman.e621.IntListPreference
+        <info.beastarman.e621.backend.IntListPreference
             android:key="prefferedFileDownloadSize"
             android:title="Download image size"
             android:summary="Set size of image when downloading it"

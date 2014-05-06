@@ -1,13 +1,13 @@
-package info.beastarman.e621;
+package info.beastarman.e621.frontend;
 
+import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621Middleware;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
-import android.preference.Preference;
 import android.preference.PreferenceFragment;
-import android.util.Log;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class SettingsActivityNew extends SettingsActivity

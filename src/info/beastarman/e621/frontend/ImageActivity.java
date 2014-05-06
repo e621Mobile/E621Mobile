@@ -1,19 +1,19 @@
-package info.beastarman.e621;
+package info.beastarman.e621.frontend;
 
 import java.io.IOException;
 
+import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
-import android.net.Uri;
+import info.beastarman.e621.middleware.E621Middleware;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
-import android.app.DownloadManager;
-import android.app.DownloadManager.Request;
 import android.content.Intent;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -28,9 +28,6 @@ public class ImageActivity extends Activity
 	E621Image e621Image = null;
 	
 	E621Middleware e621;
-	
-	private long enqueue;
-	private DownloadManager dm;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +63,32 @@ public class ImageActivity extends Activity
 			update_result();
 		}
 	}
+	
+	@Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                open_settings();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+    
+    public void open_settings()
+    {
+    	Intent intent;
+    	if(Build.VERSION.SDK_INT < 11)
+    	{
+    		intent = new Intent(this, SettingsActivityOld.class);
+    	}
+    	else
+    	{
+    		intent = new Intent(this, SettingsActivityNew.class);
+    	}
+		startActivity(intent);
+    }
 	
 	public void update_result()
 	{

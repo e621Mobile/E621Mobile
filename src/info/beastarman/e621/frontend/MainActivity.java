@@ -1,10 +1,11 @@
-package info.beastarman.e621;
+package info.beastarman.e621.frontend;
 
+import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621Middleware;
 import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;

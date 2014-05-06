@@ -1,5 +1,7 @@
-package info.beastarman.e621;
+package info.beastarman.e621.frontend;
 
+import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621Middleware;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;

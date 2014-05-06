@@ -13,12 +13,11 @@
 
     <application
         android:allowBackup="true"
-        android:debuggable="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="info.beastarman.e621.MainActivity"
+            android:name="info.beastarman.e621.frontend.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,17 +26,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="info.beastarman.e621.SearchActivity"
+            android:name="info.beastarman.e621.frontend.SearchActivity"
             android:label="@string/title_activity_search"
             android:windowSoftInputMode="stateHidden" >
         </activity>
         <activity
-            android:name="info.beastarman.e621.ImageActivity"
+            android:name="info.beastarman.e621.frontend.ImageActivity"
             android:label="@string/title_activity_image"
             android:windowSoftInputMode="stateHidden" >
         </activity>
         <activity
-            android:name="info.beastarman.e621.SettingsActivityNew"
+            android:name="info.beastarman.e621.frontend.SettingsActivityNew"
             android:label="@string/title_activity_settings" >
         </activity>
     </application>
