@@ -1,25 +1,19 @@
 package info.beastarman.e621;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 
-import info.beastarman.e621.api.E621;
 import info.beastarman.e621.api.E621Image;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
@@ -42,12 +36,14 @@ public class SearchActivity extends Activity {
 	private ArrayList<E621Image> e621Images = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
 	
-	E621 e621 = new E621();
+	E621Middleware e621 = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_search);
+		
+		e621 = new E621Middleware(getApplicationContext());
 		
 		search = getIntent().getExtras().getString(SearchActivity.SEARCH,"");
 		page = getIntent().getExtras().getInt(SearchActivity.PAGE,0);
@@ -79,8 +75,6 @@ public class SearchActivity extends Activity {
 	@Override
 	public void onStart()
 	{
-		Log.d("ASD", "onStart");
-		
 		super.onStart();
 		
 		if(e621Images != null)
@@ -92,14 +86,10 @@ public class SearchActivity extends Activity {
 	@Override
 	public void onStop()
 	{
-		Log.d("ASD", "onStop");
-		
 		super.onStop();
 		
 		for(ImageView img : imageViews)
 		{
-			Log.d("Msg", "Unloading image");
-			
 			Drawable drawable = img.getDrawable();
 			if (drawable instanceof BitmapDrawable) {
 			    BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
@@ -144,6 +134,7 @@ public class SearchActivity extends Activity {
 		
 		DisplayMetrics dm = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(dm);
+		dm.widthPixels = layout.getWidth();
 		
 		for(final E621Image img : e621Images)
 		{
@@ -151,11 +142,22 @@ public class SearchActivity extends Activity {
 			RelativeLayout rel = new RelativeLayout(getApplicationContext());
 			ProgressBar bar = new ProgressBar(getApplicationContext());
 			
+			rel.setPadding(0, 20, 0, 20);
+			
 			imageViews.add(imgView);
 			
 			rel.addView(bar);
 			rel.addView(imgView);
 			layout.addView(rel);
+			
+			imgView.setTag(R.id.imageId, img.id);
+			
+			imgView.setOnClickListener(new View.OnClickListener() {
+			    @Override
+			    public void onClick(View v) {
+			        imageClick(v);
+			    }
+			});
 			
 			RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)bar.getLayoutParams();
 			layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
@@ -163,12 +165,17 @@ public class SearchActivity extends Activity {
 			
 			ImageViewHandler handler = new ImageViewHandler(imgView,dm,bar);
 			
-			new Thread(new ImageLoadRunnable(handler,img)).start();
-			
-			BitmapFactory.Options bmOptions;
-	        bmOptions = new BitmapFactory.Options();
-	        bmOptions.inSampleSize = 1;
+			new Thread(new ImageLoadRunnable(handler,img,e621,E621Image.PREVIEW)).start();
 		}
+	}
+	
+	public void imageClick(View view)
+	{
+		String id = (String) view.getTag(R.id.imageId);
+		
+		Intent intent = new Intent(this, ImageActivity.class);
+		intent.putExtra(ImageActivity.ID,id);
+		startActivity(intent);
 	}
 	
 	public void search(View view)
@@ -214,6 +221,7 @@ public class SearchActivity extends Activity {
 			this.activity = activity;
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void handleMessage(Message msg)
 		{
@@ -222,26 +230,6 @@ public class SearchActivity extends Activity {
 			activity.update_results();
 		}
 	};
-	
-	private class ImageLoadRunnable implements Runnable
-	{
-		ImageViewHandler handler;
-		E621Image img;
-		
-		public ImageLoadRunnable(ImageViewHandler handler, E621Image img)
-		{
-			this.handler = handler;
-			this.img = img;
-		}
-		
-		@Override
-		public void run() {
-			InputStream in = e621.getImage(img, new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES),"cache/"), E621Image.PREVIEW);
-        	Message msg = handler.obtainMessage();
-        	msg.obj = in;
-        	handler.sendMessage(msg);
-		}
-	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

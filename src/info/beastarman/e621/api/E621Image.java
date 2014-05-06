@@ -5,9 +5,9 @@ import org.json.JSONObject;
 
 public class E621Image
 {
-	public static int PREVIEW = 0;
-	public static int SAMPLE = 1;
-	public static int FULL = 2;
+	public static int PREVIEW = 1;
+	public static int SAMPLE = 2;
+	public static int FULL = 3;
 	
 	public String preview_url = "";
 	public String sample_url = "";

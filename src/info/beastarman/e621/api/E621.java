@@ -1,14 +1,7 @@
 package info.beastarman.e621.api;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +17,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 public class E621
 {
@@ -43,6 +37,37 @@ public class E621
 		return instance;
 	}
 	
+	public E621Image post__show(String id) throws IOException
+	{
+		String base = String.format("%s/post/show.json?",DOMAIN_NAME);
+		
+		List<NameValuePair> params = new LinkedList<NameValuePair>();
+		
+		params.add(new BasicNameValuePair("id", id));
+		
+		base += URLEncodedUtils.format(params, "utf-8");
+		
+		HttpResponse response = tryHttpGet(base,5);
+	    StatusLine statusLine = response.getStatusLine();
+	    if(statusLine.getStatusCode() == HttpStatus.SC_OK){
+	        ByteArrayOutputStream out = new ByteArrayOutputStream();
+	        response.getEntity().writeTo(out);
+	        out.close();
+	        String responseString = out.toString();
+	        
+	        try {
+				return E621Image.fromJSON(new JSONObject(responseString));
+			} catch (JSONException e) {
+				return null;
+			}
+	        
+	    } else{
+	        //Closes the connection.
+	        response.getEntity().getContent().close();
+	        throw new IOException(statusLine.getReasonPhrase());
+	    }
+	}
+	
 	public ArrayList<E621Image> post__index(String tags, Integer page, Integer limit) throws IOException
 	{
 		String base = String.format("%s/post/index.json?",DOMAIN_NAME);
@@ -55,8 +80,7 @@ public class E621
 		
 		base += URLEncodedUtils.format(params, "utf-8");
 		
-		HttpClient httpclient = new DefaultHttpClient();
-	    HttpResponse response = httpclient.execute(new HttpGet(base));
+		HttpResponse response = tryHttpGet(base,5);
 	    StatusLine statusLine = response.getStatusLine();
 	    if(statusLine.getStatusCode() == HttpStatus.SC_OK){
 	        ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -89,7 +113,7 @@ public class E621
 	    }
 	}
 	
-	private HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
+	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
 		
 		HttpClient httpclient = new DefaultHttpClient();
@@ -106,92 +130,5 @@ public class E621
 		}
 		
 		return httpclient.execute(new HttpGet(url));
-	}
-
-	public InputStream getImage(E621Image img, File cache_path, int size)
-	{
-		if(size != E621Image.PREVIEW)
-		{
-		    HttpResponse response = null;
-			try {
-				if(size == E621Image.FULL)
-				{
-					response = tryHttpGet(img.file_url,5);
-				}
-				else
-				{
-					response = tryHttpGet(img.sample_url,5);
-				}
-			} catch (ClientProtocolException e1) {
-				e1.printStackTrace();
-				return null;
-			} catch (IOException e1) {
-				e1.printStackTrace();
-				return null;
-			}
-		    StatusLine statusLine = response.getStatusLine();
-		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-		    {
-		        ByteArrayOutputStream out = new ByteArrayOutputStream();
-		        try {
-		        	response.getEntity().writeTo(out);
-					out.close();
-					return new ByteArrayInputStream(out.toByteArray());
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-					return null;
-				}
-		    }
-		}
-		
-		File cache_local = new File(cache_path, img.id + "." + img.file_ext);
-		
-		try {
-			return new FileInputStream(cache_local);
-		} catch (FileNotFoundException e) {
-		    HttpResponse response = null;
-			try {
-				response = tryHttpGet(img.preview_url,5);
-			} catch (ClientProtocolException e1) {
-				e1.printStackTrace();
-				return null;
-			} catch (IOException e1) {
-				e1.printStackTrace();
-				return null;
-			}
-		    StatusLine statusLine = response.getStatusLine();
-		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-		    {
-		        ByteArrayOutputStream out = new ByteArrayOutputStream();
-		        try {
-		        	response.getEntity().writeTo(out);
-					out.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-					return null;
-				}
-		        
-		        byte[] raw_file = out.toByteArray();
-		        
-		        try {
-		        	cache_local.getParentFile().mkdirs();
-		        	cache_local.createNewFile();
-					BufferedOutputStream file;
-					file = new BufferedOutputStream(new FileOutputStream(cache_local));
-					file.write(raw_file);
-					file.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-					return null;
-				}
-		        
-		        return new ByteArrayInputStream(raw_file);
-		    }
-		}
-		
-		return null;
 	}
 }

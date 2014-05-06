@@ -12,4 +12,6 @@
     <string name="page_counter">"Page\n%1$d"</string>
     <string name="no_results">No results found.</string>
     <string name="no_internet_no_results">Could not retrieve results. Please check your internet connection.</string>
+    <string name="title_activity_image">ImageActivity</string>
+
 </resources>

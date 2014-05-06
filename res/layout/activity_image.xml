@@ -3,12 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/BackgroundColor"
-    android:gravity="center|top"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".SearchActivity" >
+    tools:context=".ImageActivity" >
 
     <LinearLayout
         android:id="@+id/linearLayout1"
@@ -39,9 +38,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/relativeLayout1"
-        android:layout_below="@+id/linearLayout1"
-        android:paddingLeft="50dp"
-        android:paddingRight="50dp" >
+        android:layout_below="@+id/linearLayout1" >
 
         <LinearLayout
             android:id="@+id/content_wrapper"
@@ -59,44 +56,5 @@
         </LinearLayout>
 
     </ScrollView>
-
-    <RelativeLayout
-        android:id="@+id/relativeLayout1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="vertical" >
-
-        <Button
-            android:id="@+id/button2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_toLeftOf="@+id/page_counter"
-            android:onClick="prev"
-            android:text="@string/prev_page" />
-
-        <Button
-            android:id="@+id/button3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:layout_toRightOf="@+id/page_counter"
-            android:onClick="next"
-            android:text="@string/next_page" />
-
-        <TextView
-            android:id="@+id/page_counter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:gravity="center"
-            android:text="@string/page_counter"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/white" />
-
-    </RelativeLayout>
-
+    
 </RelativeLayout>
