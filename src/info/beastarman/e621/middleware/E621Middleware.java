@@ -106,7 +106,7 @@ public class E621Middleware extends E621
 			thumb_cache = new ImageCacheManager(cache_path,0);
 		}
 		
-		thumb_cache.max_size = settings.getLong("thumbnailCacheSize", 1024L*1024*5);
+		thumb_cache.max_size = 1024L*1024*settings.getInt("thumbnailCacheSize", 5);
 		thumb_cache.clean();
 		
 		if(full_cache == null)
@@ -114,7 +114,7 @@ public class E621Middleware extends E621
 			full_cache = new ImageCacheManager(full_cache_path,0);
 		}
 		
-		full_cache.max_size = settings.getLong("fullCacheSize", 1024L*1024*20);
+		full_cache.max_size = 1024L*1024*settings.getInt("fullCacheSize", 10);
 		full_cache.clean();
 		
 		if(download_manager == null)

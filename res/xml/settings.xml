@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" xmlns:custom="http://schemas.android.com/apk/res-auto">
     <PreferenceCategory android:title="Settings">
         <CheckBoxPreference
             android:key="hideDownloadFolder"
@@ -13,5 +13,21 @@
             android:entries="@array/imageSizes"
             android:entryValues="@array/imageSizesValues"
             />
+        <info.beastarman.e621.views.SeekBarDialogPreference
+            android:key="thumbnailCacheSize"
+	        android:defaultValue="5"
+	        android:dialogMessage="Please select the size of the thumbnails cache:"
+	        android:max="20"
+	        android:title="Thumbnail cache size"
+	        custom:progressTextSuffix=" Mb"
+	        custom:min="1" />
+        <info.beastarman.e621.views.SeekBarDialogPreference
+            android:key="fullCacheSize"
+	        android:defaultValue="10"
+	        android:dialogMessage="Please select the size of the images cache:"
+	        android:max="50"
+	        android:title="Images cache size"
+	        custom:progressTextSuffix=" Mb"
+	        custom:min="1" />
     </PreferenceCategory>
 </PreferenceScreen>

@@ -2,6 +2,7 @@ package info.beastarman.e621.frontend;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.views.SeekBarDialogPreference;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,6 +34,12 @@ public class SettingsActivityNew extends SettingsActivity
             
             ListPreference downloadSize = (ListPreference)findPreference("prefferedFileDownloadSize");
             downloadSize.setValue(String.valueOf(getPreferenceManager().getSharedPreferences().getInt("prefferedFileDownloadSize", 2)));
+            
+            SeekBarDialogPreference thumbnailCacheSize = (SeekBarDialogPreference)findPreference("thumbnailCacheSize");
+            thumbnailCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("thumbnailCacheSize", 5));
+            
+            SeekBarDialogPreference fullCacheSize = (SeekBarDialogPreference)findPreference("fullCacheSize");
+            fullCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("fullCacheSize", 10));
         }
     }
 }
