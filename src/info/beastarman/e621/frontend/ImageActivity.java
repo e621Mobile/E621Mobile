@@ -103,12 +103,6 @@ public class ImageActivity extends Activity
 	        	{
 	        		ImageButton button = (ImageButton)findViewById(R.id.downloadButton);
 	        		button.setImageResource(android.R.drawable.ic_menu_delete);
-	        		button.setOnClickListener(new View.OnClickListener() {
-	    			    @Override
-	    			    public void onClick(View v) {
-	    			        delete(v);
-	    			    }
-	    			});
 	        	}
 	        	
 	        	DisplayMetrics dm = new DisplayMetrics();
@@ -140,7 +134,19 @@ public class ImageActivity extends Activity
     	}
     }
 	
-	public void delete(View view)
+	public void save_delete(View view)
+	{
+		if(e621.isSaved(e621Image))
+		{
+			delete();
+		}
+		else
+		{
+			save();
+		}
+	}
+	
+	public void delete()
 	{
 		ImageButton button = (ImageButton)findViewById(R.id.downloadButton);
 		button.setImageResource(android.R.drawable.ic_menu_save);
@@ -154,7 +160,7 @@ public class ImageActivity extends Activity
 		}).start();
 	}
 	
-	public void save(View view)
+	public void save()
 	{
 		ImageButton button = (ImageButton)findViewById(R.id.downloadButton);
 		button.setImageResource(android.R.drawable.ic_menu_delete);
