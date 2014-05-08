@@ -11,6 +11,7 @@
     tools:context=".MainActivity" >
 
     <FrameLayout
+        android:id="@+id/frameLayout1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" >
 
@@ -23,7 +24,7 @@
 
         <FrameLayout
             android:layout_width="wrap_content"
-            android:layout_height="180dp"
+            android:layout_height="140dp"
             android:layout_gravity="center"
             android:gravity="center" >
 
@@ -37,12 +38,10 @@
             <LinearLayout
                 android:id="@+id/linearLayout1"
                 android:layout_width="fill_parent"
-                android:layout_height="180dp"
+                android:layout_height="140dp"
                 android:background="#10FFFFFF"
                 android:gravity="center"
-                android:orientation="vertical"
-                android:paddingBottom="24dp"
-                android:paddingTop="24dp" >
+                android:orientation="vertical" >
 
                 <EditText
                     android:id="@+id/searchInput"
@@ -57,11 +56,68 @@
                     android:id="@+id/button1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="20dp"
+                    android:layout_marginTop="20dp"
                     android:onClick="search"
                     android:text="@string/search_button" />
             </LinearLayout>
         </FrameLayout>
     </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/frameLayout1"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@+id/frameLayout1"
+        android:gravity="bottom"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/mascotBy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#80000000"
+            android:padding="4dp"
+            android:text="Mascot by someone"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/white" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center" >
+
+            <Button
+                android:id="@+id/button2"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_toLeftOf="@+id/textView2"
+                android:onClick="visit_mascot_website"
+                android:text="Visit website" />
+
+            <Button
+                android:id="@+id/button3"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_toRightOf="@+id/textView2"
+                android:onClick="change_mascot"
+                android:text="Change mascot" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/button3"
+                android:layout_alignBottom="@+id/button3"
+                android:layout_centerHorizontal="true"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        </RelativeLayout>
+    </LinearLayout>
 
 </RelativeLayout>
