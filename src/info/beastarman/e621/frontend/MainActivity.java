@@ -10,10 +10,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 public class MainActivity extends Activity
 {
 	E621Middleware e621;
+	Mascot[] mascots = new Mascot[]{
+			new Mascot(R.drawable.mascot0,R.drawable.mascot0_blur),
+			new Mascot(R.drawable.mascot1,R.drawable.mascot1_blur),
+			new Mascot(R.drawable.mascot2,R.drawable.mascot2_blur),
+			new Mascot(R.drawable.mascot3,R.drawable.mascot3_blur),
+			new Mascot(R.drawable.mascot4,R.drawable.mascot4_blur),
+			new Mascot(R.drawable.mascot5,R.drawable.mascot5_blur),
+			new Mascot(R.drawable.mascot6,R.drawable.mascot6_blur),
+			new Mascot(R.drawable.mascot7,R.drawable.mascot7_blur),
+	};
+	
+	int previous_mascot = -1;
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,7 +35,13 @@ public class MainActivity extends Activity
         
         e621 = new E621Middleware(getApplicationContext());
     }
-
+	
+	protected void onStart()
+	{
+		super.onStart();
+		
+		change_mascot();
+	}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -41,6 +60,23 @@ public class MainActivity extends Activity
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+    
+    public void change_mascot()
+    {
+    	ImageView mascot = (ImageView)findViewById(R.id.mascot);
+    	ImageView mascot_blur = (ImageView)findViewById(R.id.mascot_blur);
+    	
+    	int random_mascot = (int) (Math.random()*(mascots.length-1));
+    	if(random_mascot >= previous_mascot)
+    	{
+    		random_mascot++;
+    	}
+    	
+    	Mascot m = mascots[random_mascot];
+    	
+    	mascot.setImageResource(m.image);
+    	mascot_blur.setImageResource(m.blur);
     }
     
     public void open_settings()
@@ -67,6 +103,18 @@ public class MainActivity extends Activity
     		Intent intent = new Intent(this, SearchActivity.class);
     		intent.putExtra(SearchActivity.SEARCH,search);
     		startActivity(intent);
+    	}
+    }
+    
+    private class Mascot
+    {
+    	public int image;
+    	public int blur;
+    	
+    	public Mascot(int image, int blur)
+    	{
+    		this.image = image;
+    		this.blur = blur;
     	}
     }
 }
