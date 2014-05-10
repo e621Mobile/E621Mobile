@@ -30,4 +30,8 @@
 	        custom:progressTextSuffix=" Mb"
 	        custom:min="1" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="Actions">
+        <Preference android:title="Clear cache" android:key="clearCache"/>
+        <Preference android:title="Update downloaded images tags" android:key="updateTags"/>
+    </PreferenceCategory>
 </PreferenceScreen>

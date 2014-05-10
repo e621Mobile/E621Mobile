@@ -6,8 +6,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,12 +31,20 @@ public class MainActivity extends Activity
 	
 	int previous_mascot = -1;
 	
+	private static Context context;
+	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        e621 = new E621Middleware(getApplicationContext());
+        MainActivity.context = getApplicationContext();
+        
+        e621 = E621Middleware.getInstance();
+    }
+	
+	public static Context getContext() {
+        return MainActivity.context;
     }
 	
 	protected void onStart()

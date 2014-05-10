@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -17,11 +18,17 @@ public class SettingsActivityNew extends SettingsActivity
     protected void onCreate(final Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        getFragmentManager().beginTransaction().replace(android.R.id.content, new MyPreferenceFragment()).commit();
+        
+        MyPreferenceFragment fragment = new MyPreferenceFragment();
+        fragment.activity = this;
+        
+        getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
     }
 
     public static class MyPreferenceFragment extends PreferenceFragment
     {
+    	SettingsActivityNew activity;
+    	
         @Override
         public void onCreate(final Bundle savedInstanceState)
         {
@@ -40,6 +47,15 @@ public class SettingsActivityNew extends SettingsActivity
             
             SeekBarDialogPreference fullCacheSize = (SeekBarDialogPreference)findPreference("fullCacheSize");
             fullCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("fullCacheSize", 10));
+            
+            Preference button = (Preference)getPreferenceManager().findPreference("updateTags");
+            button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0) {
+                	activity.updateTags();
+                    return true;
+                }
+            });
         }
     }
 }

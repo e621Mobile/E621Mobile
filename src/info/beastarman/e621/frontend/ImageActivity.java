@@ -34,7 +34,7 @@ public class ImageActivity extends Activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_image);
 		
-		e621 = new E621Middleware(getApplicationContext());
+		e621 = E621Middleware.getInstance();
 		
 		id= getIntent().getExtras().getString(ImageActivity.ID,"");
 		

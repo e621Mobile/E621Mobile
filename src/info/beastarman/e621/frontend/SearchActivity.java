@@ -47,7 +47,7 @@ public class SearchActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_search);
 
-		e621 = new E621Middleware(getApplicationContext());
+		e621 = E621Middleware.getInstance();
 
 		search = getIntent().getExtras().getString(SearchActivity.SEARCH, "");
 		page = getIntent().getExtras().getInt(SearchActivity.PAGE, 0);
@@ -70,6 +70,7 @@ public class SearchActivity extends Activity {
 				try {
 					msg.obj = e621.post__index(search, page, limit);
 				} catch (IOException e) {
+					e.printStackTrace();
 					msg.obj = null;
 				}
 				handler.sendMessage(msg);

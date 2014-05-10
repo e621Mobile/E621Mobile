@@ -6,6 +6,7 @@ import info.beastarman.e621.views.SeekBarDialogPreference;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
+import android.preference.Preference;
 
 public class SettingsActivityOld extends SettingsActivity
 {
@@ -28,5 +29,14 @@ public class SettingsActivityOld extends SettingsActivity
         
         SeekBarDialogPreference fullCacheSize = (SeekBarDialogPreference)findPreference("fullCacheSize");
         fullCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("fullCacheSize", 10));
+        
+        Preference button = (Preference)getPreferenceManager().findPreference("updateTags");
+        button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference arg0) {
+                updateTags();
+                return true;
+            }
+        });
     }
 }

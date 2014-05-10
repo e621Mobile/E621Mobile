@@ -2,7 +2,9 @@ package info.beastarman.e621.middleware;
 
 import info.beastarman.e621.api.E621;
 import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.backend.ImageCacheManager;
+import info.beastarman.e621.frontend.MainActivity;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,15 +12,21 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 
 public class E621Middleware extends E621
@@ -37,10 +45,14 @@ public class E621Middleware extends E621
 	
 	ImageCacheManager thumb_cache;
 	ImageCacheManager full_cache;
-	ImageCacheManager download_manager;
+	E621DownloadedImages download_manager;
 	
-	public E621Middleware(Context ctx)
+	private static E621Middleware instance;
+	
+	protected E621Middleware()
 	{
+		Context ctx = MainActivity.getContext();
+		
 		cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"cache/");
 		full_cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"full_cache/");
 		sd_path = new File(Environment.getExternalStorageDirectory(),"e621/");
@@ -59,6 +71,15 @@ public class E621Middleware extends E621
 		settings.registerOnSharedPreferenceChangeListener(settingsListener);
 		
 		setup();
+	}
+	
+	public static E621Middleware getInstance()
+	{
+		if(instance == null)
+		{
+			instance = new E621Middleware();
+		}
+		return instance;
 	}
 	
 	public void setup()
@@ -119,7 +140,7 @@ public class E621Middleware extends E621
 		
 		if(download_manager == null)
 		{
-			download_manager = new ImageCacheManager(download_path,0);
+			download_manager = new E621DownloadedImages(download_path);
 		}
 	}
 	
@@ -300,5 +321,155 @@ public class E621Middleware extends E621
 		}
 		
 		return null;
+	}
+	
+	public void update_tags()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run() {
+				download_manager.updateTags();
+			}
+		}).start();
+	}
+	
+	private class E621DownloadedImages extends ImageCacheManager
+	{
+		public E621DownloadedImages(File base_path)
+		{
+			super(base_path, 0);
+		}
+		
+		@Override
+		protected synchronized void update_0_1()
+		{
+			super.update_0_1();
+			
+			db.execSQL("CREATE TABLE tags (" +
+					"id TEXT PRIMARY KEY" +
+				");"
+			);
+			
+			db.execSQL("CREATE TABLE image_tags (" +
+					"image TEXT" +
+					", " +
+					"tag TEXT" +
+					", " +
+					"PRIMARY KEY(image,tag)" +
+					", " +
+					"FOREIGN KEY (image) REFERENCES images(id)" +
+					", " +
+					"FOREIGN KEY (tag) REFERENCES tags(id)" +
+				");"
+			);
+		}
+		
+		protected void updateTags()
+		{
+			Cursor c = db.rawQuery("SELECT id FROM images;", null);
+
+			if(!(c != null && c.moveToFirst()))
+			{
+				return;
+			}
+			
+			final List<E621Image> images = Collections.synchronizedList(new ArrayList<E621Image>());
+			ArrayList<Thread> threads = new ArrayList<Thread>();
+			
+			final Semaphore s = new Semaphore(10, true);
+			
+			while(true)
+			{
+				final String id = c.getString(c.getColumnIndex("id")).split("\\.")[0];
+				
+				Thread t = new Thread(new Runnable()
+				{
+					@Override
+					public void run() {
+						try {
+							try {
+								s.acquire();
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							
+							images.add(post__show(id));
+							
+							s.release();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				});
+				
+				t.start();
+				
+				threads.add(t);
+				
+				if(!c.moveToNext())
+				{
+					break;
+				}
+			}
+			
+			c.close();
+			
+			for(Thread t : threads)
+			{
+				try {
+					t.join();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			updateTags(images);
+		}
+		
+		protected synchronized void updateTags(List<E621Image> images)
+		{
+			db.beginTransaction();
+			try
+			{
+				for(E621Image img : images)
+				{
+					for(E621Tag tag : img.tags)
+					{
+						ContentValues tag_values = new ContentValues();
+						tag_values.put("id", tag.getTag());
+	
+						try
+						{
+							db.insert("tags", null, tag_values);
+						}
+						catch(SQLiteException e)
+						{
+						}
+						
+						ContentValues image_tag_values = new ContentValues();
+						image_tag_values.put("image", img.id);
+						image_tag_values.put("tag", tag.getTag());
+						
+						try
+						{
+							db.insert("image_tags", null, image_tag_values);
+						}
+						catch(SQLiteException e)
+						{
+						}
+					}
+				}
+				
+				db.setTransactionSuccessful();
+			}
+			finally
+			{
+				db.endTransaction();
+			}
+		}
 	}
 }

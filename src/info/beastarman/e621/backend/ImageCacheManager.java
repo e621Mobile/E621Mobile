@@ -21,9 +21,9 @@ import android.database.sqlite.SQLiteException;
 
 public class ImageCacheManager
 {
-	File base_path;
-	File cache_file;
-	SQLiteDatabase db;
+	protected File base_path;
+	protected File cache_file;
+	protected SQLiteDatabase db;
 	
 	public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault()); 
 	
@@ -36,11 +36,29 @@ public class ImageCacheManager
 		
 		cache_file = new File(base_path, ".cache.sqlite3");
 		
-		db = SQLiteDatabase.openOrCreateDatabase(cache_file, null);
-		
 		try
 		{
-			db.execSQL("CREATE TABLE images (" +
+			db = SQLiteDatabase.openDatabase(cache_file.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
+		}
+		catch(SQLiteException e)
+		{
+			db = SQLiteDatabase.openOrCreateDatabase(cache_file, null);
+			new_db();
+		}
+		
+		clean();
+		
+		if(db.getVersion() == 0)
+		{
+			update_0_1();
+			
+			db.setVersion(1);
+		}
+	}
+	
+	protected synchronized void new_db()
+	{
+		db.execSQL("CREATE TABLE images (" +
 						"id TEXT PRIMARY KEY" +
 						", " +
 						"file_size UNSIGNED BIG INT" +
@@ -48,11 +66,10 @@ public class ImageCacheManager
 						"last_access DATETIME DEFAULT CURRENT_TIMESTAMP" +
 					");"
 				);
-		}
-		catch(SQLiteException e)
-		{
-			clean();
-		}
+	}
+	
+	protected synchronized void update_0_1()
+	{
 	}
 	
 	public boolean hasFile(String id)
