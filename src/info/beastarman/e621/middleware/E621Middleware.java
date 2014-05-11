@@ -1,5 +1,6 @@
 package info.beastarman.e621.middleware;
 
+import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Tag;
@@ -14,6 +15,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -22,12 +24,17 @@ import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 
+import android.app.Activity;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
+import android.support.v4.app.NotificationCompat;
 
 public class E621Middleware extends E621
 {
@@ -46,6 +53,9 @@ public class E621Middleware extends E621
 	ImageCacheManager thumb_cache;
 	ImageCacheManager full_cache;
 	E621DownloadedImages download_manager;
+	
+	private static int UPDATE_TAGS_NOTIFICATION_ID = 1;
+	private Semaphore updateTagsSemaphore = new Semaphore(1);
 	
 	private static E621Middleware instance;
 	
@@ -184,7 +194,7 @@ public class E621Middleware extends E621
 	
 	public boolean isSaved(E621Image img)
 	{
-		return download_manager.hasFile(img.id + "." + img.file_ext);
+		return download_manager.hasFile(img);
 	}
 	
 	public void saveImage(E621Image img)
@@ -193,13 +203,13 @@ public class E621Middleware extends E621
 		
 		if(in != null)
 		{
-			download_manager.createOrUpdate(img.id + "." + img.file_ext, in);
+			download_manager.createOrUpdate(img, in);
 		}
 	}
 	
 	public void deleteImage(E621Image img)
 	{
-		download_manager.removeFile(img.id + "." + img.file_ext);
+		download_manager.removeFile(img);
 	}
 	
 	private byte[] getImageFromInternet(String url)
@@ -240,7 +250,7 @@ public class E621Middleware extends E621
 	{
 		if(size == E621Image.PREVIEW)
 		{
-			InputStream in = download_manager.getFile(img.id + "." + img.file_ext);
+			InputStream in = download_manager.getFile(img);
 			
 			if(in != null)
 			{
@@ -281,7 +291,7 @@ public class E621Middleware extends E621
 		
 		if(size != E621Image.PREVIEW)
 		{
-			InputStream in = download_manager.getFile(img.id + "." + img.file_ext);
+			InputStream in = download_manager.getFile(img);
 			
 			if(in != null)
 			{
@@ -323,13 +333,43 @@ public class E621Middleware extends E621
 		return null;
 	}
 	
-	public void update_tags()
+	public void update_tags(Activity activity)
 	{
+		if(!updateTagsSemaphore.tryAcquire())
+		{
+			return;
+		}
+		
+		NotificationCompat.Builder mBuilder =
+		        new NotificationCompat.Builder(MainActivity.getContext())
+		        .setSmallIcon(R.drawable.ic_launcher)
+		        .setContentTitle("Updating tags")
+		        .setContentText("Please wait")
+		        .setOngoing(true);
+		
+		Intent resultIntent = new Intent(activity, MainActivity.class);
+		PendingIntent pIntent = PendingIntent.getActivity(activity, 0, resultIntent, 0);
+		
+		mBuilder.setContentIntent(pIntent);
+		
+		final NotificationManager mNotificationManager =
+		    (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+
+		mNotificationManager.notify(UPDATE_TAGS_NOTIFICATION_ID, mBuilder.build());
+		
 		new Thread(new Runnable()
 		{
 			@Override
 			public void run() {
-				download_manager.updateTags();
+				try
+				{
+					download_manager.updateTags();
+					mNotificationManager.cancel(UPDATE_TAGS_NOTIFICATION_ID);
+				}
+				finally
+				{
+					updateTagsSemaphore.release();
+				}
 			}
 		}).start();
 	}
@@ -363,6 +403,58 @@ public class E621Middleware extends E621
 					"FOREIGN KEY (tag) REFERENCES tags(id)" +
 				");"
 			);
+		}
+		
+		public synchronized boolean hasFile(E621Image img)
+		{
+			return super.hasFile(img.id + "." + img.file_ext);
+		}
+		
+		public synchronized InputStream getFile(E621Image img)
+		{
+			return super.getFile(img.id + "." + img.file_ext);
+		}
+		
+		public synchronized void removeFile(E621Image img)
+		{
+			String id = img.id + "." + img.file_ext;
+			
+			super.removeFile(id);
+			
+			String[] query_params = new String[]{id};
+			
+			db.delete("image_tags", "image = ?", query_params);
+		}
+		
+		public synchronized void createOrUpdate(E621Image img, InputStream in)
+		{
+			super.createOrUpdate(img.id + "." + img.file_ext, in);
+			
+			for(E621Tag tag : img.tags)
+			{
+				ContentValues tag_values = new ContentValues();
+				tag_values.put("id", tag.getTag());
+
+				try
+				{
+					db.insert("tags", null, tag_values);
+				}
+				catch(SQLiteException e)
+				{
+				}
+				
+				ContentValues image_tag_values = new ContentValues();
+				image_tag_values.put("image", img.id + "." + img.file_ext);
+				image_tag_values.put("tag", tag.getTag());
+				
+				try
+				{
+					db.insert("image_tags", null, image_tag_values);
+				}
+				catch(SQLiteException e)
+				{
+				}
+			}
 		}
 		
 		protected void updateTags()
@@ -435,23 +527,36 @@ public class E621Middleware extends E621
 			db.beginTransaction();
 			try
 			{
+				HashSet<E621Tag> tags = new HashSet<E621Tag>();
+				
 				for(E621Image img : images)
 				{
 					for(E621Tag tag : img.tags)
 					{
-						ContentValues tag_values = new ContentValues();
-						tag_values.put("id", tag.getTag());
-	
-						try
+						if(!tags.contains(tag))
 						{
-							db.insert("tags", null, tag_values);
+							tags.add(tag);
+							
+							ContentValues tag_values = new ContentValues();
+							tag_values.put("id", tag.getTag());
+		
+							try
+							{
+								db.insert("tags", null, tag_values);
+							}
+							catch(SQLiteException e)
+							{
+							}
 						}
-						catch(SQLiteException e)
-						{
-						}
-						
+					}
+				}
+				
+				for(E621Image img : images)
+				{
+					for(E621Tag tag : img.tags)
+					{
 						ContentValues image_tag_values = new ContentValues();
-						image_tag_values.put("image", img.id);
+						image_tag_values.put("image", img.id + "." + img.file_ext);
 						image_tag_values.put("tag", tag.getTag());
 						
 						try
