@@ -36,6 +36,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -334,6 +335,11 @@ public class E621Middleware extends E621
 		return null;
 	}
 	
+	public InputStream getDownloadedImage(String id)
+	{
+		return download_manager.getFile(id);
+	}
+	
 	public void update_tags(Activity activity)
 	{
 		if(!updateTagsSemaphore.tryAcquire())
@@ -375,6 +381,11 @@ public class E621Middleware extends E621
 		}).start();
 	}
 	
+	public ArrayList<String> localSearch(int page, int limit, String search)
+	{
+		return download_manager.search(page, limit);
+	}
+	
 	private class E621DownloadedImages extends ImageCacheManager
 	{
 		public E621DownloadedImages(File base_path)
@@ -404,6 +415,40 @@ public class E621Middleware extends E621
 					"FOREIGN KEY (tag) REFERENCES tags(id)" +
 				");"
 			);
+		}
+		
+		public ArrayList<String> search(int page, int limit)
+		{
+			Cursor c = db.rawQuery("SELECT id FROM images WHERE 1 ORDER BY id LIMIT ? OFFSET ?;", new String[]{String.valueOf(limit),String.valueOf(limit*page)});
+			
+			/*
+				EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag="gay")
+				AND
+				(
+					EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag="lucario")
+					OR
+					EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag="mewtwo")
+				)
+			 */
+			
+			if(c == null || !c.moveToFirst())
+			{
+				return new ArrayList<String>();
+			}
+			
+			ArrayList<String> ins = new ArrayList<String>();
+			
+			for(;limit>0; limit--)
+			{
+				ins.add(c.getString(c.getColumnIndex("id")));
+				
+				if(!c.moveToNext())
+				{
+					break;
+				}
+			}
+			
+			return ins;
 		}
 		
 		public synchronized boolean hasFile(E621Image img)

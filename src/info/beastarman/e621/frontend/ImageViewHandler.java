@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -40,13 +41,19 @@ public class ImageViewHandler extends Handler
 		}
 		catch (Exception e)
 		{
-			((ViewGroup)this.imgView.getParent()).removeView(this.imgView);
+			e.printStackTrace();
+			
+			ViewGroup v = ((ViewGroup)this.imgView.getParent()); 
+			
+			v.removeView(this.imgView);
 		}
 		finally
 		{
 			if(this.loader != null)
 			{
-				((ViewGroup)this.loader.getParent()).removeView(this.loader);
+				ViewGroup v = ((ViewGroup)this.loader.getParent()); 
+				
+				v.removeView(this.loader);
 			}
 		}
 	}

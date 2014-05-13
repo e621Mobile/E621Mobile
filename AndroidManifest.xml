@@ -39,6 +39,11 @@
             android:name="info.beastarman.e621.frontend.SettingsActivityNew"
             android:label="@string/title_activity_settings" >
         </activity>
+        <activity
+            android:name="info.beastarman.e621.frontend.DownloadsActivity"
+            android:label="@string/title_activity_downloads"
+            android:windowSoftInputMode="stateHidden" >
+        </activity>
     </application>
 
 </manifest>

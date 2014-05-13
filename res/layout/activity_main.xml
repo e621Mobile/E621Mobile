@@ -52,13 +52,27 @@
                     android:inputType="textAutoComplete"
                     android:textColor="@color/white" />
 
-                <Button
-                    android:id="@+id/button1"
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:onClick="search"
-                    android:text="@string/search_button" />
+                    android:layout_height="wrap_content" >
+
+                    <Button
+                        android:id="@+id/Button01"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:onClick="localSearch"
+                        android:text="@string/local_search_button" />
+
+                    <Button
+                        android:id="@+id/button1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:onClick="search"
+                        android:text="@string/internet_search_button" />
+
+                </LinearLayout>
             </LinearLayout>
         </FrameLayout>
     </FrameLayout>

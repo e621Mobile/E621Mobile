@@ -13,5 +13,8 @@
     <string name="no_results">No results found.</string>
     <string name="no_internet_no_results">Could not retrieve results. Please check your internet connection.</string>
     <string name="title_activity_image">ImageActivity</string>
+    <string name="title_activity_downloads">DownloadsActivity</string>
+    <string name="local_search_button">Local Search</string>
+    <string name="internet_search_button">Internet Search</string>
 
 </resources>
