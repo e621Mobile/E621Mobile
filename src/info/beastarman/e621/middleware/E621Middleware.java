@@ -3,6 +3,7 @@ package info.beastarman.e621.middleware;
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621;
 import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.backend.ImageCacheManager;
 import info.beastarman.e621.frontend.MainActivity;
@@ -177,13 +178,13 @@ public class E621Middleware extends E621
 	}
 	
 	@Override
-	public ArrayList<E621Image> post__index(String tags, Integer page, Integer limit) throws IOException
+	public E621Search post__index(String tags, Integer page, Integer limit) throws IOException
 	{
-		ArrayList<E621Image> ret = super.post__index(tags, page, limit);
+		E621Search ret = super.post__index(tags, page, limit);
 		
 		if(ret != null)
 		{
-			for(E621Image img : ret)
+			for(E621Image img : ret.images)
 			{
 				e621ImageCache.put(img.id, img);
 			}

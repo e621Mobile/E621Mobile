@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.middleware.E621Middleware;
 import android.os.Build;
 import android.os.Bundle;
@@ -37,7 +38,7 @@ public class SearchActivity extends Activity {
 	public int page = 0;
 	public int limit = 20;
 
-	private ArrayList<E621Image> e621Images = null;
+	private E621Search e621Search = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
 
 	E621Middleware e621 = null;
@@ -57,7 +58,7 @@ public class SearchActivity extends Activity {
 
 		Resources res = getResources();
 		String text = String.format(res.getString(R.string.page_counter),
-				page + 1);
+				String.valueOf(page + 1),"...");
 
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
@@ -82,7 +83,7 @@ public class SearchActivity extends Activity {
 	public void onStart() {
 		super.onStart();
 
-		if (e621Images != null) {
+		if (e621Search != null) {
 			update_results();
 		}
 	}
@@ -132,7 +133,7 @@ public class SearchActivity extends Activity {
 		LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
 
-		if (e621Images == null) {
+		if (e621Search == null) {
 			TextView t = new TextView(getApplicationContext());
 			t.setText(R.string.no_internet_no_results);
 			t.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -141,7 +142,16 @@ public class SearchActivity extends Activity {
 			layout.addView(t);
 
 			return;
-		} else if (e621Images.size() == 0) {
+		}
+		
+		Resources res = getResources();
+		String text = String.format(res.getString(R.string.page_counter),
+				String.valueOf(e621Search.current_page() + 1), String.valueOf(e621Search.total_pages()));
+
+		TextView page_counter = (TextView) findViewById(R.id.page_counter);
+		page_counter.setText(text);
+		
+		if (e621Search.images.size() == 0) {
 			TextView t = new TextView(getApplicationContext());
 			t.setText(R.string.no_results);
 			t.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -156,7 +166,7 @@ public class SearchActivity extends Activity {
 		getWindowManager().getDefaultDisplay().getMetrics(dm);
 		dm.widthPixels = layout.getWidth();
 
-		for (final E621Image img : e621Images) {
+		for (final E621Image img : e621Search.images) {
 			ImageView imgView = new ImageView(getApplicationContext());
 			RelativeLayout rel = new RelativeLayout(getApplicationContext());
 			ProgressBar bar = new ProgressBar(getApplicationContext());
@@ -210,8 +220,14 @@ public class SearchActivity extends Activity {
 		}
 	}
 
-	public void prev(View view) {
-		if (page > 0) {
+	public void prev(View view)
+	{
+		if (page > 0)
+		{
+			if(e621Search != null && !e621Search.has_prev_page())
+			{
+				return;
+			}
 			Intent intent = new Intent(this, SearchActivity.class);
 			intent.putExtra(SearchActivity.SEARCH, search);
 			intent.putExtra(SearchActivity.PAGE, page - 1);
@@ -220,7 +236,13 @@ public class SearchActivity extends Activity {
 		}
 	}
 
-	public void next(View view) {
+	public void next(View view)
+	{
+		if(e621Search != null && !e621Search.has_next_page())
+		{
+			return;
+		}
+		
 		Intent intent = new Intent(this, SearchActivity.class);
 		intent.putExtra(SearchActivity.SEARCH, search);
 		intent.putExtra(SearchActivity.PAGE, page + 1);
@@ -235,11 +257,10 @@ public class SearchActivity extends Activity {
 			this.activity = activity;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public void handleMessage(Message msg) {
-			ArrayList<E621Image> result = (ArrayList<E621Image>) msg.obj;
-			activity.e621Images = result;
+			E621Search result = (E621Search) msg.obj;
+			activity.e621Search = result;
 			activity.update_results();
 		}
 	};

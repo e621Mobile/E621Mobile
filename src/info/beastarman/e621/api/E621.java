@@ -78,7 +78,7 @@ public class E621
 	    }
 	}
 	
-	public ArrayList<E621Image> post__index(String tags, Integer page, Integer limit) throws IOException
+	public E621Search post__index(String tags, Integer page, Integer limit) throws IOException
 	{
 		String base = String.format("%s/post/index.xml?",DOMAIN_NAME);
 		
@@ -115,14 +115,14 @@ public class E621
 					images.add(E621Image.fromXML((Element)nodes.item(i)));
 				}
 				
-				return images;
+				return new E621Search(images,Integer.parseInt(posts.getAttribute("offset")),Integer.parseInt(posts.getAttribute("count")),limit);
 	        } catch (ParserConfigurationException e) {
 				e.printStackTrace();
-				return new ArrayList<E621Image>();
+				return new E621Search();
 				
 			} catch (SAXException e) {
 				e.printStackTrace();
-				return new ArrayList<E621Image>();
+				return new E621Search();
 			}
 	        
 	    } else{
