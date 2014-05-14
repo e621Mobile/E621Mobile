@@ -501,6 +501,11 @@ public class E621Middleware extends E621
 		}
 	}
 	
+	public int pages(int results_per_page, String query)
+	{
+		return (int) Math.ceil(((double)download_manager.totalEntries(new SearchQuery(query))) / results_per_page);
+	}
+	
 	private class E621DownloadedImages extends ImageCacheManager
 	{
 		public E621DownloadedImages(File base_path)
@@ -564,6 +569,18 @@ public class E621Middleware extends E621
 			}
 			
 			return ins;
+		}
+		
+		public int totalEntries(SearchQuery query)
+		{
+			Cursor c = db.rawQuery("SELECT COUNT(*) as c FROM images WHERE " + query.toSql() + ";", null);
+			
+			if(c == null || !c.moveToFirst())
+			{
+				return 0;
+			}
+			
+			return c.getInt(c.getColumnIndex("c"));
 		}
 		
 		public synchronized boolean hasFile(E621Image img)

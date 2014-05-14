@@ -36,6 +36,8 @@ public class DownloadsActivity extends Activity
 	public String search = "";
 	public int page = 0;
 	public int limit = 20;
+	
+	public int total_pages;
 
 	private ArrayList<String> downloads = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
@@ -54,10 +56,12 @@ public class DownloadsActivity extends Activity
 		limit = getIntent().getExtras().getInt(SearchActivity.LIMIT, 20);
 
 		((EditText) findViewById(R.id.searchInput)).setText(search);
+		
+		total_pages = e621.pages(limit, search);
 
 		Resources res = getResources();
 		String text = String.format(res.getString(R.string.page_counter),
-				String.valueOf(page + 1),"...");
+				String.valueOf(page + 1),String.valueOf(total_pages));
 
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
@@ -275,11 +279,14 @@ public class DownloadsActivity extends Activity
 
 	public void next(View view)
 	{
-		Intent intent = new Intent(this, DownloadsActivity.class);
-		intent.putExtra(DownloadsActivity.SEARCH, search);
-		intent.putExtra(DownloadsActivity.PAGE, page + 1);
-		intent.putExtra(DownloadsActivity.LIMIT, limit);
-		startActivity(intent);
+		if(page + 1 < total_pages)
+		{
+			Intent intent = new Intent(this, DownloadsActivity.class);
+			intent.putExtra(DownloadsActivity.SEARCH, search);
+			intent.putExtra(DownloadsActivity.PAGE, page + 1);
+			intent.putExtra(DownloadsActivity.LIMIT, limit);
+			startActivity(intent);
+		}
 	}
 	
 	private class ImageLoadRunnable implements Runnable
