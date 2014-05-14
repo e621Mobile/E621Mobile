@@ -8,9 +8,11 @@ import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.backend.ImageCacheManager;
 import info.beastarman.e621.frontend.MainActivity;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
@@ -36,7 +39,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -46,6 +48,7 @@ public class E621Middleware extends E621
 	File full_cache_path = null;
 	File sd_path = null;
 	File download_path = null;
+	File export_path = null;
 	
 	public static final String PREFS_NAME = "E621MobilePreferences";
 	
@@ -69,6 +72,7 @@ public class E621Middleware extends E621
 		full_cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"full_cache/");
 		sd_path = new File(Environment.getExternalStorageDirectory(),"e621/");
 		download_path = new File(sd_path,"e612 Images/");
+		export_path = new File(sd_path,"export/");
 		
 		settings = ctx.getSharedPreferences(PREFS_NAME, 0);
 		
@@ -115,6 +119,11 @@ public class E621Middleware extends E621
 		{
 			download_path.mkdirs();
 		}
+		
+		if(!export_path.exists())
+		{
+			export_path.mkdirs();
+		} 
 		
 		if(settings.getBoolean("hideDownloadFolder", true))
 		{
@@ -386,6 +395,81 @@ public class E621Middleware extends E621
 		return download_manager.search(page, limit, new SearchQuery(search));
 	}
 	
+	public void export(String search)
+	{
+		SearchQuery sq = new SearchQuery(search);
+		
+		ArrayList<String> ids = download_manager.search(0, Integer.MAX_VALUE, sq);
+		
+		final Semaphore sem = new Semaphore(10);
+		final File path = new File(export_path,sq.normalize());
+		
+		if(!path.exists())
+		{
+			path.mkdirs();
+		}
+		
+		ArrayList<Thread> threads = new ArrayList<Thread>();
+		
+		for(final String s : ids)
+		{
+			Thread t = new Thread(new Runnable()
+			{
+				@Override
+				public void run() {
+					try {
+						sem.acquire();
+						
+						File f = new File(path,s);
+						
+						InputStream in = download_manager.getFile(s);
+						
+						try {
+							BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(f));
+							out.write(IOUtils.toByteArray(in));
+							out.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						finally
+						{
+							try {
+								in.close();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						
+						return;
+					}
+					finally
+					{
+						sem.release();
+					}
+				}
+			});
+			
+			t.start();
+			
+			threads.add(t);
+		}
+		
+		for(Thread t : threads)
+		{
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	private class E621DownloadedImages extends ImageCacheManager
 	{
 		public E621DownloadedImages(File base_path)
@@ -419,8 +503,6 @@ public class E621Middleware extends E621
 		
 		public ArrayList<String> search(int page, int limit, SearchQuery query)
 		{
-			Log.d("Msg",query.toSql());
-			
 			Cursor c = db.rawQuery("SELECT id FROM images WHERE " + query.toSql() + " ORDER BY id LIMIT ? OFFSET ?;", new String[]{String.valueOf(limit),String.valueOf(limit*page)});
 			
 			/*

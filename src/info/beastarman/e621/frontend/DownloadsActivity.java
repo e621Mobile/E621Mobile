@@ -93,7 +93,7 @@ public class DownloadsActivity extends Activity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.search, menu);
+		getMenuInflater().inflate(R.menu.downloads, menu);
 		return true;
 	}
 	
@@ -104,9 +104,17 @@ public class DownloadsActivity extends Activity
 		case R.id.action_settings:
 			open_settings();
 			return true;
+		case R.id.action_export:
+			export();
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	public void export()
+	{
+		e621.export(search);
 	}
 
 	public void open_settings() {

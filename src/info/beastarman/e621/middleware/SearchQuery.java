@@ -16,11 +16,11 @@ public class SearchQuery
 		{
 			if(s.startsWith("~"))
 			{
-				ors.add(s);
+				ors.add(s.substring(1));
 			}
 			else if(s.startsWith("-"))
 			{
-				nots.add(s);
+				nots.add(s.substring(1));
 			}
 			else
 			{
@@ -30,6 +30,28 @@ public class SearchQuery
 				}
 			}
 		}
+	}
+	
+	public String normalize()
+	{
+		String ret = "";
+		
+		for(String s : ands)
+		{
+			ret = ret + " " + s;
+		}
+		
+		for(String s : ors)
+		{
+			ret = ret + " ~" + s;
+		}
+		
+		for(String s : nots)
+		{
+			ret = ret + " -" + s;
+		}
+		
+		return ret.trim();
 	}
 	
 	public String toSql()
@@ -47,7 +69,7 @@ public class SearchQuery
 			
 			for(String s : ors)
 			{
-				sql = sql + String.format(" OR EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag=\"%1$s\") ", s.substring(1));
+				sql = sql + String.format(" OR EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag=\"%1$s\") ", s);
 			}
 			
 			sql = sql + " ) ";
@@ -59,7 +81,7 @@ public class SearchQuery
 			
 			for(String s : nots)
 			{
-				sql = sql + String.format(" OR EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag=\"%1$s\") ", s.substring(1));
+				sql = sql + String.format(" OR EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag=\"%1$s\") ", s);
 			}
 			
 			sql = sql + " ) ";
