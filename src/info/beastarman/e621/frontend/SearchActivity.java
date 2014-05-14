@@ -213,11 +213,9 @@ public class SearchActivity extends Activity {
 		EditText editText = (EditText) findViewById(R.id.searchInput);
 		String search = editText.getText().toString().trim();
 
-		if (search.length() > 0) {
-			Intent intent = new Intent(this, SearchActivity.class);
-			intent.putExtra(SearchActivity.SEARCH, search);
-			startActivity(intent);
-		}
+		Intent intent = new Intent(this, SearchActivity.class);
+		intent.putExtra(SearchActivity.SEARCH, search);
+		startActivity(intent);
 	}
 
 	public void prev(View view)

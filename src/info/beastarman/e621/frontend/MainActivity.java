@@ -141,12 +141,9 @@ public class MainActivity extends Activity
     	EditText editText = (EditText) findViewById(R.id.searchInput);
     	String search = editText.getText().toString().trim();
     	
-    	if(search.length() > 0)
-    	{
-    		Intent intent = new Intent(this, SearchActivity.class);
-    		intent.putExtra(SearchActivity.SEARCH,search);
-    		startActivity(intent);
-    	}
+		Intent intent = new Intent(this, SearchActivity.class);
+		intent.putExtra(SearchActivity.SEARCH,search);
+		startActivity(intent);
     }
     
     public void localSearch(View view)
@@ -154,12 +151,9 @@ public class MainActivity extends Activity
     	EditText editText = (EditText) findViewById(R.id.searchInput);
     	String search = editText.getText().toString().trim();
     	
-    	if(search.length() > 0)
-    	{
-    		Intent intent = new Intent(this, DownloadsActivity.class);
-    		intent.putExtra(DownloadsActivity.SEARCH,search);
-    		startActivity(intent);
-    	}
+		Intent intent = new Intent(this, DownloadsActivity.class);
+		intent.putExtra(DownloadsActivity.SEARCH,search);
+		startActivity(intent);
     }
     
     private class Mascot

@@ -15,7 +15,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -61,13 +60,13 @@ public class DownloadsActivity extends Activity
 
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
-		
-		downloads = e621.localSearch(page, limit, search);
 	}
 	
 	@Override
 	public void onStart() {
 		super.onStart();
+		
+		downloads = e621.localSearch(page, limit, search);
 
 		update_results();
 	}
@@ -200,11 +199,9 @@ public class DownloadsActivity extends Activity
 		EditText editText = (EditText) findViewById(R.id.searchInput);
 		String search = editText.getText().toString().trim();
 
-		if (search.length() > 0) {
-			Intent intent = new Intent(this, DownloadsActivity.class);
-			intent.putExtra(DownloadsActivity.SEARCH, search);
-			startActivity(intent);
-		}
+		Intent intent = new Intent(this, DownloadsActivity.class);
+		intent.putExtra(DownloadsActivity.SEARCH, search);
+		startActivity(intent);
 	}
 
 	public void prev(View view)
@@ -242,7 +239,6 @@ public class DownloadsActivity extends Activity
 		@Override
 		public void run() {
 			InputStream in = e621.getDownloadedImage(id);
-			Log.d("Msg",in.toString());
 	    	Message msg = handler.obtainMessage();
 	    	msg.obj = in;
 	    	handler.sendMessage(msg);

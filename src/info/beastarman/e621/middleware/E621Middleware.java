@@ -383,7 +383,7 @@ public class E621Middleware extends E621
 	
 	public ArrayList<String> localSearch(int page, int limit, String search)
 	{
-		return download_manager.search(page, limit);
+		return download_manager.search(page, limit, new SearchQuery(search));
 	}
 	
 	private class E621DownloadedImages extends ImageCacheManager
@@ -417,9 +417,11 @@ public class E621Middleware extends E621
 			);
 		}
 		
-		public ArrayList<String> search(int page, int limit)
+		public ArrayList<String> search(int page, int limit, SearchQuery query)
 		{
-			Cursor c = db.rawQuery("SELECT id FROM images WHERE 1 ORDER BY id LIMIT ? OFFSET ?;", new String[]{String.valueOf(limit),String.valueOf(limit*page)});
+			Log.d("Msg",query.toSql());
+			
+			Cursor c = db.rawQuery("SELECT id FROM images WHERE " + query.toSql() + " ORDER BY id LIMIT ? OFFSET ?;", new String[]{String.valueOf(limit),String.valueOf(limit*page)});
 			
 			/*
 				EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag="gay")
