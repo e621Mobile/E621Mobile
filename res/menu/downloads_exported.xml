@@ -7,10 +7,16 @@
         android:title="@string/action_settings" android:icon="@android:drawable/ic_menu_manage"/>
     
     <item
-        android:id="@+id/action_export"
+        android:id="@+id/action_remove_export"
         android:orderInCategory="50"
         android:showAsAction="ifRoom|collapseActionView"
-        android:title="@string/action_export" android:icon="@android:drawable/ic_menu_set_as"/>
+        android:title="@string/action_remove_export" android:icon="@android:drawable/ic_menu_delete"/>
+    
+    <item
+        android:id="@+id/action_update_export"
+        android:orderInCategory="50"
+        android:showAsAction="ifRoom|collapseActionView"
+        android:title="@string/action_update_export" android:icon="@android:drawable/ic_menu_set_as"/>
     
     <item
         android:id="@+id/action_online_search"

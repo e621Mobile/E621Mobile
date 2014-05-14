@@ -1,6 +1,7 @@
 package info.beastarman.e621.middleware;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class SearchQuery
 {
@@ -30,6 +31,10 @@ public class SearchQuery
 				}
 			}
 		}
+
+		Collections.sort(ands);
+		Collections.sort(ors);
+		Collections.sort(nots);
 	}
 	
 	public String normalize()

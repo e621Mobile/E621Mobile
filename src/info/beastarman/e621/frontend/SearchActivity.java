@@ -114,9 +114,19 @@ public class SearchActivity extends Activity {
 		case R.id.action_settings:
 			open_settings();
 			return true;
+		case R.id.action_offine_search:
+			offline_search();
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	public void offline_search()
+	{
+		Intent intent = new Intent(this, DownloadsActivity.class);
+		intent.putExtra(DownloadsActivity.SEARCH, search);
+		startActivity(intent);
 	}
 
 	public void open_settings() {

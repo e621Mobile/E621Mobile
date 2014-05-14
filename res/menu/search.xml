@@ -3,7 +3,12 @@
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
-        android:showAsAction="ifRoom"
+        android:showAsAction="always|collapseActionView"
         android:title="@string/action_settings" android:icon="@android:drawable/ic_menu_manage"/>
-
+    
+    <item
+        android:id="@+id/action_offine_search"
+        android:orderInCategory="25"
+        android:showAsAction="never|collapseActionView"
+        android:title="@string/action_offline_search" android:icon="@drawable/ic_action_local"/>
 </menu>

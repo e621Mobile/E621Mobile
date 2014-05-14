@@ -470,6 +470,37 @@ public class E621Middleware extends E621
 		}
 	}
 	
+	public void removeExported(String search)
+	{
+		SearchQuery sq = new SearchQuery(search);
+		File f = new File(export_path,sq.normalize());
+		
+		if(f.exists())
+		{
+			for(String s : f.list())
+			{
+				new File(f,s).delete();
+			}
+			
+			f.delete();
+		}
+	}
+	
+	public boolean wasExported(String search)
+	{
+		SearchQuery sq = new SearchQuery(search);
+		File f = new File(export_path,sq.normalize());
+		
+		if(f.exists())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
 	private class E621DownloadedImages extends ImageCacheManager
 	{
 		public E621DownloadedImages(File base_path)

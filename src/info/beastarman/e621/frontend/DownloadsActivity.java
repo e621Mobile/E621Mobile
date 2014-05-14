@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -93,7 +94,14 @@ public class DownloadsActivity extends Activity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.downloads, menu);
+		if(e621.wasExported(search))
+		{
+			getMenuInflater().inflate(R.menu.downloads_exported, menu);
+		}
+		else
+		{
+			getMenuInflater().inflate(R.menu.downloads, menu);
+		}
 		return true;
 	}
 	
@@ -105,16 +113,57 @@ public class DownloadsActivity extends Activity
 			open_settings();
 			return true;
 		case R.id.action_export:
+		case R.id.action_update_export:
 			export();
+			return true;
+		case R.id.action_remove_export:
+			remove();
+			return true;
+		case R.id.action_online_search:
+			online_search();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
 	}
 	
+	public void online_search()
+	{
+		Intent intent = new Intent(this, SearchActivity.class);
+		intent.putExtra(SearchActivity.SEARCH, search);
+		startActivity(intent);
+	}
+	
 	public void export()
 	{
-		e621.export(search);
+		final ProgressDialog dialog = ProgressDialog.show(DownloadsActivity.this, "","Exporting images. Please wait...", true);
+		dialog.setIndeterminate(true);
+		dialog.show();
+		
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run() {
+				e621.export(search);
+				dialog.dismiss();
+			}
+		}).start();
+	}
+	
+	public void remove()
+	{
+		final ProgressDialog dialog = ProgressDialog.show(DownloadsActivity.this, "","Removing images. Please wait...", true);
+		dialog.setIndeterminate(true);
+		dialog.show();
+		
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run() {
+				e621.removeExported(search);
+				dialog.dismiss();
+			}
+		}).start();
 	}
 
 	public void open_settings() {

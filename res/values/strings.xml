@@ -4,6 +4,10 @@
     <string name="app_name">e621 mobile</string>
     <string name="action_settings">Settings</string>
     <string name="action_export">Export images</string>
+    <string name="action_update_export">Re-export images</string>
+    <string name="action_remove_export">Remove exported images</string>
+    <string name="action_online_search">Search online</string>
+    <string name="action_offline_search">Search offline</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_search">Search</string>
     <string name="search_button">Search</string>
