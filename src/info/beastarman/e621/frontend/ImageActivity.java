@@ -5,7 +5,6 @@ import java.io.IOException;
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.middleware.E621Middleware;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -36,7 +35,11 @@ public class ImageActivity extends Activity
 		
 		e621 = E621Middleware.getInstance();
 		
-		id= getIntent().getExtras().getString(ImageActivity.ID,"");
+		id= getIntent().getExtras().getString(ImageActivity.ID);
+		if(id == null)
+		{
+			id = "";
+		}
 		
 		final Handler handler = new ImageHandler(this);
 		
@@ -79,14 +82,7 @@ public class ImageActivity extends Activity
     public void open_settings()
     {
     	Intent intent;
-    	if(Build.VERSION.SDK_INT < 11)
-    	{
-    		intent = new Intent(this, SettingsActivityOld.class);
-    	}
-    	else
-    	{
-    		intent = new Intent(this, SettingsActivityNew.class);
-    	}
+    	intent = new Intent(this, SettingsActivityNew.class);
 		startActivity(intent);
     }
 	

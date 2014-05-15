@@ -5,9 +5,9 @@ import java.util.ArrayList;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -49,9 +49,16 @@ public class DownloadsActivity extends Activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_search);
 		
+		ActionBar actionBar = getActionBar();
+	    actionBar.setDisplayHomeAsUpEnabled(true);
+		
 		e621 = E621Middleware.getInstance();
 		
-		search = getIntent().getExtras().getString(SearchActivity.SEARCH, "");
+		search = getIntent().getExtras().getString(SearchActivity.SEARCH);
+		if(search == null)
+		{
+			search = "";
+		}
 		page = getIntent().getExtras().getInt(SearchActivity.PAGE, 0);
 		limit = getIntent().getExtras().getInt(SearchActivity.LIMIT, 20);
 
@@ -172,11 +179,7 @@ public class DownloadsActivity extends Activity
 
 	public void open_settings() {
 		Intent intent;
-		if (Build.VERSION.SDK_INT < 11) {
-			intent = new Intent(this, SettingsActivityOld.class);
-		} else {
-			intent = new Intent(this, SettingsActivityNew.class);
-		}
+		intent = new Intent(this, SettingsActivityNew.class);
 		startActivity(intent);
 	}
 	

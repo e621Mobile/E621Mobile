@@ -6,6 +6,7 @@ import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.backend.ImageCacheManager;
+import info.beastarman.e621.frontend.DownloadsActivity;
 import info.beastarman.e621.frontend.MainActivity;
 
 import java.io.BufferedOutputStream;
@@ -29,6 +30,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 
 import android.app.Activity;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -60,6 +62,7 @@ public class E621Middleware extends E621
 	E621DownloadedImages download_manager;
 	
 	private static int UPDATE_TAGS_NOTIFICATION_ID = 1;
+	private static int SAVE_IMAGES_NOTIFICATION_ID = 2;
 	private Semaphore updateTagsSemaphore = new Semaphore(1);
 	
 	private static E621Middleware instance;
@@ -206,6 +209,85 @@ public class E621Middleware extends E621
 	public boolean isSaved(E621Image img)
 	{
 		return download_manager.hasFile(img);
+	}
+	
+	private NotificationManager saveImageNotificationManager;
+	private Semaphore saveImageSemaphore = new Semaphore(1);
+	private ArrayList<E621Image> downloading = new ArrayList<E621Image>();
+	
+	public void saveImageAsync(final E621Image img, Activity activity, final Runnable after_download)
+	{
+		try {
+			saveImageSemaphore.acquire();
+			
+			if(saveImageNotificationManager == null)
+			{
+				saveImageNotificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+			}
+			
+			if(downloading.contains(img))
+			{
+				return;
+			}
+			
+			if(downloading.size() == 0)
+			{
+				NotificationCompat.Builder mBuilder =
+				        new NotificationCompat.Builder(MainActivity.getContext())
+				        .setSmallIcon(R.drawable.ic_launcher)
+				        .setContentTitle("Downloading images")
+				        .setContentText("Please wait")
+				        .setOngoing(true);
+				
+				Intent resultIntent = new Intent(activity, DownloadsActivity.class);
+				PendingIntent pIntent = PendingIntent.getActivity(activity, 0, resultIntent, 0);
+				
+				mBuilder.setContentIntent(pIntent);
+				
+				saveImageNotificationManager.notify(SAVE_IMAGES_NOTIFICATION_ID,mBuilder.build());
+			}
+			
+			downloading.add(img);
+		} catch (InterruptedException e) {
+			return;
+		}
+		finally
+		{
+			saveImageSemaphore.release();
+		}
+		
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run() {
+				saveImage(img);
+				
+				if(after_download != null)
+				{
+					after_download.run();
+				}
+				
+				try {
+					saveImageSemaphore.acquire();
+					
+					downloading.remove(img);
+					
+					if(downloading.size() == 0)
+					{
+						saveImageNotificationManager.cancel(SAVE_IMAGES_NOTIFICATION_ID);
+					}
+				}
+				catch(InterruptedException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				finally
+				{
+					saveImageSemaphore.release();
+				}
+			}
+		}).start();
 	}
 	
 	public void saveImage(E621Image img)

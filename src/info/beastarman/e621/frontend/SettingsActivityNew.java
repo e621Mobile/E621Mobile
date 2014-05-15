@@ -3,16 +3,14 @@ package info.beastarman.e621.frontend;
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.SeekBarDialogPreference;
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 
-@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class SettingsActivityNew extends SettingsActivity
+public class SettingsActivityNew extends PreferenceActivity
 {
 	@Override
     protected void onCreate(final Bundle savedInstanceState)
@@ -24,6 +22,11 @@ public class SettingsActivityNew extends SettingsActivity
         
         getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
     }
+	
+	protected void updateTags()
+	{
+		E621Middleware.getInstance().update_tags(this);
+	}
 
     public static class MyPreferenceFragment extends PreferenceFragment
     {

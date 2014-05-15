@@ -7,10 +7,10 @@ import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.middleware.E621Middleware;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -22,11 +22,14 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
 public class SearchActivity extends Activity {
@@ -47,10 +50,17 @@ public class SearchActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_search);
+		
+		ActionBar actionBar = getActionBar();
+	    actionBar.setDisplayHomeAsUpEnabled(true);
 
 		e621 = E621Middleware.getInstance();
 
-		search = getIntent().getExtras().getString(SearchActivity.SEARCH, "");
+		search = getIntent().getExtras().getString(SearchActivity.SEARCH);
+		if(search == null)
+		{
+			search = "";
+		}
 		page = getIntent().getExtras().getInt(SearchActivity.PAGE, 0);
 		limit = getIntent().getExtras().getInt(SearchActivity.LIMIT, 20);
 
@@ -131,11 +141,7 @@ public class SearchActivity extends Activity {
 
 	public void open_settings() {
 		Intent intent;
-		if (Build.VERSION.SDK_INT < 11) {
-			intent = new Intent(this, SettingsActivityOld.class);
-		} else {
-			intent = new Intent(this, SettingsActivityNew.class);
-		}
+		intent = new Intent(this, SettingsActivityNew.class);
 		startActivity(intent);
 	}
 
@@ -180,6 +186,37 @@ public class SearchActivity extends Activity {
 			ImageView imgView = new ImageView(getApplicationContext());
 			RelativeLayout rel = new RelativeLayout(getApplicationContext());
 			ProgressBar bar = new ProgressBar(getApplicationContext());
+			ImageButton download = new ImageButton(getApplicationContext());
+			
+			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+				    RelativeLayout.LayoutParams.WRAP_CONTENT, 
+				    RelativeLayout.LayoutParams.WRAP_CONTENT);
+			params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+			params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+			download.setLayoutParams(params);
+			
+			if(e621.isSaved(img))
+			{
+				download.setImageResource(android.R.drawable.ic_menu_delete);
+				
+				download.setOnClickListener(new View.OnClickListener() {
+			        @Override
+			        public void onClick(View v) {
+			        	removeImage(img,(ImageButton)v);
+			        }
+			    });
+			}
+			else
+			{
+				download.setImageResource(android.R.drawable.ic_menu_save);
+				
+				download.setOnClickListener(new View.OnClickListener() {
+			        @Override
+			        public void onClick(View v) {
+			        	saveImage(img,(ImageButton)v);
+			        }
+			    });
+			}
 
 			rel.setPadding(0, 20, 0, 20);
 
@@ -187,6 +224,7 @@ public class SearchActivity extends Activity {
 
 			rel.addView(bar);
 			rel.addView(imgView);
+			rel.addView(download);
 			layout.addView(rel);
 
 			imgView.setTag(R.id.imageId, img.id);
@@ -209,6 +247,47 @@ public class SearchActivity extends Activity {
 			new Thread(new ImageLoadRunnable(handler, img, e621,
 					E621Image.PREVIEW)).start();
 		}
+	}
+	
+	public void saveImage(final E621Image img, final ImageButton v)
+	{
+		v.setImageResource(android.R.drawable.stat_sys_download);
+		
+		e621.saveImageAsync(img, this, new Runnable()
+		{
+			@Override
+			public void run() {
+				
+				runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run() {
+						v.setImageResource(android.R.drawable.ic_menu_delete);
+						
+						v.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	removeImage(img,(ImageButton)v);
+					        }
+					    });
+					}
+				});
+			}
+		});
+	}
+	
+	public void removeImage(final E621Image img, ImageButton v)
+	{
+		e621.deleteImage(img);
+		
+		v.setImageResource(android.R.drawable.ic_menu_save);
+		
+		v.setOnClickListener(new View.OnClickListener() {
+	        @Override
+	        public void onClick(View v) {
+	        	saveImage(img,(ImageButton)v);
+	        }
+	    });
 	}
 
 	public void imageClick(View view) {

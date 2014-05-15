@@ -3,7 +3,6 @@ package info.beastarman.e621.frontend;
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
@@ -125,14 +124,7 @@ public class MainActivity extends Activity
     public void open_settings()
     {
     	Intent intent;
-    	if(Build.VERSION.SDK_INT < 11)
-    	{
-    		intent = new Intent(this, SettingsActivityOld.class);
-    	}
-    	else
-    	{
-    		intent = new Intent(this, SettingsActivityNew.class);
-    	}
+    	intent = new Intent(this, SettingsActivityNew.class);
 		startActivity(intent);
     }
     
