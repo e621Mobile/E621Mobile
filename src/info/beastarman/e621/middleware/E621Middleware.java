@@ -30,7 +30,6 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 
 import android.app.Activity;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -41,6 +40,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -56,6 +56,8 @@ public class E621Middleware extends E621
 	
 	SharedPreferences settings;
 	SharedPreferences.OnSharedPreferenceChangeListener settingsListener;
+	
+	HashSet<String> allowedRatings = new HashSet<String>(); 
 	
 	ImageCacheManager thumb_cache;
 	ImageCacheManager full_cache;
@@ -83,6 +85,8 @@ public class E621Middleware extends E621
 		{
 			public void onSharedPreferenceChanged(SharedPreferences prefs, String key)
 			{
+				Log.d("Msg",key);
+				
 				setup();
 			}
 		};
@@ -166,6 +170,22 @@ public class E621Middleware extends E621
 		{
 			download_manager = new E621DownloadedImages(download_path);
 		}
+		
+		HashSet<String> allowedRatingsTemp = (HashSet<String>) settings.getStringSet("allowedRatings",new HashSet<String>());
+		allowedRatings.clear();
+		
+		if(allowedRatingsTemp.contains(E621Image.SAFE))
+		{
+			allowedRatings.add(E621Image.SAFE);
+		}
+		if(allowedRatingsTemp.contains(E621Image.QUESTIONABLE))
+		{
+			allowedRatings.add(E621Image.QUESTIONABLE);
+		}
+		if(allowedRatingsTemp.contains(E621Image.EXPLICIT))
+		{
+			allowedRatings.add(E621Image.EXPLICIT);
+		}
 	}
 	
 	public int getFileDownloadSize()
@@ -193,6 +213,54 @@ public class E621Middleware extends E621
 	@Override
 	public E621Search post__index(String tags, Integer page, Integer limit) throws IOException
 	{
+		tags = new SearchQuery(tags).normalize();
+		
+		String[] tt = tags.split("\\s");
+		boolean specific = false;
+		
+		for(String t : tt)
+		{
+			if(t.startsWith("rating:"))
+			{
+				specific = true;
+				break;
+			}
+		}
+		
+		if(!specific)
+		{
+			if(allowedRatings.size() == 1)
+			{
+				if(allowedRatings.contains(E621Image.SAFE))
+				{
+					tags = tags + " rating:" + E621Image.SAFE;
+				}
+				else if(allowedRatings.contains(E621Image.QUESTIONABLE))
+				{
+					tags = tags + " rating:" + E621Image.QUESTIONABLE;
+				}
+				else if(allowedRatings.contains(E621Image.EXPLICIT))
+				{
+					tags = tags + " rating:" + E621Image.EXPLICIT;
+				}
+			}
+			else if(allowedRatings.size() == 2)
+			{
+				if(!allowedRatings.contains(E621Image.SAFE))
+				{
+					tags = tags + " -rating:" + E621Image.SAFE;
+				}
+				else if(!allowedRatings.contains(E621Image.QUESTIONABLE))
+				{
+					tags = tags + " -rating:" + E621Image.QUESTIONABLE;
+				}
+				else if(!allowedRatings.contains(E621Image.EXPLICIT))
+				{
+					tags = tags + " -rating:" + E621Image.EXPLICIT;
+				}
+			}
+		}
+		
 		E621Search ret = super.post__index(tags, page, limit);
 		
 		if(ret != null)

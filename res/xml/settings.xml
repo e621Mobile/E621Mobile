@@ -13,6 +13,11 @@
             android:entries="@array/imageSizes"
             android:entryValues="@array/imageSizesValues"
             />
+        <MultiSelectListPreference 
+            android:key="allowedRatings"
+            android:title="Allowed ratings"
+            android:entries="@array/ratings" 
+            android:entryValues="@array/ratingsValues" />
         <info.beastarman.e621.views.SeekBarDialogPreference
             android:key="thumbnailCacheSize"
 	        android:defaultValue="5"

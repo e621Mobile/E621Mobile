@@ -1,11 +1,14 @@
 package info.beastarman.e621.frontend;
 
+import java.util.HashSet;
+
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.SeekBarDialogPreference;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
+import android.preference.MultiSelectListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
@@ -50,6 +53,9 @@ public class SettingsActivityNew extends PreferenceActivity
             
             SeekBarDialogPreference fullCacheSize = (SeekBarDialogPreference)findPreference("fullCacheSize");
             fullCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("fullCacheSize", 10));
+            
+            MultiSelectListPreference ratings = (MultiSelectListPreference)findPreference("allowedRatings");
+            ratings.setValues(getPreferenceManager().getSharedPreferences().getStringSet("allowedRatings",new HashSet<String>()));
             
             Preference button = (Preference)getPreferenceManager().findPreference("updateTags");
             button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {

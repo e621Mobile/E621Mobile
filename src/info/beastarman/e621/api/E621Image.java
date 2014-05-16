@@ -12,11 +12,16 @@ public class E621Image
 	public static int SAMPLE = 2;
 	public static int FULL = 3;
 	
+	public static String EXPLICIT = "e";
+	public static String QUESTIONABLE = "q";
+	public static String SAFE = "s";
+	
 	public String preview_url = "";
 	public String sample_url = "";
 	public String file_url = "";
 	public String id = "";
 	public String file_ext = "";
+	public String rating = "s";
 	public ArrayList<E621Tag> tags = new ArrayList<E621Tag>();
 	
 	public E621Image()
@@ -41,6 +46,9 @@ public class E621Image
 			img.id = json.getString("id");
 		} catch (JSONException e) {} 
 		try {
+			img.rating = json.getString("rating");
+		} catch (JSONException e) {} 
+		try {
 			img.file_ext = json.getString("file_ext");
 		} catch (JSONException e) {} 
 		try {
@@ -60,7 +68,8 @@ public class E621Image
 		img.preview_url = xml.getAttribute("preview_url"); 
 		img.sample_url = xml.getAttribute("sample_url"); 
 		img.file_url = xml.getAttribute("file_url"); 
-		img.id = xml.getAttribute("id"); 
+		img.id = xml.getAttribute("id");  
+		img.rating = xml.getAttribute("rating"); 
 		img.file_ext = xml.getAttribute("file_ext");
 		for(String tag : xml.getAttribute("tags").split("\\s"))
 		{

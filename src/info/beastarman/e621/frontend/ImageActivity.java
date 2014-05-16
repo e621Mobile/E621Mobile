@@ -134,40 +134,56 @@ public class ImageActivity extends Activity
 	{
 		if(e621.isSaved(e621Image))
 		{
-			delete();
+			delete(view);
 		}
 		else
 		{
-			save();
+			save(view);
 		}
 	}
 	
-	public void delete()
+	public void delete(View view)
 	{
-		ImageButton button = (ImageButton)findViewById(R.id.downloadButton);
+		final ImageButton button = (ImageButton)view;
+		
+		e621.deleteImage(e621Image);
+		
 		button.setImageResource(android.R.drawable.ic_menu_save);
 		
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run() {
-				e621.deleteImage(e621Image);
-			}
-		}).start();
+		button.setOnClickListener(new View.OnClickListener() {
+	        @Override
+	        public void onClick(View v) {
+	        	save(v);
+	        }
+	    });
 	}
 	
-	public void save()
+	public void save(View view)
 	{
-		ImageButton button = (ImageButton)findViewById(R.id.downloadButton);
-		button.setImageResource(android.R.drawable.ic_menu_delete);
+		final ImageButton button = (ImageButton)view;
+		button.setImageResource(android.R.drawable.stat_sys_download);
 		
-		new Thread(new Runnable()
+		e621.saveImageAsync(e621Image, this, new Runnable()
 		{
 			@Override
 			public void run() {
-				e621.saveImage(e621Image);
+				
+				runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run() {
+						button.setImageResource(android.R.drawable.ic_menu_delete);
+						
+						button.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	delete(v);
+					        }
+					    });
+					}
+				});
 			}
-		}).start();
+		});
 	}
 
 	@Override
