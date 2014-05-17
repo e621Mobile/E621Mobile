@@ -18,12 +18,15 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.util.Log;
 
 public class ImageCacheManager
 {
 	protected File base_path;
 	protected File cache_file;
 	protected SQLiteDatabase db;
+	
+	protected int version = 0;
 	
 	public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault()); 
 	
@@ -48,12 +51,7 @@ public class ImageCacheManager
 		
 		clean();
 		
-		if(db.getVersion() == 0)
-		{
-			update_0_1();
-			
-			db.setVersion(1);
-		}
+		setVersion(version);
 	}
 	
 	protected synchronized void new_db()
@@ -68,7 +66,24 @@ public class ImageCacheManager
 				);
 	}
 	
-	protected synchronized void update_0_1()
+	protected void setVersion(int version)
+	{
+		if(version < this.version)
+		{
+			return;
+		}
+		
+		this.version = version;
+		
+		while(db.getVersion() < version)
+		{
+			update_db(db.getVersion()+1);
+			
+			db.setVersion(db.getVersion()+1);
+		}
+	}
+	
+	protected synchronized void update_db(int version)
 	{
 	}
 	

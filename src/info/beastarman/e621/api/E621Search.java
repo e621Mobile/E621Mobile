@@ -27,7 +27,7 @@ public class E621Search
 	
 	public boolean has_prev_page()
 	{
-		return current_page() > 1;
+		return current_page(1) > 1;
 	}
 	
 	public boolean has_next_page()

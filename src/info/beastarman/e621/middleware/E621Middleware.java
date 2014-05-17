@@ -40,7 +40,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -85,8 +84,6 @@ public class E621Middleware extends E621
 		{
 			public void onSharedPreferenceChanged(SharedPreferences prefs, String key)
 			{
-				Log.d("Msg",key);
-				
 				setup();
 			}
 		};
@@ -213,53 +210,7 @@ public class E621Middleware extends E621
 	@Override
 	public E621Search post__index(String tags, Integer page, Integer limit) throws IOException
 	{
-		tags = new SearchQuery(tags).normalize();
-		
-		String[] tt = tags.split("\\s");
-		boolean specific = false;
-		
-		for(String t : tt)
-		{
-			if(t.startsWith("rating:"))
-			{
-				specific = true;
-				break;
-			}
-		}
-		
-		if(!specific)
-		{
-			if(allowedRatings.size() == 1)
-			{
-				if(allowedRatings.contains(E621Image.SAFE))
-				{
-					tags = tags + " rating:" + E621Image.SAFE;
-				}
-				else if(allowedRatings.contains(E621Image.QUESTIONABLE))
-				{
-					tags = tags + " rating:" + E621Image.QUESTIONABLE;
-				}
-				else if(allowedRatings.contains(E621Image.EXPLICIT))
-				{
-					tags = tags + " rating:" + E621Image.EXPLICIT;
-				}
-			}
-			else if(allowedRatings.size() == 2)
-			{
-				if(!allowedRatings.contains(E621Image.SAFE))
-				{
-					tags = tags + " -rating:" + E621Image.SAFE;
-				}
-				else if(!allowedRatings.contains(E621Image.QUESTIONABLE))
-				{
-					tags = tags + " -rating:" + E621Image.QUESTIONABLE;
-				}
-				else if(!allowedRatings.contains(E621Image.EXPLICIT))
-				{
-					tags = tags + " -rating:" + E621Image.EXPLICIT;
-				}
-			}
-		}
+		tags = prepareQuery(tags);
 		
 		E621Search ret = super.post__index(tags, page, limit);
 		
@@ -540,19 +491,84 @@ public class E621Middleware extends E621
 		}).start();
 	}
 	
-	public ArrayList<String> localSearch(int page, int limit, String search)
+	private String prepareQuery(String tags)
 	{
-		return download_manager.search(page, limit, new SearchQuery(search));
+		tags = new SearchQuery(tags).normalize();
+		
+		String[] tt = tags.split("\\s");
+		boolean specific = false;
+		
+		for(String t : tt)
+		{
+			if(t.startsWith("rating:"))
+			{
+				specific = true;
+				break;
+			}
+		}
+		
+		if(!specific)
+		{
+			if(allowedRatings.size() == 1)
+			{
+				if(allowedRatings.contains(E621Image.SAFE))
+				{
+					tags = tags + " rating:" + E621Image.SAFE;
+				}
+				else if(allowedRatings.contains(E621Image.QUESTIONABLE))
+				{
+					tags = tags + " rating:" + E621Image.QUESTIONABLE;
+				}
+				else if(allowedRatings.contains(E621Image.EXPLICIT))
+				{
+					tags = tags + " rating:" + E621Image.EXPLICIT;
+				}
+			}
+			else if(allowedRatings.size() == 2)
+			{
+				if(!allowedRatings.contains(E621Image.SAFE))
+				{
+					tags = tags + " -rating:" + E621Image.SAFE;
+				}
+				else if(!allowedRatings.contains(E621Image.QUESTIONABLE))
+				{
+					tags = tags + " -rating:" + E621Image.QUESTIONABLE;
+				}
+				else if(!allowedRatings.contains(E621Image.EXPLICIT))
+				{
+					tags = tags + " -rating:" + E621Image.EXPLICIT;
+				}
+			}
+		}
+		
+		return tags;
+	}
+	
+	public ArrayList<String> localSearch(int page, int limit, String tags)
+	{
+		tags = prepareQuery(tags);
+		
+		return download_manager.search(page, limit, new SearchQuery(tags));
 	}
 	
 	public void export(String search)
 	{
+		search = prepareQuery(search);
+		
 		SearchQuery sq = new SearchQuery(search);
 		
 		ArrayList<String> ids = download_manager.search(0, Integer.MAX_VALUE, sq);
 		
 		final Semaphore sem = new Semaphore(10);
-		final File path = new File(export_path,sq.normalize());
+		final File path;
+		if(sq.normalize().length() > 0)
+		{
+			path = new File(export_path,sq.normalize().replace(":", ".."));
+		}
+		else
+		{
+			path = new File(export_path,"all_images_");
+		}
 		
 		if(!path.exists())
 		{
@@ -622,8 +638,18 @@ public class E621Middleware extends E621
 	
 	public void removeExported(String search)
 	{
+		search = prepareQuery(search);
+		
 		SearchQuery sq = new SearchQuery(search);
-		File f = new File(export_path,sq.normalize());
+		final File f;
+		if(sq.normalize().length() > 0)
+		{
+			f = new File(export_path,sq.normalize().replace(":", ".."));
+		}
+		else
+		{
+			f = new File(export_path,"all_images_");
+		}
 		
 		if(f.exists())
 		{
@@ -638,10 +664,20 @@ public class E621Middleware extends E621
 	
 	public boolean wasExported(String search)
 	{
-		SearchQuery sq = new SearchQuery(search);
-		File f = new File(export_path,sq.normalize());
+		search = prepareQuery(search);
 		
-		if(f.exists())
+		SearchQuery sq = new SearchQuery(search);
+		final File path;
+		if(sq.normalize().length() > 0)
+		{
+			path = new File(export_path,sq.normalize().replace(":", ".."));
+		}
+		else
+		{
+			path = new File(export_path,"all_images_");
+		}
+		
+		if(path.exists())
 		{
 			return true;
 		}
@@ -653,6 +689,8 @@ public class E621Middleware extends E621
 	
 	public int pages(int results_per_page, String query)
 	{
+		query = prepareQuery(query);
+		
 		return (int) Math.ceil(((double)download_manager.totalEntries(new SearchQuery(query))) / results_per_page);
 	}
 	
@@ -661,13 +699,28 @@ public class E621Middleware extends E621
 		public E621DownloadedImages(File base_path)
 		{
 			super(base_path, 0);
+			
+			setVersion(2);
 		}
 		
 		@Override
+		protected synchronized void update_db(int version)
+		{
+			super.update_db(version);
+			
+			switch(version)
+			{
+				case 1:
+					update_0_1();
+					break;
+				case 2:
+					update_1_2();
+					break;
+			}
+		}
+		
 		protected synchronized void update_0_1()
 		{
-			super.update_0_1();
-			
 			db.execSQL("CREATE TABLE tags (" +
 					"id TEXT PRIMARY KEY" +
 				");"
@@ -683,6 +736,18 @@ public class E621Middleware extends E621
 					"FOREIGN KEY (image) REFERENCES images(id)" +
 					", " +
 					"FOREIGN KEY (tag) REFERENCES tags(id)" +
+				");"
+			);
+		}
+		
+		protected synchronized void update_1_2()
+		{
+			db.execSQL("CREATE TABLE e621image (" +
+					"image TEXT PRIMARY KEY" +
+					", " +
+					"rating VARCHAR(1)" +
+					", " +
+					"FOREIGN KEY (image) REFERENCES images(id)" +
 				");"
 			);
 		}
@@ -757,6 +822,18 @@ public class E621Middleware extends E621
 		public synchronized void createOrUpdate(E621Image img, InputStream in)
 		{
 			super.createOrUpdate(img.id + "." + img.file_ext, in);
+			
+			ContentValues e621image_values = new ContentValues();
+			e621image_values.put("image", img.id + "." + img.file_ext);
+			e621image_values.put("rating", img.rating);
+			
+			try
+			{
+				db.insert("e621image", null, e621image_values);
+			}
+			catch(SQLiteException e)
+			{
+			}
 			
 			for(E621Tag tag : img.tags)
 			{
@@ -881,6 +958,18 @@ public class E621Middleware extends E621
 				
 				for(E621Image img : images)
 				{
+					ContentValues e621image_values = new ContentValues();
+					e621image_values.put("image", img.id + "." + img.file_ext);
+					e621image_values.put("rating", img.rating);
+					
+					try
+					{
+						db.insert("e621image", null, e621image_values);
+					}
+					catch(SQLiteException e)
+					{
+					}
+					
 					for(E621Tag tag : img.tags)
 					{
 						ContentValues image_tag_values = new ContentValues();

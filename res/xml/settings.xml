@@ -16,12 +16,14 @@
         <MultiSelectListPreference 
             android:key="allowedRatings"
             android:title="Allowed ratings"
+            android:summary="Set ratings shown on searches"
             android:entries="@array/ratings" 
             android:entryValues="@array/ratingsValues" />
         <info.beastarman.e621.views.SeekBarDialogPreference
             android:key="thumbnailCacheSize"
 	        android:defaultValue="5"
 	        android:dialogMessage="Please select the size of the thumbnails cache:"
+	        android:summary="Reserved space for thumbnail cache"
 	        android:max="20"
 	        android:title="Thumbnail cache size"
 	        custom:progressTextSuffix=" Mb"
@@ -30,6 +32,7 @@
             android:key="fullCacheSize"
 	        android:defaultValue="10"
 	        android:dialogMessage="Please select the size of the images cache:"
+	        android:summary="Reserved space for full image cache"
 	        android:max="50"
 	        android:title="Images cache size"
 	        custom:progressTextSuffix=" Mb"
@@ -37,6 +40,9 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="Actions">
         <Preference android:title="Clear cache" android:key="clearCache"/>
-        <Preference android:title="Update downloaded images tags" android:key="updateTags"/>
+        <Preference
+            android:title="Update metadata"
+            android:summary="Update downloaded images metadata"
+            android:key="updateTags"/>
     </PreferenceCategory>
 </PreferenceScreen>
