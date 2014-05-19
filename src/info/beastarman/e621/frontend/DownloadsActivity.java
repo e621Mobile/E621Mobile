@@ -4,7 +4,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621DownloadedImage;
 import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.views.ObservableScrollView;
+import info.beastarman.e621.views.ScrollViewListener;
 import android.os.Bundle;
 import android.os.Message;
 import android.app.ActionBar;
@@ -28,7 +31,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class DownloadsActivity extends Activity
+public class DownloadsActivity extends Activity implements ScrollViewListener
 {
 	public static String SEARCH = "search";
 	public static String PAGE = "page";
@@ -40,7 +43,7 @@ public class DownloadsActivity extends Activity
 	
 	public int total_pages;
 
-	private ArrayList<String> downloads = null;
+	private ArrayList<E621DownloadedImage> downloads = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
 	
 	E621Middleware e621 = null;
@@ -65,6 +68,14 @@ public class DownloadsActivity extends Activity
 
 		((EditText) findViewById(R.id.searchInput)).setText(search);
 		
+		ObservableScrollView scroll = (ObservableScrollView)findViewById(R.id.resultsScrollView);
+		scroll.setScrollViewListener(this);
+	}
+	
+	@Override
+	public void onStart() {
+		super.onStart();
+		
 		total_pages = e621.pages(limit, search);
 
 		Resources res = getResources();
@@ -73,11 +84,6 @@ public class DownloadsActivity extends Activity
 
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
-	}
-	
-	@Override
-	public void onStart() {
-		super.onStart();
 		
 		downloads = e621.localSearch(page, limit, search);
 
@@ -188,19 +194,11 @@ public class DownloadsActivity extends Activity
 		final LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
 		
-		/*
-		Resources res = getResources();
-		String text = String.format(res.getString(R.string.page_counter),
-				String.valueOf(e621Search.current_page() + 1), String.valueOf(e621Search.total_pages()));
-
-		TextView page_counter = (TextView) findViewById(R.id.page_counter);
-		page_counter.setText(text);
-		*/
-		
 		layout.post(new Runnable()
 		{
 			@Override
-			public void run() {
+			public void run()
+			{
 				if (downloads.size() == 0) {
 					TextView t = new TextView(getApplicationContext());
 					t.setText(R.string.no_results);
@@ -211,15 +209,21 @@ public class DownloadsActivity extends Activity
 
 					return;
 				}
+				
+				int layout_width = layout.getWidth();
 
-				DisplayMetrics dm = new DisplayMetrics();
-				getWindowManager().getDefaultDisplay().getMetrics(dm);
-				dm.widthPixels = layout.getWidth();
-
-				for (final String img : downloads) {
+				for (E621DownloadedImage img : downloads)
+				{
+					String id = img.filename;
+					
 					ImageView imgView = new ImageView(getApplicationContext());
 					RelativeLayout rel = new RelativeLayout(getApplicationContext());
 					ProgressBar bar = new ProgressBar(getApplicationContext());
+					
+					LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(
+							layout_width,
+							(int) (layout_width * (((double)img.height) / img.width))));
+					imgView.setLayoutParams(lp);
 
 					rel.setPadding(0, 20, 0, 20);
 
@@ -229,7 +233,7 @@ public class DownloadsActivity extends Activity
 					rel.addView(imgView);
 					layout.addView(rel);
 
-					imgView.setTag(R.id.imageId, img.split(":")[0]);
+					imgView.setTag(R.id.imageId, id.split(":")[0]);
 
 					imgView.setOnClickListener(new View.OnClickListener() {
 						@Override
@@ -237,16 +241,17 @@ public class DownloadsActivity extends Activity
 							imageClick(v);
 						}
 					});
-
+					
 					RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) bar
 							.getLayoutParams();
 					layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT,
 							RelativeLayout.TRUE);
 					bar.setLayoutParams(layoutParams);
 
-					ImageViewHandler handler = new ImageViewHandler(imgView, dm, bar);
+					//ImageViewHandler handler = new ImageViewHandler(imgView, dm, bar);
+					ImageViewHandler handler = new ImageViewHandler(imgView, bar);
 					
-					new Thread(new ImageLoadRunnable(handler, img)).start();
+					new Thread(new ImageLoadRunnable(handler, id)).start();
 				}
 			}
 		});
@@ -305,11 +310,19 @@ public class DownloadsActivity extends Activity
 		}
 
 		@Override
-		public void run() {
+		public void run()
+		{
 			InputStream in = e621.getDownloadedImage(id);
 	    	Message msg = handler.obtainMessage();
 	    	msg.obj = in;
+	    	
 	    	handler.sendMessage(msg);
 		}
+	}
+
+	@Override
+	public void onScrollChanged(ObservableScrollView scrollView, int x, int y, int oldx, int oldy)
+	{
+		Log.d("Msg",String.valueOf(oldy) + " to " + String.valueOf(y));
 	}
 }

@@ -17,10 +17,9 @@ public class ImageViewHandler extends Handler
 	public DisplayMetrics dm;
 	public View loader;
 	
-	public ImageViewHandler(ImageView imgView, DisplayMetrics dm, View loader)
+	public ImageViewHandler(ImageView imgView, View loader)
 	{
 		this.imgView = imgView;
-		this.dm = dm;
 		this.loader = loader;
 	}
 	
@@ -33,8 +32,8 @@ public class ImageViewHandler extends Handler
 			Bitmap bitmap = BitmapFactory.decodeStream(in);
 			in.close();
 			
-			int width = dm.widthPixels;
-			int height = width * bitmap.getHeight() / bitmap.getWidth();
+			int width = imgView.getLayoutParams().width;
+			int height = imgView.getLayoutParams().height;
 			
 			this.imgView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, width, height, false));
 		}

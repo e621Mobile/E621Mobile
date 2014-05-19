@@ -40,6 +40,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -544,7 +545,7 @@ public class E621Middleware extends E621
 		return tags;
 	}
 	
-	public ArrayList<String> localSearch(int page, int limit, String tags)
+	public ArrayList<E621DownloadedImage> localSearch(int page, int limit, String tags)
 	{
 		tags = prepareQuery(tags);
 		
@@ -557,7 +558,7 @@ public class E621Middleware extends E621
 		
 		SearchQuery sq = new SearchQuery(search);
 		
-		ArrayList<String> ids = download_manager.search(0, Integer.MAX_VALUE, sq);
+		ArrayList<E621DownloadedImage> ids = download_manager.search(0, Integer.MAX_VALUE, sq);
 		
 		final Semaphore sem = new Semaphore(10);
 		final File path;
@@ -577,8 +578,10 @@ public class E621Middleware extends E621
 		
 		ArrayList<Thread> threads = new ArrayList<Thread>();
 		
-		for(final String s : ids)
+		for(E621DownloadedImage image : ids)
 		{
+			final String s = image.filename;
+			
 			Thread t = new Thread(new Runnable()
 			{
 				@Override
@@ -700,7 +703,7 @@ public class E621Middleware extends E621
 		{
 			super(base_path, 0);
 			
-			setVersion(2);
+			setVersion(3);
 		}
 		
 		@Override
@@ -715,6 +718,9 @@ public class E621Middleware extends E621
 					break;
 				case 2:
 					update_1_2();
+					break;
+				case 3:
+					update_2_3();
 					break;
 			}
 		}
@@ -752,30 +758,30 @@ public class E621Middleware extends E621
 			);
 		}
 		
-		public ArrayList<String> search(int page, int limit, SearchQuery query)
+		protected synchronized void update_2_3()
 		{
-			Cursor c = db.rawQuery("SELECT id FROM images WHERE " + query.toSql() + " ORDER BY id LIMIT ? OFFSET ?;", new String[]{String.valueOf(limit),String.valueOf(limit*page)});
-			
-			/*
-				EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag="gay")
-				AND
-				(
-					EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag="lucario")
-					OR
-					EXISTS(SELECT 1 FROM image_tags WHERE image=id AND tag="mewtwo")
-				)
-			 */
+			db.execSQL("ALTER TABLE e621image ADD COLUMN width INTEGER DEFAULT 1;");
+			db.execSQL("ALTER TABLE e621image ADD COLUMN height INTEGER DEFAULT 1;");
+		}
+		
+		public ArrayList<E621DownloadedImage> search(int page, int limit, SearchQuery query)
+		{
+			Cursor c = db.rawQuery("SELECT images.id as id, e621image.width as width, e621image.height as height FROM images INNER JOIN e621image ON e621image.image = images.id WHERE " + query.toSql() + " ORDER BY id LIMIT ? OFFSET ?;", new String[]{String.valueOf(limit),String.valueOf(limit*page)});
 			
 			if(c == null || !c.moveToFirst())
 			{
-				return new ArrayList<String>();
+				return new ArrayList<E621DownloadedImage>();
 			}
 			
-			ArrayList<String> ins = new ArrayList<String>();
+			ArrayList<E621DownloadedImage> ins = new ArrayList<E621DownloadedImage>();
 			
 			for(;limit>0; limit--)
 			{
-				ins.add(c.getString(c.getColumnIndex("id")));
+				ins.add(new E621DownloadedImage(
+						c.getString(c.getColumnIndex("id")),
+						c.getInt(c.getColumnIndex("width")),
+						c.getInt(c.getColumnIndex("height"))
+					));
 				
 				if(!c.moveToNext())
 				{
@@ -826,6 +832,8 @@ public class E621Middleware extends E621
 			ContentValues e621image_values = new ContentValues();
 			e621image_values.put("image", img.id + "." + img.file_ext);
 			e621image_values.put("rating", img.rating);
+			e621image_values.put("width", img.width);
+			e621image_values.put("height", img.height);
 			
 			try
 			{
@@ -961,10 +969,15 @@ public class E621Middleware extends E621
 					ContentValues e621image_values = new ContentValues();
 					e621image_values.put("image", img.id + "." + img.file_ext);
 					e621image_values.put("rating", img.rating);
+					e621image_values.put("width", img.width);
+					e621image_values.put("height", img.height);
 					
 					try
 					{
-						db.insert("e621image", null, e621image_values);
+						if(db.insert("e621image", null, e621image_values) == -1)
+						{
+							db.update("e621image", e621image_values, "image = ?", new String[]{img.id + "." + img.file_ext});
+						}
 					}
 					catch(SQLiteException e)
 					{

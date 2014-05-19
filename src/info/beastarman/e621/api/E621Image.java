@@ -23,6 +23,16 @@ public class E621Image
 	public String file_ext = "";
 	public String rating = "s";
 	public ArrayList<E621Tag> tags = new ArrayList<E621Tag>();
+
+	public int preview_width = 0;
+	public int preview_height = 0;
+
+	public int sample_width = 0;
+	public int sample_height = 0;
+	
+	public int width = 0;
+	public int height = 0;
+	
 	
 	public E621Image()
 	{
@@ -52,6 +62,24 @@ public class E621Image
 			img.file_ext = json.getString("file_ext");
 		} catch (JSONException e) {} 
 		try {
+			img.preview_width = json.getInt("preview_width");
+		} catch (JSONException e) {} 
+		try {
+			img.preview_height = json.getInt("preview_height");
+		} catch (JSONException e) {} 
+		try {
+			img.sample_width = json.getInt("sample_width");
+		} catch (JSONException e) {} 
+		try {
+			img.sample_height = json.getInt("sample_height");
+		} catch (JSONException e) {} 
+		try {
+			img.width = json.getInt("width");
+		} catch (JSONException e) {} 
+		try {
+			img.height = json.getInt("height");
+		} catch (JSONException e) {} 
+		try {
 			for(String tag : json.getString("tags").split("\\s"))
 			{
 				img.tags.add(new E621Tag(tag));
@@ -71,6 +99,24 @@ public class E621Image
 		img.id = xml.getAttribute("id");  
 		img.rating = xml.getAttribute("rating"); 
 		img.file_ext = xml.getAttribute("file_ext");
+		try{
+			img.preview_width = Integer.parseInt(xml.getAttribute("preview_width"));
+		} catch (NumberFormatException e) {}
+		try{
+			img.preview_height = Integer.parseInt(xml.getAttribute("preview_height"));
+		} catch (NumberFormatException e) {}
+		try{
+			img.sample_width = Integer.parseInt(xml.getAttribute("sample_width"));
+		} catch (NumberFormatException e) {}
+		try{
+			img.sample_height = Integer.parseInt(xml.getAttribute("sample_height"));
+		} catch (NumberFormatException e) {}
+		try{
+			img.width = Integer.parseInt(xml.getAttribute("width"));
+		} catch (NumberFormatException e) {}
+		try{
+			img.height = Integer.parseInt(xml.getAttribute("height"));
+		} catch (NumberFormatException e) {}
 		for(String tag : xml.getAttribute("tags").split("\\s"))
 		{
 			img.tags.add(new E621Tag(tag));

@@ -17,6 +17,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 public class ImageActivity extends Activity
 {
@@ -101,13 +103,17 @@ public class ImageActivity extends Activity
 	        		button.setImageResource(android.R.drawable.ic_menu_delete);
 	        	}
 	        	
-	        	DisplayMetrics dm = new DisplayMetrics();
-	    		getWindowManager().getDefaultDisplay().getMetrics(dm);
-	    		dm.widthPixels = findViewById(R.id.content_wrapper).getWidth();
-	    		
+	        	ImageView imgView = (ImageView)findViewById(R.id.imageWrapper);
+	        	
+	        	View v = findViewById(R.id.content_wrapper);
+	        	
+	        	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(new RelativeLayout.LayoutParams(
+	        			v.getWidth(),
+	        			(int) (v.getWidth() * (((double)e621Image.height) / e621Image.width))));
+				imgView.setLayoutParams(lp);
+	        	
 	    		ImageViewHandler handler = new ImageViewHandler(
-	    			(ImageView)findViewById(R.id.imageWrapper),
-	    			dm,
+	    			imgView,
 	    			findViewById(R.id.progressBarLoader));
 	    		
 	    		new Thread(new ImageLoadRunnable(handler,e621Image,e621,e621.getFileDownloadSize())).start();

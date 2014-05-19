@@ -34,8 +34,8 @@
             android:text="@string/search_button" />
     </LinearLayout>
 
-    <ScrollView
-        android:id="@+id/scrollView1"
+    <info.beastarman.e621.views.ObservableScrollView
+        android:id="@+id/resultsScrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/relativeLayout1"
@@ -58,7 +58,7 @@
                 android:paddingTop="40dp" />
         </LinearLayout>
 
-    </ScrollView>
+    </info.beastarman.e621.views.ObservableScrollView>
 
     <RelativeLayout
         android:id="@+id/relativeLayout1"
