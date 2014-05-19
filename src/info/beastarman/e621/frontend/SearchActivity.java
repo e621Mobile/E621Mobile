@@ -7,8 +7,7 @@ import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.views.ObservableScrollView;
-import info.beastarman.e621.views.ScrollViewListener;
+import info.beastarman.e621.views.LazyRunScrollView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -19,8 +18,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,7 +30,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class SearchActivity extends Activity implements ScrollViewListener
+public class SearchActivity extends Activity
 {
 	public static String SEARCH = "search";
 	public static String PAGE = "page";
@@ -71,9 +68,6 @@ public class SearchActivity extends Activity implements ScrollViewListener
 		Resources res = getResources();
 		String text = String.format(res.getString(R.string.page_counter),
 				String.valueOf(page + 1),"...");
-
-		ObservableScrollView scroll = (ObservableScrollView)findViewById(R.id.resultsScrollView);
-		scroll.setScrollViewListener(this);
 		
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
@@ -184,16 +178,22 @@ public class SearchActivity extends Activity implements ScrollViewListener
 		}
 
 		int layout_width = layout.getWidth();
+		
+		LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
 
+		int image_y = 0;
+		
 		for (final E621Image img : e621Search.images) {
 			ImageView imgView = new ImageView(getApplicationContext());
 			RelativeLayout rel = new RelativeLayout(getApplicationContext());
 			ProgressBar bar = new ProgressBar(getApplicationContext());
 			ImageButton download = new ImageButton(getApplicationContext());
 			
+			int image_height = (int) (layout_width * (((double)img.preview_height) / img.preview_width));
+			
 			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(
 					layout_width,
-					(int) (layout_width * (((double)img.preview_height) / img.preview_width))));
+					image_height));
 			imgView.setLayoutParams(lp);
 			
 			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
@@ -252,8 +252,9 @@ public class SearchActivity extends Activity implements ScrollViewListener
 
 			ImageViewHandler handler = new ImageViewHandler(imgView, bar);
 			
-			new Thread(new ImageLoadRunnable(handler, img, e621,
-					E621Image.PREVIEW)).start();
+			scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621,E621Image.PREVIEW)),image_y);
+			
+			image_y += image_height + 40;
 		}
 	}
 	
@@ -366,10 +367,4 @@ public class SearchActivity extends Activity implements ScrollViewListener
 		getMenuInflater().inflate(R.menu.search, menu);
 		return true;
 	}
-
-	@Override
-	public void onScrollChanged(ObservableScrollView scrollView, int x, int y, int oldx, int oldy) {
-		Log.d("Msg",String.valueOf(oldy) + " to " + String.valueOf(y));
-	}
-
 }

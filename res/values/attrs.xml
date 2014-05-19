@@ -8,4 +8,8 @@
         <attr name="progressTextSuffix" format="string" />
     </declare-styleable>
 
+    <declare-styleable name="LazyRunScrollView">
+        <attr name="step" format="integer"/>
+    </declare-styleable>
+    
 </resources>

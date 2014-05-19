@@ -40,7 +40,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 public class E621Middleware extends E621
 {

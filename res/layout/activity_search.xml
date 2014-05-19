@@ -1,4 +1,5 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res/info.beastarman.e621"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -34,14 +35,15 @@
             android:text="@string/search_button" />
     </LinearLayout>
 
-    <info.beastarman.e621.views.ObservableScrollView
+    <info.beastarman.e621.views.LazyRunScrollView
         android:id="@+id/resultsScrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/relativeLayout1"
         android:layout_below="@+id/linearLayout1"
         android:paddingLeft="50dp"
-        android:paddingRight="50dp" >
+        android:paddingRight="50dp"
+        custom:step="1000">
 
         <LinearLayout
             android:id="@+id/content_wrapper"
@@ -58,7 +60,7 @@
                 android:paddingTop="40dp" />
         </LinearLayout>
 
-    </info.beastarman.e621.views.ObservableScrollView>
+    </info.beastarman.e621.views.LazyRunScrollView>
 
     <RelativeLayout
         android:id="@+id/relativeLayout1"

@@ -6,8 +6,7 @@ import java.util.ArrayList;
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621DownloadedImage;
 import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.views.ObservableScrollView;
-import info.beastarman.e621.views.ScrollViewListener;
+import info.beastarman.e621.views.LazyRunScrollView;
 import android.os.Bundle;
 import android.os.Message;
 import android.app.ActionBar;
@@ -18,8 +17,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,7 +28,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class DownloadsActivity extends Activity implements ScrollViewListener
+public class DownloadsActivity extends Activity
 {
 	public static String SEARCH = "search";
 	public static String PAGE = "page";
@@ -67,9 +64,6 @@ public class DownloadsActivity extends Activity implements ScrollViewListener
 		limit = getIntent().getExtras().getInt(SearchActivity.LIMIT, 20);
 
 		((EditText) findViewById(R.id.searchInput)).setText(search);
-		
-		ObservableScrollView scroll = (ObservableScrollView)findViewById(R.id.resultsScrollView);
-		scroll.setScrollViewListener(this);
 	}
 	
 	@Override
@@ -211,6 +205,10 @@ public class DownloadsActivity extends Activity implements ScrollViewListener
 				}
 				
 				int layout_width = layout.getWidth();
+				
+				LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
+				
+				int image_y = 0;
 
 				for (E621DownloadedImage img : downloads)
 				{
@@ -220,9 +218,11 @@ public class DownloadsActivity extends Activity implements ScrollViewListener
 					RelativeLayout rel = new RelativeLayout(getApplicationContext());
 					ProgressBar bar = new ProgressBar(getApplicationContext());
 					
+					int image_height = (int) (layout_width * (((double)img.height) / img.width));
+					
 					LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(
 							layout_width,
-							(int) (layout_width * (((double)img.height) / img.width))));
+							image_height));
 					imgView.setLayoutParams(lp);
 
 					rel.setPadding(0, 20, 0, 20);
@@ -248,10 +248,11 @@ public class DownloadsActivity extends Activity implements ScrollViewListener
 							RelativeLayout.TRUE);
 					bar.setLayoutParams(layoutParams);
 
-					//ImageViewHandler handler = new ImageViewHandler(imgView, dm, bar);
 					ImageViewHandler handler = new ImageViewHandler(imgView, bar);
 					
-					new Thread(new ImageLoadRunnable(handler, id)).start();
+					scroll.addThread(new Thread(new ImageLoadRunnable(handler, id)), image_y);
+					
+					image_y += image_height + 40;
 				}
 			}
 		});
@@ -318,11 +319,5 @@ public class DownloadsActivity extends Activity implements ScrollViewListener
 	    	
 	    	handler.sendMessage(msg);
 		}
-	}
-
-	@Override
-	public void onScrollChanged(ObservableScrollView scrollView, int x, int y, int oldx, int oldy)
-	{
-		Log.d("Msg",String.valueOf(oldy) + " to " + String.valueOf(y));
 	}
 }
