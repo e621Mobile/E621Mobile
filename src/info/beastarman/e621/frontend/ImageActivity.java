@@ -10,16 +10,28 @@ import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
-public class ImageActivity extends Activity
+public class ImageActivity extends Activity implements OnClickListener
 {
+	private static final int SWIPE_MIN_DISTANCE = 120;
+    private static final int SWIPE_MAX_OFF_PATH = 250;
+    private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+    private GestureDetector gestureDetector;
+    View.OnTouchListener gestureListener;
+	
 	public static String ID = "id";
 	
 	public String id= "";
@@ -54,6 +66,13 @@ public class ImageActivity extends Activity
 	        	handler.sendMessage(msg);
 	        }
 	    }).start();
+		
+		gestureDetector = new GestureDetector(this, new MyGestureDetector());
+        gestureListener = new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                return gestureDetector.onTouchEvent(event);
+            }
+        };
 	}
 	
 	@Override
@@ -65,6 +84,20 @@ public class ImageActivity extends Activity
 		{
 			update_result();
 		}
+	}
+	
+	@Override
+	protected void onPause()
+	{
+		//overridePendingTransition(R.anim.hold, R.anim.pull_out_to_left);
+        super.onPause();
+    }
+	
+	@Override
+	public void onResume()
+	{
+		//this.overridePendingTransition(R.anim.pull_in_from_left, R.anim.hold);
+		super.onResume();
 	}
 	
 	@Override
@@ -89,6 +122,9 @@ public class ImageActivity extends Activity
 	public void update_result()
 	{
 		View mainView = getLayoutInflater().inflate(R.layout.activity_image_loaded, null);
+		
+		mainView.setOnClickListener(ImageActivity.this); 
+		mainView.setOnTouchListener(gestureListener);
 		
 		mainView.post(new Runnable() 
 	    {
@@ -213,5 +249,35 @@ public class ImageActivity extends Activity
 			activity.e621Image = result;
 			activity.update_result();
 		}
+	}
+	
+	class MyGestureDetector extends SimpleOnGestureListener {
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            try {
+                if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+                    return false;
+                // right to left swipe
+                if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    Toast.makeText(ImageActivity.this, "Left Swipe", Toast.LENGTH_SHORT).show();
+                }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    Toast.makeText(ImageActivity.this, "Right Swipe", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e) {
+                // nothing
+            }
+            return false;
+        }
+
+            @Override
+        public boolean onDown(MotionEvent e) {
+              return true;
+        }
+    }
+
+	@Override
+	public void onClick(View v)
+	{
+		Log.d("Msg","onClick()");
 	};
 }

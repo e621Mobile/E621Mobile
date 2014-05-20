@@ -7,6 +7,8 @@ import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.OfflineImageNavigator;
+import info.beastarman.e621.middleware.OnlineImageNavigator;
 import info.beastarman.e621.views.LazyRunScrollView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +20,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -158,6 +161,36 @@ public class SearchActivity extends Activity
 
 			return;
 		}
+		
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run() {
+				OnlineImageNavigator s = new OnlineImageNavigator(e621Search.images.get(e621Search.images.size()-1),e621Search.offset+(e621Search.images.size()-1),search,e621Search);
+				
+				if(s.prev() != null)
+				{
+					Log.d("Msg",String.valueOf(s.prev().prev()));
+				}
+				else
+				{
+					Log.d("Msg","null");
+				}
+				
+				Log.d("Msg",String.valueOf(s.prev()));
+				Log.d("Msg",String.valueOf(s));
+				Log.d("Msg",String.valueOf(s.next()));
+				
+				if(s.next() != null)
+				{
+					Log.d("Msg",String.valueOf(s.next().next()));
+				}
+				else
+				{
+					Log.d("Msg","null");
+				}
+			}
+		}).start();
 		
 		Resources res = getResources();
 		String text = String.format(res.getString(R.string.page_counter),
