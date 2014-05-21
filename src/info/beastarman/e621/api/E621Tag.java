@@ -1,7 +1,11 @@
 package info.beastarman.e621.api;
 
-public class E621Tag
+import java.io.Serializable;
+
+public class E621Tag implements Serializable
 {
+	private static final long serialVersionUID = 4310674854388740575L;
+	
 	private String tag;
 	
 	public E621Tag(String s)

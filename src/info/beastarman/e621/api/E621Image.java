@@ -1,13 +1,16 @@
 package info.beastarman.e621.api;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Element;
 
-public class E621Image
+public class E621Image implements Serializable
 {
+	private static final long serialVersionUID = 4972427634331752322L;
+	
 	public static int PREVIEW = 1;
 	public static int SAMPLE = 2;
 	public static int FULL = 3;

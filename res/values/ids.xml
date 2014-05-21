@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item type="id" name="imageId"/>
+    <item type="id" name="imagePosition"/>
+    <item type="id" name="imageObject"/>
 </resources>

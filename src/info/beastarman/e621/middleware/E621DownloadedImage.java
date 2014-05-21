@@ -1,7 +1,11 @@
 package info.beastarman.e621.middleware;
 
-public class E621DownloadedImage
+import java.io.Serializable;
+
+public class E621DownloadedImage implements Serializable
 {
+	private static final long serialVersionUID = 4777254945052251604L;
+	
 	public String filename = "";
 	public int width = 1;
 	public int height = 1;

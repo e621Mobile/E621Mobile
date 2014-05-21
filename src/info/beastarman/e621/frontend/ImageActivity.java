@@ -1,16 +1,15 @@
 package info.beastarman.e621.frontend;
 
 import java.io.IOException;
-
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.ImageNavigator;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
 import android.content.Intent;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Menu;
@@ -32,9 +31,11 @@ public class ImageActivity extends Activity implements OnClickListener
     private GestureDetector gestureDetector;
     View.OnTouchListener gestureListener;
 	
-	public static String ID = "id";
+	public static String NAVIGATOR = "navigator";
+	public static String INTENT = "intent";
 	
-	public String id= "";
+	public ImageNavigator image; 
+	public Intent intent;
 	
 	E621Image e621Image = null;
 	
@@ -47,11 +48,11 @@ public class ImageActivity extends Activity implements OnClickListener
 		
 		e621 = E621Middleware.getInstance();
 		
-		id= getIntent().getExtras().getString(ImageActivity.ID);
-		if(id == null)
-		{
-			id = "";
-		}
+		image = (ImageNavigator) getIntent().getExtras().getSerializable(NAVIGATOR);
+		
+		intent = (Intent) getIntent().getExtras().getParcelable(INTENT);
+		
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 		
 		final Handler handler = new ImageHandler(this);
 		
@@ -59,7 +60,7 @@ public class ImageActivity extends Activity implements OnClickListener
 	        public void run() {
 	        	Message msg = handler.obtainMessage();
 	        	try {
-					msg.obj = e621.post__show(id);
+					msg.obj = e621.post__show(image.getId());
 				} catch (IOException e) {
 					msg.obj = null;
 				}
@@ -107,6 +108,11 @@ public class ImageActivity extends Activity implements OnClickListener
             case R.id.action_settings:
                 open_settings();
                 return true;
+            case android.R.id.home:
+            	if(goUp())
+            	{
+            		return true;
+            	}
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -258,10 +264,13 @@ public class ImageActivity extends Activity implements OnClickListener
                 if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
                     return false;
                 // right to left swipe
-                if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-                    Toast.makeText(ImageActivity.this, "Left Swipe", Toast.LENGTH_SHORT).show();
-                }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-                    Toast.makeText(ImageActivity.this, "Right Swipe", Toast.LENGTH_SHORT).show();
+                if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
+                {
+                    next();
+                }
+                else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
+                {
+                    prev();
                 }
             } catch (Exception e) {
                 // nothing
@@ -274,10 +283,72 @@ public class ImageActivity extends Activity implements OnClickListener
               return true;
         }
     }
+	
+	public void prev()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run() {
+				ImageNavigator nav = image.prev();
+				
+				if(nav != null)
+				{
+					final Intent new_intent = new Intent(ImageActivity.this, ImageActivity.class);
+					new_intent.putExtra(ImageActivity.NAVIGATOR, nav);
+					new_intent.putExtra(ImageActivity.INTENT,intent);
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run() {
+							startActivity(new_intent);
+						}
+					});
+				}
+			}
+		}).start();
+	}
+	
+	public void next()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run() {
+				ImageNavigator nav = image.next();
+				
+				if(nav != null)
+				{
+					final Intent new_intent = new Intent(ImageActivity.this, ImageActivity.class);
+					new_intent.putExtra(ImageActivity.NAVIGATOR, nav);
+					new_intent.putExtra(ImageActivity.INTENT,intent);
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run() {
+							startActivity(new_intent);
+						}
+					});
+				}
+			}
+		}).start();
+	}
 
 	@Override
 	public void onClick(View v)
 	{
-		Log.d("Msg","onClick()");
+		Toast.makeText(ImageActivity.this, "onClick()", Toast.LENGTH_SHORT).show();
 	};
+	
+	public boolean goUp()
+	{
+		if(intent == null)
+		{
+			intent = new Intent(ImageActivity.this, MainActivity.class);
+		}
+		
+		startActivity(intent);
+		
+		return true;
+	}
 }

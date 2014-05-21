@@ -6,10 +6,10 @@ import info.beastarman.e621.api.E621Search;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import android.util.Log;
-
 public class OnlineImageNavigator implements ImageNavigator
 {
+	private static final long serialVersionUID = 6801245286947782850L;
+	
 	E621Image img;
 	int position;
 	String query;
@@ -47,12 +47,8 @@ public class OnlineImageNavigator implements ImageNavigator
 			return null;
 		}
 
-		Log.d("Msg","1");
-		
 		while(!(new_position < cache_offset + cache.size()))
 		{
-			Log.d("Msg","2");
-			
 			int page_append = (int) Math.floor(((double)cache_offset + cache.size())/20);
 			int slice_from = (cache_offset + cache.size()) % 20;
 			
@@ -64,14 +60,10 @@ public class OnlineImageNavigator implements ImageNavigator
 				return null;
 			}
 			
-			Log.d("Msg","2a");
-			
 			if(results == null)
 			{
 				return null;
 			}
-			
-			Log.d("Msg","2b");
 			
 			if(results.size() <= slice_from)
 			{
@@ -81,11 +73,7 @@ public class OnlineImageNavigator implements ImageNavigator
 			results.subList(0,slice_from).clear();
 			
 			cache.addAll(results);
-			
-			Log.d("Msg","2c");
 		}
-		
-		Log.d("Msg","3");
 		
 		if(new_position < cache_offset + cache.size())
 		{

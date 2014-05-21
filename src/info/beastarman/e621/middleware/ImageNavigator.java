@@ -1,6 +1,8 @@
 package info.beastarman.e621.middleware;
 
-public interface ImageNavigator
+import java.io.Serializable;
+
+public interface ImageNavigator extends Serializable
 {
 	ImageNavigator next();
 	ImageNavigator prev();

@@ -7,7 +7,6 @@ import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.middleware.OfflineImageNavigator;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
 import info.beastarman.e621.views.LazyRunScrollView;
 import android.os.Bundle;
@@ -20,7 +19,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -162,36 +160,6 @@ public class SearchActivity extends Activity
 			return;
 		}
 		
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run() {
-				OnlineImageNavigator s = new OnlineImageNavigator(e621Search.images.get(e621Search.images.size()-1),e621Search.offset+(e621Search.images.size()-1),search,e621Search);
-				
-				if(s.prev() != null)
-				{
-					Log.d("Msg",String.valueOf(s.prev().prev()));
-				}
-				else
-				{
-					Log.d("Msg","null");
-				}
-				
-				Log.d("Msg",String.valueOf(s.prev()));
-				Log.d("Msg",String.valueOf(s));
-				Log.d("Msg",String.valueOf(s.next()));
-				
-				if(s.next() != null)
-				{
-					Log.d("Msg",String.valueOf(s.next().next()));
-				}
-				else
-				{
-					Log.d("Msg","null");
-				}
-			}
-		}).start();
-		
 		Resources res = getResources();
 		String text = String.format(res.getString(R.string.page_counter),
 				String.valueOf(e621Search.current_page() + 1), String.valueOf(e621Search.total_pages()));
@@ -215,6 +183,8 @@ public class SearchActivity extends Activity
 		LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
 
 		int image_y = 0;
+		
+		int position = e621Search.offset;
 		
 		for (final E621Image img : e621Search.images) {
 			ImageView imgView = new ImageView(getApplicationContext());
@@ -268,7 +238,8 @@ public class SearchActivity extends Activity
 			rel.addView(download);
 			layout.addView(rel);
 
-			imgView.setTag(R.id.imageId, img.id);
+			imgView.setTag(R.id.imagePosition, position);
+			imgView.setTag(R.id.imageObject, img);
 
 			imgView.setOnClickListener(new View.OnClickListener() {
 				@Override
@@ -288,6 +259,8 @@ public class SearchActivity extends Activity
 			scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621,E621Image.PREVIEW)),image_y);
 			
 			image_y += image_height + 40;
+			
+			position++;
 		}
 	}
 	
@@ -333,10 +306,13 @@ public class SearchActivity extends Activity
 	}
 
 	public void imageClick(View view) {
-		String id = (String) view.getTag(R.id.imageId);
-
 		Intent intent = new Intent(this, ImageActivity.class);
-		intent.putExtra(ImageActivity.ID, id);
+		intent.putExtra(ImageActivity.NAVIGATOR, new OnlineImageNavigator(
+				(E621Image) view.getTag(R.id.imageObject),
+				(Integer) view.getTag(R.id.imagePosition),
+				search,
+				e621Search));
+		intent.putExtra(ImageActivity.INTENT,getIntent());
 		startActivity(intent);
 	}
 

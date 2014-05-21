@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 public class OfflineImageNavigator implements ImageNavigator
 {
+	private static final long serialVersionUID = -1860597960377199668L;
+	
 	E621DownloadedImage img;
 	int position;
 	String query;

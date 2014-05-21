@@ -18,7 +18,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -211,6 +210,7 @@ public class DownloadsActivity extends Activity
 				LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
 				
 				int image_y = 0;
+				int position = page*20;
 
 				for (E621DownloadedImage img : downloads)
 				{
@@ -235,7 +235,8 @@ public class DownloadsActivity extends Activity
 					rel.addView(imgView);
 					layout.addView(rel);
 
-					imgView.setTag(R.id.imageId, id.split(":")[0]);
+					imgView.setTag(R.id.imagePosition, position);
+					imgView.setTag(R.id.imageObject, img);
 
 					imgView.setOnClickListener(new View.OnClickListener() {
 						@Override
@@ -244,10 +245,8 @@ public class DownloadsActivity extends Activity
 						}
 					});
 					
-					RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) bar
-							.getLayoutParams();
-					layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT,
-							RelativeLayout.TRUE);
+					RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) bar.getLayoutParams();
+					layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT,RelativeLayout.TRUE);
 					bar.setLayoutParams(layoutParams);
 
 					ImageViewHandler handler = new ImageViewHandler(imgView, bar);
@@ -255,16 +254,19 @@ public class DownloadsActivity extends Activity
 					scroll.addThread(new Thread(new ImageLoadRunnable(handler, id)), image_y);
 					
 					image_y += image_height + 40;
+					position++;
 				}
 			}
 		});
 	}
 	
 	public void imageClick(View view) {
-		String id = (String) view.getTag(R.id.imageId);
-
 		Intent intent = new Intent(this, ImageActivity.class);
-		intent.putExtra(ImageActivity.ID, id);
+		intent.putExtra(ImageActivity.NAVIGATOR, new OfflineImageNavigator(
+				(E621DownloadedImage) view.getTag(R.id.imageObject),
+				(Integer) view.getTag(R.id.imagePosition),
+				search));
+		intent.putExtra(ImageActivity.INTENT,getIntent());
 		startActivity(intent);
 	}
 	

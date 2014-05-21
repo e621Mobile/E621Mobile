@@ -34,6 +34,7 @@
         <activity
             android:name="info.beastarman.e621.frontend.ImageActivity"
             android:label="@string/title_activity_image"
+            android:parentActivityName="info.beastarman.e621.frontend.MainActivity"
             android:windowSoftInputMode="stateHidden" >
         </activity>
         <activity
