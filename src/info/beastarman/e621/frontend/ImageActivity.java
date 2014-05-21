@@ -337,7 +337,6 @@ public class ImageActivity extends Activity implements OnClickListener
 	@Override
 	public void onClick(View v)
 	{
-		Toast.makeText(ImageActivity.this, "onClick()", Toast.LENGTH_SHORT).show();
 	};
 	
 	public boolean goUp()
@@ -347,6 +346,7 @@ public class ImageActivity extends Activity implements OnClickListener
 			intent = new Intent(ImageActivity.this, MainActivity.class);
 		}
 		
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
 		
 		return true;
