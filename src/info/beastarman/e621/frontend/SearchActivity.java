@@ -53,7 +53,7 @@ public class SearchActivity extends SlideMenuBaseActivity
 		ActionBar actionBar = getActionBar();
 	    actionBar.setDisplayHomeAsUpEnabled(true);
 
-		e621 = E621Middleware.getInstance();
+		e621 = E621Middleware.getInstance(getApplicationContext());
 
 		search = getIntent().getExtras().getString(SearchActivity.SEARCH);
 		if(search == null)

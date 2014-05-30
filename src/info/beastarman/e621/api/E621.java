@@ -134,7 +134,6 @@ public class E621
 	
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
-		
 		HttpClient httpclient = new DefaultHttpClient();
 		
 		for(;tries>=0; tries--)

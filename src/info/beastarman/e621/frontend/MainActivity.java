@@ -4,7 +4,6 @@ import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 import android.net.Uri;
 import android.os.Bundle;
-import android.content.Context;
 import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,20 +28,12 @@ public class MainActivity extends SlideMenuBaseActivity
 	
 	int previous_mascot = -1;
 	
-	private static Context context;
-	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        MainActivity.context = getApplicationContext();
-        
-        e621 = E621Middleware.getInstance();
-    }
-	
-	public static Context getContext() {
-        return MainActivity.context;
+        e621 = E621Middleware.getInstance(getApplicationContext());
     }
 	
 	protected void onStart()
@@ -99,9 +90,9 @@ public class MainActivity extends SlideMenuBaseActivity
     	//
     	// Force Exception
     	//
-    	// int wololo = 2/0;
-    	// wololo = wololo + 10;
-    	//
+    	
+    	int wololo = 2/0;
+    	wololo = wololo + 10;
     	
     	change_mascot();
     }

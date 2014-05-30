@@ -1,6 +1,7 @@
 package info.beastarman.e621.frontend;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621Middleware;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -10,12 +11,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class ErrorReportActivity extends Activity
 {
 	public static String LOG = "log";
+	
+	E621Middleware e621;
 	
 	String log;
 	
@@ -24,6 +28,8 @@ public class ErrorReportActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_error_report);
+		
+		e621 = E621Middleware.getInstance(getApplicationContext());
 		
 		log = getIntent().getExtras().getString(LOG);
 		
@@ -96,6 +102,10 @@ public class ErrorReportActivity extends Activity
 	
 	public void sendReport(View v)
 	{
+		EditText error_description = (EditText) findViewById(R.id.errorDescription);
+		
+		e621.sendReport(log + "\n\n----------\n\n" + error_description.getText());
+		
 		end();
 	}
 	

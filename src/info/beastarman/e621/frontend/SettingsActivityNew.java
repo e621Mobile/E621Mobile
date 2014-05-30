@@ -28,7 +28,7 @@ public class SettingsActivityNew extends PreferenceActivity
 	
 	protected void updateTags()
 	{
-		E621Middleware.getInstance().update_tags(this);
+		E621Middleware.getInstance(getApplicationContext()).update_tags(this);
 	}
 
     public static class MyPreferenceFragment extends PreferenceFragment

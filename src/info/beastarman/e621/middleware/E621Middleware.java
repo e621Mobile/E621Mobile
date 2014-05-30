@@ -16,18 +16,27 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
 import android.app.NotificationManager;
@@ -50,6 +59,7 @@ public class E621Middleware extends E621
 	File sd_path = null;
 	File download_path = null;
 	File export_path = null;
+	File report_path = null;
 	
 	public static final String PREFS_NAME = "E621MobilePreferences";
 	
@@ -68,15 +78,20 @@ public class E621Middleware extends E621
 	
 	private static E621Middleware instance;
 	
-	protected E621Middleware()
+	private static String DIRECTORY_SYNC = "sync/";
+	
+	Context ctx;
+	
+	protected E621Middleware(Context ctx)
 	{
-		Context ctx = MainActivity.getContext();
+		this.ctx = ctx;
 		
 		cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"cache/");
 		full_cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"full_cache/");
 		sd_path = new File(Environment.getExternalStorageDirectory(),"e621/");
 		download_path = new File(sd_path,"e612 Images/");
 		export_path = new File(sd_path,"export/");
+		report_path = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"reports/");
 		
 		settings = ctx.getSharedPreferences(PREFS_NAME, 0);
 		
@@ -93,11 +108,11 @@ public class E621Middleware extends E621
 		setup();
 	}
 	
-	public static E621Middleware getInstance()
+	public static E621Middleware getInstance(Context ctx)
 	{
 		if(instance == null)
 		{
-			instance = new E621Middleware();
+			instance = new E621Middleware(ctx);
 		}
 		return instance;
 	}
@@ -127,7 +142,12 @@ public class E621Middleware extends E621
 		if(!export_path.exists())
 		{
 			export_path.mkdirs();
-		} 
+		}
+		
+		if(!report_path.exists())
+		{
+			report_path.mkdirs();
+		}
 		
 		if(settings.getBoolean("hideDownloadFolder", true))
 		{
@@ -252,7 +272,7 @@ public class E621Middleware extends E621
 			if(downloading.size() == 0)
 			{
 				NotificationCompat.Builder mBuilder =
-				        new NotificationCompat.Builder(MainActivity.getContext())
+				        new NotificationCompat.Builder(ctx)
 				        .setSmallIcon(R.drawable.ic_launcher)
 				        .setContentTitle("Downloading images")
 				        .setContentText("Please wait")
@@ -458,7 +478,7 @@ public class E621Middleware extends E621
 		}
 		
 		NotificationCompat.Builder mBuilder =
-		        new NotificationCompat.Builder(MainActivity.getContext())
+		        new NotificationCompat.Builder(ctx)
 		        .setSmallIcon(R.drawable.ic_launcher)
 		        .setContentTitle("Updating tags")
 		        .setContentText("Please wait")
@@ -694,6 +714,56 @@ public class E621Middleware extends E621
 		query = prepareQuery(query);
 		
 		return (int) Math.ceil(((double)download_manager.totalEntries(new SearchQuery(query))) / results_per_page);
+	}
+	
+	public void sendReport(final String report)
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run() {
+				try
+				{
+					HttpClient httpclient = new DefaultHttpClient();
+					
+					HttpPost post = new HttpPost("http://beastarman.info/report/e621/");
+					
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);  
+					nameValuePairs.add(new BasicNameValuePair("text", report));
+					post.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
+					
+					httpclient.execute(post);
+				}
+				catch(ClientProtocolException e)
+				{
+					saveReportForLater(report);
+				}
+				catch (IOException e)
+				{
+					saveReportForLater(report);
+				}
+			}
+		}).start();
+	}
+	
+	private void saveReportForLater(String report)
+	{
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.US);
+        String currentTimeStamp = dateFormat.format(new Date());
+		
+		File report_file = new File(report_path,currentTimeStamp + ".txt");
+		
+		try
+		{
+			report_file.createNewFile();
+			
+			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(report_file));
+			out.write(report.getBytes());
+			out.close();
+		}
+		catch (IOException e)
+		{
+		}
 	}
 	
 	private class E621DownloadedImages extends ImageCacheManager

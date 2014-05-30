@@ -44,7 +44,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_image);
 		
-		e621 = E621Middleware.getInstance();
+		e621 = E621Middleware.getInstance(getApplicationContext());
 		
 		image = (ImageNavigator) getIntent().getExtras().getSerializable(NAVIGATOR);
 		
