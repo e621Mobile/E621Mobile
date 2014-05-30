@@ -87,13 +87,6 @@ public class MainActivity extends SlideMenuBaseActivity
     
     public void change_mascot(View v)
     {
-    	//
-    	// Force Exception
-    	//
-    	
-    	int wololo = 2/0;
-    	wololo = wololo + 10;
-    	
     	change_mascot();
     }
     

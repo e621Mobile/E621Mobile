@@ -8,6 +8,7 @@
         android:minSdkVersion="11"
         android:targetSdkVersion="19" />
 
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
@@ -52,6 +53,8 @@
             android:label="Error"
             android:windowSoftInputMode="stateHidden" >
         </activity>
+        
+        <receiver android:name="info.beastarman.e621.middleware.E621SyncReciever"/> 
     </application>
 
 </manifest>

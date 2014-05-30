@@ -1,4 +1,4 @@
-package info.beastarman.e621.frontend;
+package info.beastarman.e621.middleware;
 
 import java.io.InputStream;
 

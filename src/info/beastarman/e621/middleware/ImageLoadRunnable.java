@@ -1,13 +1,12 @@
-package info.beastarman.e621.frontend;
+package info.beastarman.e621.middleware;
 
 import info.beastarman.e621.api.E621Image;
-import info.beastarman.e621.middleware.E621Middleware;
 
 import java.io.InputStream;
 
 import android.os.Message;
 
-class ImageLoadRunnable implements Runnable
+public class ImageLoadRunnable implements Runnable
 {
 	ImageViewHandler handler;
 	E621Image img;

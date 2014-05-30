@@ -13,6 +13,8 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +41,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -79,6 +82,9 @@ public class E621Middleware extends E621
 	private static E621Middleware instance;
 	
 	private static String DIRECTORY_SYNC = "sync/";
+	
+	private AlarmManager alarmMgr;
+	private PendingIntent alarmIntent;
 	
 	Context ctx;
 	
@@ -203,6 +209,15 @@ public class E621Middleware extends E621
 		{
 			allowedRatings.add(E621Image.EXPLICIT);
 		}
+		
+		Intent intent = new Intent(ctx, E621SyncReciever.class);
+		
+		alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+		alarmIntent = PendingIntent.getBroadcast(ctx, 0, intent, 0);
+		
+		alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+		        AlarmManager.INTERVAL_HOUR*3,
+		        AlarmManager.INTERVAL_HOUR*3, alarmIntent);
 	}
 	
 	public int getFileDownloadSize()
@@ -716,6 +731,33 @@ public class E621Middleware extends E621
 		return (int) Math.ceil(((double)download_manager.totalEntries(new SearchQuery(query))) / results_per_page);
 	}
 	
+	public void sync()
+	{
+		for(String file : report_path.list())
+		{
+			File report = new File(report_path,file);
+			
+			try
+			{
+				FileInputStream in = new FileInputStream(report);
+				
+				sendReportOnline(IOUtils.toString(in));
+				
+				in.close();
+				report.delete();
+			}
+			catch (FileNotFoundException e)
+			{
+			}
+			catch(ClientProtocolException e)
+			{
+			}
+			catch (IOException e)
+			{
+			}
+		}
+	}
+	
 	public void sendReport(final String report)
 	{
 		new Thread(new Runnable()
@@ -727,15 +769,7 @@ public class E621Middleware extends E621
 				
 				try
 				{
-					HttpClient httpclient = new DefaultHttpClient();
-					
-					HttpPost post = new HttpPost("http://beastarman.info/report/e621/");
-					
-					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);  
-					nameValuePairs.add(new BasicNameValuePair("text", report_trim));
-					post.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
-					
-					httpclient.execute(post);
+					sendReportOnline(report_trim);
 				}
 				catch(ClientProtocolException e)
 				{
@@ -747,6 +781,19 @@ public class E621Middleware extends E621
 				}
 			}
 		}).start();
+	}
+	
+	private void sendReportOnline(String report) throws ClientProtocolException, IOException
+	{
+		HttpClient httpclient = new DefaultHttpClient();
+		
+		HttpPost post = new HttpPost("http://beastarman.info/report/e621/");
+		
+		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);  
+		nameValuePairs.add(new BasicNameValuePair("text", report));
+		post.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
+		
+		httpclient.execute(post);
 	}
 	
 	private void saveReportForLater(String report)

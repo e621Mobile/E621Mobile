@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621DownloadedImage;
 import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.OfflineImageNavigator;
 import info.beastarman.e621.views.LazyRunScrollView;
 import android.os.Bundle;

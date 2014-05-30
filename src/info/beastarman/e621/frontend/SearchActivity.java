@@ -7,6 +7,8 @@ import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.ImageLoadRunnable;
+import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
 import info.beastarman.e621.views.LazyRunScrollView;
 import android.os.Bundle;
