@@ -71,14 +71,6 @@
                 android:inputType="textMultiLine"
                 android:textColor="@color/white" />
 
-            <CheckBox
-                android:id="@+id/ask_me_again"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="12dp"
-                android:text="Don&apos;t ask me again"
-                android:textColor="@color/white" />
-
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" >

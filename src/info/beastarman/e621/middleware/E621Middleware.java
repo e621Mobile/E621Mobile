@@ -721,7 +721,10 @@ public class E621Middleware extends E621
 		new Thread(new Runnable()
 		{
 			@Override
-			public void run() {
+			public void run()
+			{
+				String report_trim = report.trim();
+				
 				try
 				{
 					HttpClient httpclient = new DefaultHttpClient();
@@ -729,18 +732,18 @@ public class E621Middleware extends E621
 					HttpPost post = new HttpPost("http://beastarman.info/report/e621/");
 					
 					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);  
-					nameValuePairs.add(new BasicNameValuePair("text", report));
+					nameValuePairs.add(new BasicNameValuePair("text", report_trim));
 					post.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
 					
 					httpclient.execute(post);
 				}
 				catch(ClientProtocolException e)
 				{
-					saveReportForLater(report);
+					saveReportForLater(report_trim);
 				}
 				catch (IOException e)
 				{
-					saveReportForLater(report);
+					saveReportForLater(report_trim);
 				}
 			}
 		}).start();

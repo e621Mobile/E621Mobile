@@ -104,7 +104,16 @@ public class ErrorReportActivity extends Activity
 	{
 		EditText error_description = (EditText) findViewById(R.id.errorDescription);
 		
-		e621.sendReport(log + "\n\n----------\n\n" + error_description.getText());
+		String text = error_description.getText().toString().trim(); 
+		
+		if(text.length() > 0)
+		{
+			e621.sendReport(log + "\n\n----------\n\n" + text);
+		}
+		else
+		{
+			e621.sendReport(log);
+		}
 		
 		end();
 	}
