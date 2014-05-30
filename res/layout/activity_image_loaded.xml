@@ -27,7 +27,7 @@
             android:textColor="@color/white" />
 
         <Button
-            android:id="@+id/button1"
+            android:id="@+id/dont_send_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="search"

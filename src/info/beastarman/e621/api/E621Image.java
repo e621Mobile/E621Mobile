@@ -26,6 +26,8 @@ public class E621Image implements Serializable
 	public String file_ext = "";
 	public String rating = "s";
 	public ArrayList<E621Tag> tags = new ArrayList<E621Tag>();
+	
+	public int score = 0;
 
 	public int preview_width = 0;
 	public int preview_height = 0;
@@ -39,7 +41,6 @@ public class E621Image implements Serializable
 	
 	public E621Image()
 	{
-		
 	}
 	
 	public static E621Image fromJSON(JSONObject json)
@@ -83,6 +84,9 @@ public class E621Image implements Serializable
 			img.height = json.getInt("height");
 		} catch (JSONException e) {} 
 		try {
+			img.score = json.getInt("score");
+		} catch (JSONException e) {} 
+		try {
 			for(String tag : json.getString("tags").split("\\s"))
 			{
 				img.tags.add(new E621Tag(tag));
@@ -119,6 +123,9 @@ public class E621Image implements Serializable
 		} catch (NumberFormatException e) {}
 		try{
 			img.height = Integer.parseInt(xml.getAttribute("height"));
+		} catch (NumberFormatException e) {}
+		try{
+			img.score = Integer.parseInt(xml.getAttribute("score"));
 		} catch (NumberFormatException e) {}
 		for(String tag : xml.getAttribute("tags").split("\\s"))
 		{

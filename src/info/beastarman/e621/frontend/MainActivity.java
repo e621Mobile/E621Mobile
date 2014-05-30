@@ -4,7 +4,6 @@ import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 import android.net.Uri;
 import android.os.Bundle;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.view.Menu;
@@ -14,7 +13,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class MainActivity extends Activity
+public class MainActivity extends SlideMenuBaseActivity
 {
 	E621Middleware e621;
 	Mascot[] mascots = new Mascot[]{
@@ -97,6 +96,13 @@ public class MainActivity extends Activity
     
     public void change_mascot(View v)
     {
+    	//
+    	// Force Exception
+    	//
+    	// int wololo = 2/0;
+    	// wololo = wololo + 10;
+    	//
+    	
     	change_mascot();
     }
     

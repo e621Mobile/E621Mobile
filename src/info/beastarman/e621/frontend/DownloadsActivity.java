@@ -11,7 +11,6 @@ import info.beastarman.e621.views.LazyRunScrollView;
 import android.os.Bundle;
 import android.os.Message;
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -29,7 +28,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class DownloadsActivity extends Activity
+public class DownloadsActivity extends SlideMenuBaseActivity
 {
 	public static String SEARCH = "search";
 	public static String PAGE = "page";

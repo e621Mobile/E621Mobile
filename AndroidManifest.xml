@@ -47,6 +47,11 @@
             android:parentActivityName="info.beastarman.e621.frontend.MainActivity"
             android:windowSoftInputMode="stateHidden" >
         </activity>
+        <activity
+            android:name="info.beastarman.e621.frontend.ErrorReportActivity"
+            android:label="Error"
+            android:windowSoftInputMode="stateHidden" >
+        </activity>
     </application>
 
 </manifest>

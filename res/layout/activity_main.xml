@@ -4,134 +4,150 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/BackgroundColor"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
-    <FrameLayout
-        android:id="@+id/frameLayout1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
-
-        <ImageView
-            android:id="@+id/mascot"
-            android:layout_width="wrap_content"
-            android:layout_height="9001dp"
-            android:layout_gravity="center"
-            android:src="@drawable/mascot0" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin" >
 
         <FrameLayout
+            android:id="@+id/frameLayout1"
             android:layout_width="wrap_content"
-            android:layout_height="140dp"
-            android:layout_gravity="center"
-            android:gravity="center" >
+            android:layout_height="wrap_content" >
 
             <ImageView
-                android:id="@+id/mascot_blur"
-                android:layout_width="fill_parent"
+                android:id="@+id/mascot"
+                android:layout_width="wrap_content"
                 android:layout_height="9001dp"
                 android:layout_gravity="center"
-                android:src="@drawable/mascot0_blur" />
+                android:src="@drawable/mascot0" />
 
-            <LinearLayout
-                android:id="@+id/linearLayout1"
-                android:layout_width="fill_parent"
+            <FrameLayout
+                android:layout_width="wrap_content"
                 android:layout_height="140dp"
-                android:background="#10FFFFFF"
-                android:gravity="center"
-                android:orientation="vertical" >
+                android:layout_gravity="center"
+                android:layout_marginTop="32dp"
+                android:gravity="center" >
 
-                <EditText
-                    android:id="@+id/searchInput"
+                <ImageView
+                    android:id="@+id/mascot_blur"
                     android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:hint="@string/search_input"
-                    android:inputType="textAutoComplete"
-                    android:textColor="@color/white" />
+                    android:layout_height="9001dp"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="32dp"
+                    android:src="@drawable/mascot0_blur" />
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" >
+                    android:id="@+id/linearLayout1"
+                    android:layout_width="fill_parent"
+                    android:layout_height="140dp"
+                    android:background="#10FFFFFF"
+                    android:gravity="center"
+                    android:orientation="vertical" >
 
-                    <Button
-                        android:id="@+id/Button01"
-                        android:layout_width="wrap_content"
+                    <EditText
+                        android:id="@+id/searchInput"
+                        android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:onClick="localSearch"
-                        android:text="@string/local_search_button" />
+                        android:ems="10"
+                        android:hint="@string/search_input"
+                        android:inputType="textAutoComplete"
+                        android:textColor="@color/white" />
 
-                    <Button
-                        android:id="@+id/button1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:onClick="search"
-                        android:text="@string/internet_search_button" />
+                    <RelativeLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content" >
 
+                        <Button
+                            android:id="@+id/Button01"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentLeft="true"
+                            android:layout_marginTop="20dp"
+                            android:layout_toLeftOf="@+id/view1"
+                            android:onClick="localSearch"
+                            android:text="@string/local_search_button" />
+                        
+                        <View
+				            android:id="@+id/view1"
+				            android:layout_width="1dp"
+				            android:layout_height="1dp"
+				            android:layout_centerHorizontal="true" />
+                        
+                        <Button
+                            android:id="@+id/dont_send_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:layout_marginTop="20dp"
+                            android:layout_toRightOf="@+id/view1"
+                            android:onClick="search"
+                            android:text="@string/internet_search_button" />
+
+                    </RelativeLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </FrameLayout>
         </FrameLayout>
-    </FrameLayout>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/frameLayout1"
-        android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/frameLayout1"
-        android:gravity="bottom"
-        android:orientation="vertical" >
-
-        <TextView
-            android:id="@+id/mascotBy"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="#80000000"
-            android:padding="4dp"
-            android:text="Mascot by someone"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/white" />
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center" >
-
-            <Button
-                android:id="@+id/button2"
-                style="?android:attr/buttonStyleSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_toLeftOf="@+id/textView2"
-                android:onClick="visit_mascot_website"
-                android:text="Visit website" />
-
-            <Button
-                android:id="@+id/button3"
-                style="?android:attr/buttonStyleSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_toRightOf="@+id/textView2"
-                android:onClick="change_mascot"
-                android:text="Change mascot" />
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:gravity="bottom"
+            android:orientation="vertical" >
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/mascotBy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/button3"
-                android:layout_alignBottom="@+id/button3"
-                android:layout_centerHorizontal="true"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
+                android:layout_gravity="center"
+                android:background="#80000000"
+                android:padding="4dp"
+                android:text="Mascot by someone"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/white" />
 
-        </RelativeLayout>
-    </LinearLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center" >
+
+                <Button
+                    android:id="@+id/send_button"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_toLeftOf="@+id/textView2"
+                    android:onClick="visit_mascot_website"
+                    android:text="Visit website" />
+
+                <Button
+                    android:id="@+id/button3"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_toRightOf="@+id/textView2"
+                    android:onClick="change_mascot"
+                    android:text="Change mascot" />
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/button3"
+                    android:layout_alignBottom="@+id/button3"
+                    android:layout_centerHorizontal="true"
+                    android:textAppearance="?android:attr/textAppearanceSmall" />
+            </RelativeLayout>
+        </LinearLayout>
+    </RelativeLayout>
 
 </RelativeLayout>
