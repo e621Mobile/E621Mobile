@@ -3,7 +3,6 @@ package info.beastarman.e621.middleware;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 public class E621SyncReciever extends BroadcastReceiver
 {

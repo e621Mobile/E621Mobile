@@ -32,7 +32,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class SearchActivity extends SlideMenuBaseActivity
+public class SearchActivity extends BaseActivity
 {
 	public static String SEARCH = "search";
 	public static String PAGE = "page";

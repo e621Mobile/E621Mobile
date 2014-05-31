@@ -24,5 +24,7 @@
     <string name="login">Login</string>
     <string name="sync">Sync</string>
     <string name="title_activity_error_report">ErrorReportActivity</string>
+    <string name="subscribe">Subscribe</string>
+    <string name="continue_later">Continue later</string>
 
 </resources>

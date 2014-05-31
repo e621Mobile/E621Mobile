@@ -132,6 +132,51 @@ public class E621
 	    }
 	}
 	
+	public String user__login(String name, String password)
+	{
+		String base = String.format("%s/user/login.json?",DOMAIN_NAME);
+		
+		List<NameValuePair> params = new LinkedList<NameValuePair>();
+		
+		params.add(new BasicNameValuePair("name", name));
+		params.add(new BasicNameValuePair("password", password));
+		
+		base += URLEncodedUtils.format(params, "utf-8");
+		
+		try
+		{
+			HttpResponse response = tryHttpGet(base,5);
+			
+			StatusLine statusLine = response.getStatusLine();
+			
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONObject jsonResponse = new JSONObject(responseString);
+				
+				if(jsonResponse.has("password_hash"))
+				{
+					jsonResponse.getString("password_hash");
+				}
+		    }
+		}
+		catch (ClientProtocolException e)
+		{
+		}
+		catch (IOException e)
+		{
+		}
+		catch (JSONException e)
+        {
+		}
+		
+		return null;
+	}
+	
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
 		HttpClient httpclient = new DefaultHttpClient();

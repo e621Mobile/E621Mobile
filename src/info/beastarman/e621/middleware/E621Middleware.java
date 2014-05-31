@@ -63,6 +63,7 @@ public class E621Middleware extends E621
 	File download_path = null;
 	File export_path = null;
 	File report_path = null;
+	File misc_path = null;
 	
 	public static final String PREFS_NAME = "E621MobilePreferences";
 	
@@ -82,9 +83,12 @@ public class E621Middleware extends E621
 	private static E621Middleware instance;
 	
 	private static String DIRECTORY_SYNC = "sync/";
+	private static String DIRECTORY_MISC = "misc/";
 	
 	private AlarmManager alarmMgr;
 	private PendingIntent alarmIntent;
+	
+	private String password_hash = null;
 	
 	Context ctx;
 	
@@ -98,6 +102,7 @@ public class E621Middleware extends E621
 		download_path = new File(sd_path,"e612 Images/");
 		export_path = new File(sd_path,"export/");
 		report_path = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"reports/");
+		misc_path = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"reports/");
 		
 		settings = ctx.getSharedPreferences(PREFS_NAME, 0);
 		
@@ -815,6 +820,22 @@ public class E621Middleware extends E621
 		{
 		}
 	}
+	
+	public boolean login(String name, String password)
+	{
+		password_hash = user__login(name,password);
+		
+		if(password_hash != null)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	
 	
 	private class E621DownloadedImages extends ImageCacheManager
 	{
