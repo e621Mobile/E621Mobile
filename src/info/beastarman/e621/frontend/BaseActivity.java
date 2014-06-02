@@ -8,6 +8,7 @@ import org.apache.commons.io.IOUtils;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 public class BaseActivity extends Activity implements UncaughtExceptionHandler
 {
@@ -22,7 +23,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	public void uncaughtException (Thread thread, Throwable e)
 	{
-		e.printStackTrace();
+		Log.e("Msg",Log.getStackTraceString(e)); 
 		
 		try {
 			String[] get_pid = {

@@ -10,6 +10,7 @@ import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
+import info.beastarman.e621.middleware.SearchQuery;
 import info.beastarman.e621.views.LazyRunScrollView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -37,10 +38,19 @@ public class SearchActivity extends BaseActivity
 	public static String SEARCH = "search";
 	public static String PAGE = "page";
 	public static String LIMIT = "limit";
+	
+	public static String MIN_ID = "min_id";
+	public static String MAX_ID = "max_id";
 
 	public String search = "";
 	public int page = 0;
 	public int limit = 20;
+
+	public String min_id = null;
+	public String max_id = null;
+
+	public String cur_min_id = null;
+	public String cur_max_id = null;
 
 	private E621Search e621Search = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
@@ -65,6 +75,9 @@ public class SearchActivity extends BaseActivity
 		page = getIntent().getExtras().getInt(SearchActivity.PAGE, 0);
 		limit = getIntent().getExtras().getInt(SearchActivity.LIMIT, 20);
 
+		cur_min_id = min_id = getIntent().getExtras().getString(SearchActivity.MIN_ID);
+		cur_max_id = max_id = getIntent().getExtras().getString(SearchActivity.MAX_ID);
+		
 		((EditText) findViewById(R.id.searchInput)).setText(search);
 
 		Resources res = getResources();
@@ -128,6 +141,9 @@ public class SearchActivity extends BaseActivity
 		case R.id.action_offine_search:
 			offline_search();
 			return true;
+		case R.id.action_continue_later:
+			continue_later();
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -139,6 +155,24 @@ public class SearchActivity extends BaseActivity
 		intent.putExtra(DownloadsActivity.SEARCH, search);
 		startActivity(intent);
 	}
+	
+	public void continue_later()
+	{
+		if(min_id != null && max_id != null)
+		{
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					e621.continue_later(SearchQuery.normalize(search), min_id, max_id);
+				}
+			}).start();
+		}
+		
+		Intent intent = new Intent(this, MainActivity.class);
+		startActivity(intent);
+	}
 
 	public void open_settings() {
 		Intent intent;
@@ -146,7 +180,8 @@ public class SearchActivity extends BaseActivity
 		startActivity(intent);
 	}
 
-	public void update_results() {
+	public void update_results()
+	{
 		LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
 
@@ -192,6 +227,24 @@ public class SearchActivity extends BaseActivity
 			RelativeLayout rel = new RelativeLayout(getApplicationContext());
 			ProgressBar bar = new ProgressBar(getApplicationContext());
 			ImageButton download = new ImageButton(getApplicationContext());
+
+			if(cur_min_id != null)
+			{
+				cur_min_id = String.valueOf(Math.min(Integer.parseInt(cur_min_id), Integer.parseInt(img.id)));
+			}
+			else
+			{
+				cur_min_id = img.id;
+			}
+
+			if(cur_max_id != null)
+			{
+				cur_max_id = String.valueOf(Math.max(Integer.parseInt(cur_max_id), Integer.parseInt(img.id)));
+			}
+			else
+			{
+				cur_max_id = img.id;
+			}
 			
 			int image_height = (int) (layout_width * (((double)img.preview_height) / img.preview_width));
 			
@@ -338,6 +391,8 @@ public class SearchActivity extends BaseActivity
 			intent.putExtra(SearchActivity.SEARCH, search);
 			intent.putExtra(SearchActivity.PAGE, page - 1);
 			intent.putExtra(SearchActivity.LIMIT, limit);
+			intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
+			intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
 			startActivity(intent);
 		}
 	}
@@ -353,6 +408,8 @@ public class SearchActivity extends BaseActivity
 		intent.putExtra(SearchActivity.SEARCH, search);
 		intent.putExtra(SearchActivity.PAGE, page + 1);
 		intent.putExtra(SearchActivity.LIMIT, limit);
+		intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
+		intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
 		startActivity(intent);
 	}
 

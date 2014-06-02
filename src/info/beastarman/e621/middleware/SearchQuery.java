@@ -39,6 +39,11 @@ public class SearchQuery
 		Collections.sort(nots);
 	}
 	
+	public static String normalize(String query)
+	{
+		return new SearchQuery(query).normalize();
+	}
+	
 	public String normalize()
 	{
 		String ret = "";

@@ -6,6 +6,7 @@ import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.backend.ImageCacheManager;
+import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.frontend.DownloadsActivity;
 import info.beastarman.e621.frontend.MainActivity;
 
@@ -49,6 +50,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
@@ -63,7 +65,9 @@ public class E621Middleware extends E621
 	File download_path = null;
 	File export_path = null;
 	File report_path = null;
-	File misc_path = null;
+	File interrupted_path = null;
+	
+	InterruptedSearchManager interrupt;
 	
 	public static final String PREFS_NAME = "E621MobilePreferences";
 	
@@ -102,7 +106,7 @@ public class E621Middleware extends E621
 		download_path = new File(sd_path,"e612 Images/");
 		export_path = new File(sd_path,"export/");
 		report_path = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"reports/");
-		misc_path = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"reports/");
+		interrupted_path = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"interrupt/");
 		
 		settings = ctx.getSharedPreferences(PREFS_NAME, 0);
 		
@@ -158,6 +162,11 @@ public class E621Middleware extends E621
 		if(!report_path.exists())
 		{
 			report_path.mkdirs();
+		}
+		
+		if(!interrupted_path.exists())
+		{
+			interrupted_path.mkdirs();
 		}
 		
 		if(settings.getBoolean("hideDownloadFolder", true))
@@ -223,6 +232,8 @@ public class E621Middleware extends E621
 		alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
 		        AlarmManager.INTERVAL_HOUR*3,
 		        AlarmManager.INTERVAL_HOUR*3, alarmIntent);
+		
+		interrupt = new InterruptedSearchManager(interrupted_path);
 	}
 	
 	public int getFileDownloadSize()
@@ -835,7 +846,10 @@ public class E621Middleware extends E621
 		}
 	}
 	
-	
+	public void continue_later(String search, String seen_past, String seen_until)
+	{
+		interrupt.addOrUpdateSearch(search, seen_past, seen_until);
+	}
 	
 	private class E621DownloadedImages extends ImageCacheManager
 	{
@@ -1145,6 +1159,140 @@ public class E621Middleware extends E621
 			{
 				db.endTransaction();
 			}
+		}
+	}
+	
+	private class InterruptedSearchManager
+	{
+		protected int version = 0;
+		protected File path;
+		
+		public InterruptedSearchManager(File path)
+		{
+			this.path = path;
+		}
+		
+		private void new_db(SQLiteDatabase db)
+		{
+			db.execSQL("CREATE TABLE search (" +
+					"search_query TEXT PRIMARY KEY" +
+					", " +
+					"seen_past UNSIGNED BIG INT" +
+					", " +
+					"seen_until UNSIGNED BIG INT" +
+				");"
+			);
+			
+			db.setVersion(0);
+		}
+		
+		private SQLiteDatabase get_db()
+		{
+			SQLiteDatabase db;
+			
+			File db_path = new File(path,"db.sqlite3");
+			
+			try
+			{
+				db = SQLiteDatabase.openDatabase(db_path.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
+			}
+			catch(SQLiteException e)
+			{
+				db = SQLiteDatabase.openOrCreateDatabase(db_path, null);
+				new_db(db);
+			}
+			
+			while(db.getVersion() < version)
+			{
+				update_db(db.getVersion()+1);
+				
+				db.setVersion(db.getVersion()+1);
+			}
+			
+			return db;
+		}
+		
+		protected synchronized void update_db(int version)
+		{
+		}
+		
+		public void addOrUpdateSearch(String search, String seen_past, String seen_until)
+		{
+			SQLiteDatabase db = get_db();
+			
+			Cursor c = db.rawQuery("SELECT * FROM search LIMIT 1;", null);
+			
+			if(!(c != null && c.moveToFirst()))
+			{
+				add(search,seen_past,seen_until,db);
+			}
+			else
+			{
+				if(c.getCount() == 0)
+				{
+					add(search,seen_past,seen_until,db);
+				}
+				else
+				{
+					update(search,seen_past,seen_until,db);
+				}
+				
+				c.close();
+			}
+			
+			db.close();
+		}
+		
+		private void add(String search, String seen_past, String seen_until, SQLiteDatabase db)
+		{
+			search = search.trim();
+			
+			ContentValues values = new ContentValues();
+			values.put("search_query", search);
+			values.put("seen_past", seen_past);
+			values.put("seen_until", seen_until);
+			
+			db.insert("search", null, values);
+		}
+		
+		private void update(String search, String seen_past, String seen_until, SQLiteDatabase db)
+		{
+			search = search.trim();
+			
+			Pair<String,String> current = getSearch(search);
+			
+			seen_past = String.valueOf(Math.min(Integer.parseInt(seen_past),Integer.parseInt(current.left)));
+			seen_until= String.valueOf(Math.max(Integer.parseInt(seen_until),Integer.parseInt(current.right)));
+			
+			ContentValues values = new ContentValues();
+			values.put("seen_past", seen_past);
+			values.put("seen_until", seen_until);
+			
+			db.update("search", values, "search_query = ?", new String[]{search});
+		}
+		
+		public Pair<String,String> getSearch(String search)
+		{
+			SQLiteDatabase db = get_db();
+			Pair<String,String> ret = null;
+			
+			search = search.trim();
+			
+			Cursor c = db.rawQuery("SELECT seen_past, seen_until FROM search WHERE search_query = ? LIMIT 1", new String[]{search});
+			
+			if(c != null && c.moveToFirst())
+			{
+				if(c.getCount() > 0)
+				{
+					ret = new Pair<String,String>(c.getString(c.getColumnIndex("seen_past")),c.getString(c.getColumnIndex("seen_until")));
+				}
+				
+				c.close();
+			}
+			
+			db.close();
+			
+			return ret;
 		}
 	}
 }
