@@ -1220,7 +1220,7 @@ public class E621Middleware extends E621
 		{
 			SQLiteDatabase db = get_db();
 			
-			Cursor c = db.rawQuery("SELECT * FROM search LIMIT 1;", null);
+			Cursor c = db.rawQuery("SELECT * FROM search WHERE search_query = ? LIMIT 1;", new String[]{search});
 			
 			if(!(c != null && c.moveToFirst()))
 			{
