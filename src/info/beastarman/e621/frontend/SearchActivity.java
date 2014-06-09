@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
-import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
@@ -55,8 +54,6 @@ public class SearchActivity extends BaseActivity
 	private E621Search e621Search = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
 
-	E621Middleware e621 = null;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -64,8 +61,6 @@ public class SearchActivity extends BaseActivity
 		
 		ActionBar actionBar = getActionBar();
 	    actionBar.setDisplayHomeAsUpEnabled(true);
-
-		e621 = E621Middleware.getInstance(getApplicationContext());
 
 		search = getIntent().getExtras().getString(SearchActivity.SEARCH);
 		if(search == null)

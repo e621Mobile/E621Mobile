@@ -851,6 +851,11 @@ public class E621Middleware extends E621
 		interrupt.addOrUpdateSearch(search, seen_past, seen_until);
 	}
 	
+	public ArrayList<String> getAllSearches()
+	{
+		return interrupt.getAllSearches();
+	}
+	
 	private class E621DownloadedImages extends ImageCacheManager
 	{
 		public E621DownloadedImages(File base_path)
@@ -1293,6 +1298,35 @@ public class E621Middleware extends E621
 			db.close();
 			
 			return ret;
+		}
+	
+		public ArrayList<String> getAllSearches()
+		{
+			ArrayList<String> searches = new ArrayList<String>();
+			
+			SQLiteDatabase db = get_db();
+			
+			Cursor c = db.rawQuery("SELECT search_query FROM search;", null);
+			
+			if(!(c != null && c.moveToFirst()))
+			{
+				return searches;
+			}
+			else
+			{
+				while(!c.isAfterLast())
+				{
+					searches.add(c.getString(c.getColumnIndex("search_query")));
+					
+					c.moveToNext();
+				}
+				
+				c.close();
+			}
+			
+			db.close();
+			
+			return searches;
 		}
 	}
 }

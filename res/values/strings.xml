@@ -26,5 +26,6 @@
     <string name="title_activity_error_report">ErrorReportActivity</string>
     <string name="subscribe">Subscribe</string>
     <string name="continue_later">Continue later</string>
+    <string name="continue_search">Continue Search</string>
 
 </resources>

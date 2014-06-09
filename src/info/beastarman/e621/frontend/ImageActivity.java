@@ -3,7 +3,6 @@ package info.beastarman.e621.frontend;
 import java.io.IOException;
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
-import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.ImageViewHandler;
@@ -39,14 +38,10 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	
 	E621Image e621Image = null;
 	
-	E621Middleware e621;
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_image);
-		
-		e621 = E621Middleware.getInstance(getApplicationContext());
 		
 		image = (ImageNavigator) getIntent().getExtras().getSerializable(NAVIGATOR);
 		

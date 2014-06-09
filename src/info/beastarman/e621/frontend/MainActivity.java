@@ -1,7 +1,6 @@
 package info.beastarman.e621.frontend;
 
 import info.beastarman.e621.R;
-import info.beastarman.e621.middleware.E621Middleware;
 import android.net.Uri;
 import android.os.Bundle;
 import android.content.Intent;
@@ -14,7 +13,6 @@ import android.widget.TextView;
 
 public class MainActivity extends SlideMenuBaseActivity
 {
-	E621Middleware e621;
 	Mascot[] mascots = new Mascot[]{
 			new Mascot(R.drawable.mascot1,R.drawable.mascot1_blur,"Keishinkae","http://www.furaffinity.net/user/keishinkae"),
 			new Mascot(R.drawable.mascot2,R.drawable.mascot2_blur,"Keishinkae","http://www.furaffinity.net/user/keishinkae"),
@@ -32,8 +30,6 @@ public class MainActivity extends SlideMenuBaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
-        e621 = E621Middleware.getInstance(getApplicationContext());
     }
 	
 	protected void onStart()

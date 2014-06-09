@@ -1,17 +1,23 @@
 package info.beastarman.e621.frontend;
 
+import java.util.ArrayList;
+
 import info.beastarman.e621.R;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.view.animation.Transformation;
 
 public class SlideMenuBaseActivity extends BaseActivity
@@ -42,7 +48,62 @@ public class SlideMenuBaseActivity extends BaseActivity
         };
         
         fullLayout.setOnTouchListener(gestureListener);
+        
+        fullLayout.post(new Runnable()
+        {
+        	@Override
+			public void run()
+        	{
+        		FrameLayout wrapper = (FrameLayout) findViewById(R.id.sidemenu_wrapper);
+        		RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
+                drawerParams.width = 0;
+                wrapper.setLayoutParams(drawerParams);
+                
+                ArrayList<String> saved_searchs = e621.getAllSearches();
+                LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
+                
+                for(String search : saved_searchs)
+                {
+                	saved_search_container.addView(getSearchItemView(search));
+                	saved_search_container.addView(getLayoutInflater().inflate(R.layout.hr, saved_search_container, false));
+                }
+			}
+        });
     }
+	
+	private View getSearchItemView(String search)
+	{
+		LinearLayout row = new LinearLayout(getApplicationContext());
+		row.setOrientation(LinearLayout.HORIZONTAL);
+		row.setPadding(dpToPx(20), 0, 0, 0);
+		ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT);
+		row.setLayoutParams(params);
+		
+		ImageView img = new ImageView(getApplicationContext());
+		img.setBackgroundResource(android.R.drawable.ic_menu_gallery);
+		params = new ViewGroup.LayoutParams(
+				ViewGroup.LayoutParams.WRAP_CONTENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT);
+		img.setLayoutParams(params);
+		
+		TextView text = new TextView(getApplicationContext());
+		text.setText(search);
+		text.setPadding(dpToPx(12), 0, 0, 0);
+		text.setTextAppearance(getApplicationContext(), android.R.attr.textAppearanceSmall);
+		text.setTextColor(getResources().getColor(R.color.white));
+		params = new ViewGroup.LayoutParams(
+				ViewGroup.LayoutParams.WRAP_CONTENT,
+				ViewGroup.LayoutParams.MATCH_PARENT);
+		text.setLayoutParams(params);
+		text.setGravity(Gravity.CENTER_VERTICAL);
+		
+		row.addView(img);
+		row.addView(text);
+		
+		return row;
+	}
 	
 	@Override
 	public void setContentView(final int layoutResID)

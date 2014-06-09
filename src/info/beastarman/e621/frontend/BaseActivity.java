@@ -1,5 +1,7 @@
 package info.beastarman.e621.frontend;
 
+import info.beastarman.e621.middleware.E621Middleware;
+
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 
@@ -8,14 +10,26 @@ import org.apache.commons.io.IOUtils;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 public class BaseActivity extends Activity implements UncaughtExceptionHandler
 {
+	public E621Middleware e621;
+	
+	protected int dpToPx(int dp)
+	{
+	    DisplayMetrics displayMetrics = getApplicationContext().getResources().getDisplayMetrics();
+	    int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));       
+	    return px;
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		
+		e621 = E621Middleware.getInstance(getApplicationContext());
 		
 		Thread.setDefaultUncaughtExceptionHandler(this);
 	}

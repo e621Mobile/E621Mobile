@@ -25,7 +25,7 @@
 
     <FrameLayout
         android:id="@+id/sidemenu_wrapper"
-        android:layout_width="0dp"
+        android:layout_width="200dp"
         android:layout_height="fill_parent"
         android:onClick="dummy" >
 
@@ -35,7 +35,8 @@
             android:layout_height="match_parent"
             android:layout_gravity="top|right"
             android:background="@drawable/sidebar_background"
-            android:orientation="vertical" >
+            android:orientation="vertical"
+            android:padding="1dp" >
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -45,8 +46,8 @@
 
                 <ImageView
                     android:id="@+id/imageView1"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:src="@drawable/ic_launcher" />
 
                 <TextView
@@ -56,15 +57,12 @@
                     android:layout_gravity="center_vertical"
                     android:paddingLeft="12dp"
                     android:text="@string/login"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
                     android:textColor="@color/white" />
 
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#40FFFFFF" />
+            <include layout="@layout/hr"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -73,8 +71,8 @@
 
                 <ImageView
                     android:id="@+id/imageView2"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:src="@drawable/ic_launcher" />
 
                 <TextView
@@ -84,15 +82,55 @@
                     android:layout_gravity="center_vertical"
                     android:paddingLeft="12dp"
                     android:text="@string/sync"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
                     android:textColor="@color/white" />
 
             </LinearLayout>
 
-            <View
+            <include layout="@layout/hr"/>
+            
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#40FFFFFF" />
+                android:layout_height="wrap_content"
+                android:padding="4dp" >
+
+                <ImageView
+                    android:id="@+id/imageView3"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_launcher" />
+
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="12dp"
+                    android:text="@string/continue_search"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/white" />
+
+            </LinearLayout>
+
+            <include layout="@layout/hr"/>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/gray">
+
+                <LinearLayout
+                    android:id="@+id/savedSearchContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical" >
+                    
+                    <include layout="@layout/hr"/>
+
+                </LinearLayout>
+
+            </FrameLayout>
+
         </LinearLayout>
 
     </FrameLayout>
