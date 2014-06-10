@@ -18,6 +18,8 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
+        android:alpha="0.5"
+        android:background="#000"
         android:onClick="close_sidemenu"
         android:visibility="gone" >
 
@@ -89,9 +91,10 @@
 
             <include layout="@layout/hr"/>
             
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:onClick="toggleContinueSearch"
                 android:padding="4dp" >
 
                 <ImageView
@@ -104,28 +107,39 @@
                     android:id="@+id/textView3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
+                    android:layout_centerVertical="true"
+                    android:layout_toRightOf="@+id/imageView3"
                     android:paddingLeft="12dp"
                     android:text="@string/continue_search"
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:textColor="@color/white" />
 
-            </LinearLayout>
+                <ImageView
+                    android:id="@+id/continue_arrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginRight="8dp"
+                    android:alpha="0.5"
+                    android:rotation="270"
+                    android:src="@android:drawable/arrow_down_float" />
+
+            </RelativeLayout>
 
             <include layout="@layout/hr"/>
 
             <FrameLayout
+                android:id="@+id/savedSearchWrapper"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/gray">
+                android:layout_height="0dp"
+                android:background="@color/gray" >
 
                 <LinearLayout
                     android:id="@+id/savedSearchContainer"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical" >
-                    
-                    <include layout="@layout/hr"/>
 
                 </LinearLayout>
 
