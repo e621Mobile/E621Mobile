@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import info.beastarman.e621.R;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -18,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.view.animation.Transformation;
 
 public class SlideMenuBaseActivity extends BaseActivity
@@ -68,6 +68,13 @@ public class SlideMenuBaseActivity extends BaseActivity
                 {
                 	saved_search_container.addView(getSearchItemView(search));
                 	saved_search_container.addView(getLayoutInflater().inflate(R.layout.hr, saved_search_container, false));
+                }
+                
+                if(saved_searches.size() == 0)
+                {
+                	TextView continue_search_label = (TextView) findViewById(R.id.continue_search_label);
+                	
+                	continue_search_label.setTextColor(getResources().getColor(R.color.gray));
                 }
 			}
         });
@@ -136,6 +143,13 @@ public class SlideMenuBaseActivity extends BaseActivity
 	
 	public void toggleContinueSearch()
 	{
+		if(saved_searches.size() == 0)
+		{
+			Toast.makeText(getApplicationContext(), "No saved searches yet. Add some on the options menu in any online search.", Toast.LENGTH_SHORT).show();
+			
+			return;
+		}
+		
 		if(!continue_is_open)
 		{
 			open_continue();
@@ -324,7 +338,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 	
 	public void login(View v)
 	{
-		Log.d("Msg","LOGIN!");
+		Toast.makeText(getApplicationContext(), "Feature not implemented yet.", Toast.LENGTH_SHORT).show();
 	}
 	
 	public void dummy(View v)
