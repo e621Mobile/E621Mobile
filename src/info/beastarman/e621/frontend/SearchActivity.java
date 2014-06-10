@@ -55,7 +55,8 @@ public class SearchActivity extends BaseActivity
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_search);
 		
@@ -74,10 +75,21 @@ public class SearchActivity extends BaseActivity
 		cur_max_id = max_id = getIntent().getExtras().getString(SearchActivity.MAX_ID);
 		
 		((EditText) findViewById(R.id.searchInput)).setText(search);
-
+		
+		Integer total_pages = e621.gerSearchResultsPages(search, limit);
+		
 		Resources res = getResources();
-		String text = String.format(res.getString(R.string.page_counter),
-				String.valueOf(page + 1),"...");
+		
+		String text;
+		
+		if(total_pages == null)
+		{
+			text = String.format(res.getString(R.string.page_counter),String.valueOf(page + 1),"...");
+		}
+		else
+		{
+			text = String.format(res.getString(R.string.page_counter),String.valueOf(page + 1),String.valueOf(total_pages));
+		}
 		
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
@@ -87,15 +99,19 @@ public class SearchActivity extends BaseActivity
 		new Thread(new Runnable() {
 			public void run() {
 				Message msg = handler.obtainMessage();
-				try {
-					msg.obj = e621.post__index(search, page, limit);
-				} catch (IOException e) {
-					e.printStackTrace();
-					msg.obj = null;
-				}
+				msg.obj = get_results();
 				handler.sendMessage(msg);
 			}
 		}).start();
+	}
+	
+	protected E621Search get_results()
+	{
+		try {
+			return e621.post__index(search, page, limit);
+		} catch (IOException e) {
+			return null;
+		}
 	}
 
 	@Override

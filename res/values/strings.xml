@@ -27,5 +27,6 @@
     <string name="subscribe">Subscribe</string>
     <string name="continue_later">Continue later</string>
     <string name="continue_search">Continue Search</string>
+    <string name="title_activity_search_continue">Search Continued</string>
 
 </resources>

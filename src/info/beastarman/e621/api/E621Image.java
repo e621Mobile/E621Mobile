@@ -134,4 +134,10 @@ public class E621Image implements Serializable
 		
 		return img;
 	}
+	
+	@Override
+	public String toString()
+	{
+		return id;
+	}
 }

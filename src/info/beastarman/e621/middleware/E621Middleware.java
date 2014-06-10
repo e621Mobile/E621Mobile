@@ -54,10 +54,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 public class E621Middleware extends E621
 {
 	HashMap<String,E621Image> e621ImageCache = new HashMap<String,E621Image>();
+	HashMap<String,Integer> searchCount = new HashMap<String,Integer>();
 	
 	File cache_path = null;
 	File full_cache_path = null;
@@ -271,9 +273,55 @@ public class E621Middleware extends E621
 			{
 				e621ImageCache.put(img.id, img);
 			}
+			
+			searchCount.put(tags, ret.count);
 		}
 		
 		return ret;
+	}
+	
+	public Integer getSearchResultsCount(String tags)
+	{
+		tags = prepareQuery(tags);
+		
+		if(searchCount.containsKey(tags))
+		{
+			return searchCount.get(tags);
+		}
+		else
+		{
+			return null;
+		}
+	}
+	
+	public Integer getSearchResultsCountForce(String tags) throws IOException
+	{
+		tags = prepareQuery(tags);
+		
+		if(searchCount.containsKey(tags))
+		{
+			return searchCount.get(tags);
+		}
+		else
+		{
+			int temp = post__index(tags,0,1).count;
+			
+			searchCount.put(tags, temp);
+			
+			return temp;
+		}
+	}
+	
+	public Integer gerSearchResultsPages(String tags, int results_per_page)
+	{
+		Integer count = getSearchResultsCount(tags);
+		
+		if(count == null)
+		{
+			return null;
+		}
+		
+		return (int) Math.ceil(((double)count)/((double)results_per_page));
 	}
 	
 	public boolean isSaved(E621Image img)
@@ -848,12 +896,119 @@ public class E621Middleware extends E621
 	
 	public void continue_later(String search, String seen_past, String seen_until)
 	{
+		search= prepareQuery(search);
+		
 		interrupt.addOrUpdateSearch(search, seen_past, seen_until);
 	}
 	
 	public ArrayList<String> getAllSearches()
 	{
 		return interrupt.getAllSearches();
+	}
+	
+	HashMap<Pair<String,Integer>,E621Search> continue_cache = new HashMap<Pair<String,Integer>,E621Search>();
+	
+	@SuppressWarnings("unchecked")
+	public E621Search continue_search(String search, int page, int limit) throws IOException
+	{
+		Pair<String,String> pair = interrupt.getSearch(search);
+		
+		String search_new = search + " id:>" + pair.right + " order:id";
+		String search_old = search + " id:<" + pair.left;
+		
+		int total_new = getSearchResultsCountForce(search_new);
+		int total_old = getSearchResultsCountForce(search_old);
+		
+		Log.d("Msg",search + " " + pair + " " + String.valueOf(total_new) + " " + String.valueOf(total_old));
+		
+		if((page+1)*limit < total_new) // All new
+		{
+			Log.d("Msg",search + " " + pair + " " + "All new");
+			
+			E621Search results = post__index(search_new,page,limit);
+			results.count = total_new + total_old;
+			return results;
+		}
+		else if(page*limit < total_new) // Some new, some not
+		{
+			Log.d("Msg",search + " " + pair + " " + "Some new");
+			
+			E621Search new_results = post__index(search_new,page,limit);
+			E621Search old_results = post__index(search_old,0,limit);
+			
+			continue_cache.put(new Pair<String,Integer>(search,0), old_results);
+			
+			ArrayList<E621Image> images = (ArrayList<E621Image>) new_results.images.clone();
+			images.addAll(old_results.images.subList(0, Math.min(limit - images.size(), old_results.images.size())));
+			
+			return new E621Search(images,page*limit,total_new+total_old,limit);
+		}
+		else if((page+1)*limit < (total_new + total_old)) // Some old
+		{
+			Log.d("Msg",search + " " + pair + " " + "Some old");
+			
+			int old_offset = (page*limit) - total_new;
+			
+			if(old_offset%limit == 0)
+			{
+				E621Search temp = post__index(search_old,old_offset/limit,limit);
+				return new E621Search(temp.images,page*limit,total_new+total_old,limit);
+			}
+			else
+			{
+				E621Search first;
+				E621Search second;
+				int first_page = (int)Math.floor(old_offset/limit);
+				int second_page = first_page+1;
+				
+				if(continue_cache.containsKey(new Pair<String,Integer>(search,first_page)))
+				{
+					first = continue_cache.get(new Pair<String,Integer>(search,first_page));
+				}
+				else
+				{
+					first = post__index(search_old,first_page,limit);
+					continue_cache.put(new Pair<String,Integer>(search,first_page), first);
+				}
+				
+				ArrayList<E621Image> first_images = new ArrayList<E621Image>(first.images.subList(old_offset%limit, Math.min(limit,first.images.size())));
+				
+				if(!first.has_next_page())
+				{
+					return new E621Search(
+							first_images,
+							page*limit,
+							total_new+total_old,
+							limit);
+				}
+				
+				if(continue_cache.containsKey(new Pair<String,Integer>(search,second_page)))
+				{
+					second = continue_cache.get(new Pair<String,Integer>(search,second_page));
+				}
+				else
+				{
+					second = post__index(search_old,second_page,limit);
+					continue_cache.put(new Pair<String,Integer>(search,second_page), second);
+				}
+				
+				first_images.addAll(second.images.subList(0, limit - first_images.size()));
+				
+				return new E621Search(
+						first_images,
+						page*limit,
+						total_new+total_old,
+						limit);
+			}
+		}
+		else
+		{
+			return new E621Search(
+					new ArrayList<E621Image>(),
+					page*limit,
+					total_new+total_old,
+					limit);
+		}
 	}
 	
 	private class E621DownloadedImages extends ImageCacheManager

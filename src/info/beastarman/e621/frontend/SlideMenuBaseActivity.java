@@ -1,13 +1,16 @@
 package info.beastarman.e621.frontend;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.middleware.E621DownloadedImage;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import android.os.Bundle;
 import android.os.Message;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -68,8 +71,24 @@ public class SlideMenuBaseActivity extends BaseActivity
                 saved_searches = e621.getAllSearches();
                 LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
                 
-                for(String search : saved_searches)
+                for(final String search : saved_searches)
                 {
+                	new Thread(new Runnable()
+                	{
+                		@Override
+						public void run()
+                		{
+                			try {
+                				E621Search ret = e621.continue_search(search, 2, 20);
+                				Log.d("Msg",ret.images.toString() + " " + search);
+                				Log.d("Msg",String.valueOf(ret.count) + " " + search);
+                				Log.d("Msg",String.valueOf(ret.offset) + " " + search);
+        					} catch (IOException e) {
+        						e.printStackTrace();
+        					}
+						}
+                	}).start();
+                	
                 	saved_search_container.addView(getSearchItemView(search));
                 	saved_search_container.addView(getLayoutInflater().inflate(R.layout.hr, saved_search_container, false));
                 }
