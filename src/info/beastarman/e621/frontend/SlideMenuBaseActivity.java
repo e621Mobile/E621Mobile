@@ -1,9 +1,13 @@
 package info.beastarman.e621.frontend;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621DownloadedImage;
+import info.beastarman.e621.middleware.ImageViewHandler;
 import android.os.Bundle;
+import android.os.Message;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -80,7 +84,7 @@ public class SlideMenuBaseActivity extends BaseActivity
         });
     }
 	
-	private View getSearchItemView(String search)
+	private View getSearchItemView(final String search)
 	{
 		LinearLayout row = new LinearLayout(getApplicationContext());
 		row.setOrientation(LinearLayout.HORIZONTAL);
@@ -95,7 +99,28 @@ public class SlideMenuBaseActivity extends BaseActivity
 		params = new ViewGroup.LayoutParams(
 				dpToPx(36),
 				dpToPx(36));
+		img.setPadding(dpToPx(2), dpToPx(2), dpToPx(2), dpToPx(2));
 		img.setLayoutParams(params);
+		
+		final ImageViewHandler handler = new ImageViewHandler(img, null);
+		
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				ArrayList<E621DownloadedImage> images = e621.localSearch(0, 1, search);
+				
+				if(images.size() > 0)
+				{
+					InputStream in = e621.getDownloadedImage(images.get(0).filename);
+			    	Message msg = handler.obtainMessage();
+			    	msg.obj = in;
+			    	
+			    	handler.sendMessage(msg);
+				}
+			}
+		}).start();
 		
 		TextView text = new TextView(getApplicationContext());
 		text.setText(search);
