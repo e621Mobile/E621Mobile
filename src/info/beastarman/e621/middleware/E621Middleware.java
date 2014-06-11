@@ -54,7 +54,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -901,6 +900,13 @@ public class E621Middleware extends E621
 		interrupt.addOrUpdateSearch(search, seen_past, seen_until);
 	}
 	
+	public Pair<String,String> get_continue_ids(String search)
+	{
+		search = prepareQuery(search);
+		
+		return interrupt.getSearch(search);
+	}
+	
 	public ArrayList<String> getAllSearches()
 	{
 		return interrupt.getAllSearches();
@@ -919,20 +925,14 @@ public class E621Middleware extends E621
 		int total_new = getSearchResultsCountForce(search_new);
 		int total_old = getSearchResultsCountForce(search_old);
 		
-		Log.d("Msg",search + " " + pair + " " + String.valueOf(total_new) + " " + String.valueOf(total_old));
-		
 		if((page+1)*limit < total_new) // All new
 		{
-			Log.d("Msg",search + " " + pair + " " + "All new");
-			
 			E621Search results = post__index(search_new,page,limit);
 			results.count = total_new + total_old;
 			return results;
 		}
 		else if(page*limit < total_new) // Some new, some not
 		{
-			Log.d("Msg",search + " " + pair + " " + "Some new");
-			
 			E621Search new_results = post__index(search_new,page,limit);
 			E621Search old_results = post__index(search_old,0,limit);
 			
@@ -945,8 +945,6 @@ public class E621Middleware extends E621
 		}
 		else if((page+1)*limit < (total_new + total_old)) // Some old
 		{
-			Log.d("Msg",search + " " + pair + " " + "Some old");
-			
 			int old_offset = (page*limit) - total_new;
 			
 			if(old_offset%limit == 0)

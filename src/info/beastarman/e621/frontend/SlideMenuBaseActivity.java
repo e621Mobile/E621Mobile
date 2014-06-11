@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621DownloadedImage;
 import info.beastarman.e621.middleware.ImageViewHandler;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Message;
 import android.view.GestureDetector;
@@ -135,6 +136,17 @@ public class SlideMenuBaseActivity extends BaseActivity
 		
 		row.addView(img);
 		row.addView(text);
+		
+		row.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View arg0)
+			{
+				Intent intent = new Intent(getApplication(), SearchContinueActivity.class);
+				intent.putExtra(DownloadsActivity.SEARCH,search);
+				startActivity(intent);
+			}
+		});
 		
 		return row;
 	}

@@ -51,7 +51,7 @@ public class SearchActivity extends BaseActivity
 	public String cur_min_id = null;
 	public String cur_max_id = null;
 
-	private E621Search e621Search = null;
+	protected E621Search e621Search = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
 
 	@Override
@@ -132,7 +132,10 @@ public class SearchActivity extends BaseActivity
 			if (drawable instanceof BitmapDrawable) {
 				BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
 				Bitmap bitmap = bitmapDrawable.getBitmap();
-				bitmap.recycle();
+				if(bitmap != null)
+				{
+					bitmap.recycle();
+				}
 			}
 		}
 
