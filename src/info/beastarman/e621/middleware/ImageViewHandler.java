@@ -51,11 +51,15 @@ public class ImageViewHandler extends ImageHandler
         o2.inSampleSize=scale;
         Bitmap bitmap_temp = BitmapFactory.decodeStream(new ByteArrayInputStream(data), null, o2);
         
-        return Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+        Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+        
+        bitmap_temp.recycle();
+        
+        return ret;
 	}
 	
 	@Override
-	public void handleInputStream(InputStream in)
+	public synchronized void handleInputStream(InputStream in)
 	{
 		try
 		{

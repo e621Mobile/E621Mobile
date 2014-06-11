@@ -20,6 +20,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -132,6 +133,7 @@ public class SearchActivity extends BaseActivity
 			if (drawable instanceof BitmapDrawable) {
 				BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
 				Bitmap bitmap = bitmapDrawable.getBitmap();
+				
 				if(bitmap != null)
 				{
 					bitmap.recycle();
