@@ -8,12 +8,12 @@ import android.os.Message;
 
 public class ImageLoadRunnable implements Runnable
 {
-	ImageViewHandler handler;
+	ImageHandler handler;
 	E621Image img;
 	E621Middleware e621;
 	int size;
 	
-	public ImageLoadRunnable(ImageViewHandler handler, E621Image img, E621Middleware e621, int size)
+	public ImageLoadRunnable(ImageHandler handler, E621Image img, E621Middleware e621, int size)
 	{
 		this.handler = handler;
 		this.img = img;

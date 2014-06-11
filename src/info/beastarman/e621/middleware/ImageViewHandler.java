@@ -8,23 +8,20 @@ import org.apache.commons.io.IOUtils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Handler;
-import android.os.Message;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-public class ImageViewHandler extends Handler
+public class ImageViewHandler extends ImageHandler
 {
 	public ImageView imgView;
 	public DisplayMetrics dm;
-	public View loader;
 	
 	public ImageViewHandler(ImageView imgView, View loader)
 	{
+		super(loader);
 		this.imgView = imgView;
-		this.loader = loader;
 	}
 	
 	private Bitmap decodeFile(InputStream in, int width, int height)
@@ -58,13 +55,11 @@ public class ImageViewHandler extends Handler
 	}
 	
 	@Override
-	public void handleMessage(Message msg)
+	public void handleInputStream(InputStream in)
 	{
 		try
 		{
-			InputStream in = (InputStream)msg.obj;
 			Bitmap bitmap = decodeFile(in, imgView.getLayoutParams().width, imgView.getLayoutParams().height);
-			in.close();
 			
 			this.imgView.setImageBitmap(bitmap);
 		}
@@ -75,15 +70,6 @@ public class ImageViewHandler extends Handler
 			ViewGroup v = ((ViewGroup)this.imgView.getParent()); 
 			
 			v.removeView(this.imgView);
-		}
-		finally
-		{
-			if(this.loader != null)
-			{
-				ViewGroup v = ((ViewGroup)this.loader.getParent()); 
-				
-				v.removeView(this.loader);
-			}
 		}
 	}
 }

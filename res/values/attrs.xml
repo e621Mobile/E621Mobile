@@ -12,4 +12,7 @@
         <attr name="step" format="integer"/>
     </declare-styleable>
     
+    <declare-styleable name="GIFView">
+		<attr name="src" format="reference" />
+	</declare-styleable>
 </resources>

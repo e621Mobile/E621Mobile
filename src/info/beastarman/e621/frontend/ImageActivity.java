@@ -3,9 +3,11 @@ package info.beastarman.e621.frontend;
 import java.io.IOException;
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.middleware.GIFViewHandler;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.ImageViewHandler;
+import info.beastarman.e621.views.GIFView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -17,6 +19,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -145,13 +148,36 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(new RelativeLayout.LayoutParams(
 	        			v.getWidth(),
 	        			(int) (v.getWidth() * (((double)e621Image.height) / e621Image.width))));
-				imgView.setLayoutParams(lp);
-	        	
-	    		ImageViewHandler handler = new ImageViewHandler(
-	    			imgView,
-	    			findViewById(R.id.progressBarLoader));
-	    		
-	    		new Thread(new ImageLoadRunnable(handler,e621Image,e621,e621.getFileDownloadSize())).start();
+				
+	        	if(e621Image.file_ext.equals("jpg") || e621Image.file_ext.equals("png"))
+	        	{
+		        	imgView.setLayoutParams(lp);
+		        	
+		    		ImageViewHandler handler = new ImageViewHandler(
+		    			imgView,
+		    			findViewById(R.id.progressBarLoader));
+		    		
+		    		new Thread(new ImageLoadRunnable(handler,e621Image,e621,e621.getFileDownloadSize())).start();
+	        	}
+	        	else if(e621Image.file_ext.equals("gif"))
+	        	{
+	        		ViewGroup g = (ViewGroup) imgView.getParent();
+	        		
+	        		int index = g.indexOfChild(imgView);
+	        		
+	        		g.removeViewAt(index);
+	        		
+	        		GIFView gifView = new GIFView(getApplicationContext());
+	        		gifView.setLayoutParams(lp);
+	        		
+	        		g.addView(gifView,index);
+	        		
+	        		GIFViewHandler handler = new GIFViewHandler(
+		    			gifView,
+		    			findViewById(R.id.progressBarLoader));
+		    		
+		    		new Thread(new ImageLoadRunnable(handler,e621Image,e621,e621.getFileDownloadSize())).start();
+	        	}
 	        }
 	    });
 		
