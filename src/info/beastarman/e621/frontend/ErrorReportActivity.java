@@ -31,7 +31,7 @@ public class ErrorReportActivity extends Activity
 		
 		e621 = E621Middleware.getInstance(getApplicationContext());
 		
-		log = getIntent().getExtras().getString(LOG);
+		log = getIntent().getStringExtra(LOG);
 		
 		if(log != null)
 		{

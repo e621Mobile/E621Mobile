@@ -237,6 +237,11 @@ public class E621Middleware extends E621
 		interrupt = new InterruptedSearchManager(interrupted_path);
 	}
 	
+	public boolean playGifs()
+	{
+		return settings.getBoolean("playGifs", true);
+	}
+	
 	public int getFileDownloadSize()
 	{
 		return settings.getInt("prefferedFileDownloadSize", E621Image.SAMPLE);
@@ -422,38 +427,56 @@ public class E621Middleware extends E621
 		download_manager.removeFile(img);
 	}
 	
+	Semaphore getImageSemaphore = new Semaphore(3);
+	
 	private byte[] getImageFromInternet(String url)
 	{
-		HttpResponse response = null;
-		try {
-			response = tryHttpGet(url,5);
-		} catch (ClientProtocolException e1) {
-			e1.printStackTrace();
-			return null;
-		} catch (IOException e1) {
-			e1.printStackTrace();
-			return null;
-		}
-		
-	    StatusLine statusLine = response.getStatusLine();
-	    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-	    {
-	        ByteArrayOutputStream out = new ByteArrayOutputStream();
-	        try {
-	        	response.getEntity().writeTo(out);
-				out.close();
+		try
+		{
+			getImageSemaphore.acquire();
+			
+			HttpResponse response = null;
+			try {
+				response = tryHttpGet(url,5);
+			} catch (ClientProtocolException e1) {
+				e1.printStackTrace();
+				return null;
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 				return null;
 			}
-	        
-	        return out.toByteArray();
-	    }
-	    else
-	    {
-	    	return null;
-	    }
+			
+		    StatusLine statusLine = response.getStatusLine();
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        try {
+		        	response.getEntity().writeTo(out);
+					out.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					return null;
+				}
+		        
+		        return out.toByteArray();
+		    }
+		    else
+		    {
+		    	return null;
+		    }
+		}
+		catch (InterruptedException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			
+			return null;
+		}
+		finally
+		{
+			getImageSemaphore.release();
+		}
 	}
 	
 	public InputStream getImage(E621Image img, int size)

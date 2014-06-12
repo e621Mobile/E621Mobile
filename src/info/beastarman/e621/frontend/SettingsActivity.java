@@ -13,12 +13,16 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 
-public class SettingsActivityNew extends PreferenceActivity
+public class SettingsActivity extends PreferenceActivity
 {
+	E621Middleware e621;
+	
 	@Override
     protected void onCreate(final Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        
+        e621 = E621Middleware.getInstance(getApplicationContext());
         
         MyPreferenceFragment fragment = new MyPreferenceFragment();
         fragment.activity = this;
@@ -28,12 +32,12 @@ public class SettingsActivityNew extends PreferenceActivity
 	
 	protected void updateTags()
 	{
-		E621Middleware.getInstance(getApplicationContext()).update_tags(this);
+		e621.update_tags(this);
 	}
 
     public static class MyPreferenceFragment extends PreferenceFragment
     {
-    	SettingsActivityNew activity;
+    	SettingsActivity activity;
     	
         @Override
         public void onCreate(final Bundle savedInstanceState)
@@ -44,6 +48,9 @@ public class SettingsActivityNew extends PreferenceActivity
             
             CheckBoxPreference hideDownload = (CheckBoxPreference)findPreference("hideDownloadFolder");
             hideDownload.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("hideDownloadFolder", true));
+            
+            CheckBoxPreference playGifs = (CheckBoxPreference)findPreference("playGifs");
+            playGifs.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("playGifs", true));
             
             ListPreference downloadSize = (ListPreference)findPreference("prefferedFileDownloadSize");
             downloadSize.setValue(String.valueOf(getPreferenceManager().getSharedPreferences().getInt("prefferedFileDownloadSize", 2)));

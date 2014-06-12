@@ -64,16 +64,16 @@ public class SearchActivity extends BaseActivity
 		ActionBar actionBar = getActionBar();
 	    actionBar.setDisplayHomeAsUpEnabled(true);
 
-		search = getIntent().getExtras().getString(SearchActivity.SEARCH);
+		search = getIntent().getStringExtra(SearchActivity.SEARCH);
 		if(search == null)
 		{
 			search = "";
 		}
-		page = getIntent().getExtras().getInt(SearchActivity.PAGE, 0);
-		limit = getIntent().getExtras().getInt(SearchActivity.LIMIT, 20);
+		page = getIntent().getIntExtra(SearchActivity.PAGE, 0);
+		limit = getIntent().getIntExtra(SearchActivity.LIMIT, 20);
 
-		cur_min_id = min_id = getIntent().getExtras().getString(SearchActivity.MIN_ID);
-		cur_max_id = max_id = getIntent().getExtras().getString(SearchActivity.MAX_ID);
+		cur_min_id = min_id = getIntent().getStringExtra(SearchActivity.MIN_ID);
+		cur_max_id = max_id = getIntent().getStringExtra(SearchActivity.MAX_ID);
 		
 		((EditText) findViewById(R.id.searchInput)).setText(search);
 		
@@ -192,7 +192,7 @@ public class SearchActivity extends BaseActivity
 
 	public void open_settings() {
 		Intent intent;
-		intent = new Intent(this, SettingsActivityNew.class);
+		intent = new Intent(this, SettingsActivity.class);
 		startActivity(intent);
 	}
 

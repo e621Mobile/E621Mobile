@@ -110,7 +110,7 @@ public class MainActivity extends SlideMenuBaseActivity
     public void open_settings()
     {
     	Intent intent;
-    	intent = new Intent(this, SettingsActivityNew.class);
+    	intent = new Intent(this, SettingsActivity.class);
 		startActivity(intent);
     }
     

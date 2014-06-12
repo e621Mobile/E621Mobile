@@ -46,9 +46,9 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_image);
 		
-		image = (ImageNavigator) getIntent().getExtras().getSerializable(NAVIGATOR);
+		image = (ImageNavigator) getIntent().getSerializableExtra(NAVIGATOR);
 		
-		intent = (Intent) getIntent().getExtras().getParcelable(INTENT);
+		intent = (Intent) getIntent().getParcelableExtra(INTENT);
 		
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		
@@ -119,7 +119,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
     public void open_settings()
     {
     	Intent intent;
-    	intent = new Intent(this, SettingsActivityNew.class);
+    	intent = new Intent(this, SettingsActivity.class);
 		startActivity(intent);
     }
 	
@@ -149,7 +149,11 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        			v.getWidth(),
 	        			(int) (v.getWidth() * (((double)e621Image.height) / e621Image.width))));
 				
-	        	if(e621Image.file_ext.equals("jpg") || e621Image.file_ext.equals("png"))
+	        	if(
+	        			e621Image.file_ext.equals("jpg") ||
+	        			e621Image.file_ext.equals("png") ||
+	        			(e621Image.file_ext.equals("gif") && !e621.playGifs())
+	        		)
 	        	{
 		        	imgView.setLayoutParams(lp);
 		        	

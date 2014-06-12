@@ -6,6 +6,11 @@
             android:summary="Hides downloaded images from apps such as Galery"
             android:title="Hide downloads" >
         </CheckBoxPreference>
+        <CheckBoxPreference
+            android:key="playGifs"
+            android:summary="Play animated gifs outside of searches"
+            android:title="Play animated GIFs" >
+        </CheckBoxPreference>
         <info.beastarman.e621.views.IntListPreference
             android:key="prefferedFileDownloadSize"
             android:title="Download image size"
