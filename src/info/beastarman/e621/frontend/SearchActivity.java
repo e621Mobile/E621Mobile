@@ -20,7 +20,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -353,6 +352,26 @@ public class SearchActivity extends BaseActivity
 					        @Override
 					        public void onClick(View v) {
 					        	removeImage(img,(ImageButton)v);
+					        }
+					    });
+					}
+				});
+			}
+		}, new Runnable()
+		{
+			@Override
+			public void run() {
+				
+				runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run() {
+						v.setImageResource(android.R.drawable.ic_menu_save);
+						
+						v.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	saveImage(img,(ImageButton)v);
 					        }
 					    });
 					}

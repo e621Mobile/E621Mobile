@@ -21,6 +21,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
@@ -179,7 +182,9 @@ public class E621
 	
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
-		HttpClient httpclient = new DefaultHttpClient();
+		final HttpParams httpParams = new BasicHttpParams();
+	    HttpConnectionParams.setConnectionTimeout(httpParams, 30000);
+		HttpClient httpclient = new DefaultHttpClient(httpParams);
 		
 		for(;tries>=0; tries--)
 		{

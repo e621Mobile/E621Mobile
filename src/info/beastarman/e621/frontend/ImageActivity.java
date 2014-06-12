@@ -254,6 +254,26 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 					}
 				});
 			}
+		}, new Runnable()
+		{
+			@Override
+			public void run() {
+				
+				runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run() {
+						button.setImageResource(android.R.drawable.ic_menu_save);
+						
+						button.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	save(v);
+					        }
+					    });
+					}
+				});
+			}
 		});
 	}
 

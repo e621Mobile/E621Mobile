@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -67,6 +68,7 @@ public class E621Middleware extends E621
 	File export_path = null;
 	File report_path = null;
 	File interrupted_path = null;
+	FailedDownloadManager failed_download_manager = null;
 	
 	InterruptedSearchManager interrupt;
 	
@@ -209,6 +211,24 @@ public class E621Middleware extends E621
 			download_manager = new E621DownloadedImages(download_path);
 		}
 		
+		File failed_download_file = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"failed_downloads.txt");
+		
+		if(!failed_download_file.exists())
+		{
+			failed_download_file.mkdirs();
+			try {
+				failed_download_file.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		if(failed_download_manager == null)
+		{
+			failed_download_manager = new FailedDownloadManager(failed_download_file);
+		}
+		
 		HashSet<String> allowedRatingsTemp = (HashSet<String>) settings.getStringSet("allowedRatings",new HashSet<String>());
 		allowedRatings.clear();
 		
@@ -337,7 +357,7 @@ public class E621Middleware extends E621
 	private Semaphore saveImageSemaphore = new Semaphore(1);
 	private ArrayList<E621Image> downloading = new ArrayList<E621Image>();
 	
-	public void saveImageAsync(final E621Image img, Activity activity, final Runnable after_download)
+	public void saveImageAsync(final E621Image img, Activity activity, final Runnable success_callback, final Runnable error_callback)
 	{
 		try {
 			saveImageSemaphore.acquire();
@@ -382,11 +402,25 @@ public class E621Middleware extends E621
 		{
 			@Override
 			public void run() {
-				saveImage(img);
+				boolean successfull = saveImage(img);
 				
-				if(after_download != null)
+				if(successfull)
 				{
-					after_download.run();
+					if(success_callback != null)
+					{
+						success_callback.run();
+					}
+					
+					failed_download_manager.removeFile(img.id);
+				}
+				else
+				{
+					if(error_callback != null)
+					{
+						error_callback.run();
+					}
+					
+					failed_download_manager.addFile(img.id);
 				}
 				
 				try {
@@ -412,13 +446,19 @@ public class E621Middleware extends E621
 		}).start();
 	}
 	
-	public void saveImage(E621Image img)
+	public boolean saveImage(E621Image img)
 	{
 		InputStream in = getImage(img,getFileDownloadSize());
 		
 		if(in != null)
 		{
 			download_manager.createOrUpdate(img, in);
+			
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	}
 	
@@ -842,6 +882,26 @@ public class E621Middleware extends E621
 			{
 			}
 		}
+		
+		for(String file : failed_download_manager.getFiles())
+		{
+			E621Image img = null;
+			try {
+				img = post__show(file);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				continue;
+			}
+			
+			if(img != null)
+			{
+				if(saveImage(img))
+				{
+					failed_download_manager.removeFile(file);
+				}
+			}
+		}
 	}
 	
 	public void sendReport(final String report)
@@ -1032,6 +1092,86 @@ public class E621Middleware extends E621
 		}
 	}
 	
+	private class FailedDownloadManager
+	{
+		File file;
+		
+		public FailedDownloadManager(File file)
+		{
+			this.file = file;
+		}
+		
+		public synchronized ArrayList<String> getFiles()
+		{
+			FileInputStream in;
+			try {
+				in = new FileInputStream(file);
+				
+				ArrayList<String> ret = new ArrayList<String>(Arrays.asList(IOUtils.toString(in).trim().split("\\s+")));
+				
+				in.close();
+				
+				return ret;
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return new ArrayList<String>();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return new ArrayList<String>();
+			}
+		}
+		
+		public synchronized void setFiles(ArrayList<String> strings)
+		{
+			String listString = "";
+
+			for (String s : strings)
+			{
+			    listString += s + "\n";
+			}
+			
+			BufferedOutputStream out;
+			try {
+				out = new BufferedOutputStream(new FileOutputStream(file));
+				out.write(listString.getBytes());
+				out.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		public synchronized boolean hasFile(String file)
+		{
+			return getFiles().contains(file);
+		}
+		
+		public synchronized void addFile(String file)
+		{
+			if(!hasFile(file))
+			{
+				ArrayList<String> files = getFiles();
+				files.add(file);
+				setFiles(files);
+			}
+		}
+		
+		public synchronized void removeFile(String file)
+		{
+			if(!hasFile(file))
+			{
+				ArrayList<String> files = getFiles();
+				files.remove(file);
+				setFiles(files);
+			}
+		}
+	}
+	
 	private class E621DownloadedImages extends ImageCacheManager
 	{
 		public E621DownloadedImages(File base_path)
@@ -1141,16 +1281,22 @@ public class E621Middleware extends E621
 		
 		public synchronized boolean hasFile(E621Image img)
 		{
+			if(img == null) return false;
+			
 			return super.hasFile(img.id + "." + img.file_ext);
 		}
 		
 		public synchronized InputStream getFile(E621Image img)
 		{
+			if(img == null) return null;
+			
 			return super.getFile(img.id + "." + img.file_ext);
 		}
 		
 		public synchronized void removeFile(E621Image img)
 		{
+			if(img == null) return;
+			
 			String id = img.id + "." + img.file_ext;
 			
 			super.removeFile(id);
@@ -1162,6 +1308,8 @@ public class E621Middleware extends E621
 		
 		public synchronized void createOrUpdate(E621Image img, InputStream in)
 		{
+			if(img == null) return;
+			
 			super.createOrUpdate(img.id + "." + img.file_ext, in);
 			
 			ContentValues e621image_values = new ContentValues();
