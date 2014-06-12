@@ -1,0 +1,22 @@
+package info.beastarman.e621.middleware;
+
+import java.io.IOException;
+
+import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Search;
+
+public class OnlineContinueImageNavigator extends OnlineImageNavigator
+{
+	private static final long serialVersionUID = -4181810174074433903L;
+
+	public OnlineContinueImageNavigator(E621Image img, int position, String query, E621Search search)
+	{
+		super(img, position, query, search);
+	}
+	
+	@Override
+	public E621Search search(String query, int page, int limit) throws IOException
+	{
+		return E621Middleware.getInstance().continue_search(query, page, limit);
+	}
+}

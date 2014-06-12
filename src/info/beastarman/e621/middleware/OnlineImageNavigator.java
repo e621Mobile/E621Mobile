@@ -37,6 +37,11 @@ public class OnlineImageNavigator implements ImageNavigator
 		this.total = search.count;
 	}
 	
+	public E621Search search(String query, int page, int limit) throws IOException
+	{
+		return E621Middleware.getInstance().post__index(query, page, limit);
+	}
+	
 	@Override
 	public ImageNavigator next()
 	{
@@ -55,7 +60,7 @@ public class OnlineImageNavigator implements ImageNavigator
 			ArrayList<E621Image> results;
 			
 			try {
-				results = E621Middleware.getInstance().post__index(query, page_append, 20).images;
+				results = search(query, page_append, 20).images;
 			} catch (IOException e) {
 				return null;
 			}
@@ -82,7 +87,7 @@ public class OnlineImageNavigator implements ImageNavigator
 		
 		return null;
 	}
-
+	
 	@Override
 	public ImageNavigator prev()
 	{
@@ -101,7 +106,7 @@ public class OnlineImageNavigator implements ImageNavigator
 			ArrayList<E621Image> results;
 			
 			try {
-				results = E621Middleware.getInstance().post__index(query, page_append, 20).images;
+				results = search(query, page_append, 20).images;
 			} catch (IOException e) {
 				return null;
 			}

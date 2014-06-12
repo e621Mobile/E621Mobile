@@ -1,7 +1,10 @@
 package info.beastarman.e621.frontend;
 
+import info.beastarman.e621.R;
+import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.backend.Pair;
+import info.beastarman.e621.middleware.OnlineContinueImageNavigator;
 
 import java.io.IOException;
 
@@ -49,6 +52,12 @@ public class SearchContinueActivity extends SearchActivity
 	}
 	
 	@Override
+	protected Integer getSearchResultsPages(String search, int limit)
+	{
+		return e621.getSearchContinueResultsPages(search,limit);
+	}
+	
+	@Override
 	protected E621Search get_results()
 	{
 		try {
@@ -91,6 +100,17 @@ public class SearchContinueActivity extends SearchActivity
 		intent.putExtra(SearchActivity.LIMIT, limit);
 		intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
 		intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
+		startActivity(intent);
+	}
+
+	public void imageClick(View view) {
+		Intent intent = new Intent(this, ImageActivity.class);
+		intent.putExtra(ImageActivity.NAVIGATOR, new OnlineContinueImageNavigator(
+				(E621Image) view.getTag(R.id.imageObject),
+				(Integer) view.getTag(R.id.imagePosition),
+				search,
+				e621Search));
+		intent.putExtra(ImageActivity.INTENT,getIntent());
 		startActivity(intent);
 	}
 }

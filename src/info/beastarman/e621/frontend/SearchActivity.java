@@ -76,7 +76,7 @@ public class SearchActivity extends BaseActivity
 		
 		((EditText) findViewById(R.id.searchInput)).setText(search);
 		
-		Integer total_pages = e621.gerSearchResultsPages(search, limit);
+		Integer total_pages = getSearchResultsPages(search, limit);
 		
 		Resources res = getResources();
 		
@@ -103,6 +103,11 @@ public class SearchActivity extends BaseActivity
 				handler.sendMessage(msg);
 			}
 		}).start();
+	}
+	
+	protected Integer getSearchResultsPages(String search, int limit)
+	{
+		return e621.getSearchResultsPages(search,limit);
 	}
 	
 	protected E621Search get_results()

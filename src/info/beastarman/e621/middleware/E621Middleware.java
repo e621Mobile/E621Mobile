@@ -99,9 +99,12 @@ public class E621Middleware extends E621
 	
 	Context ctx;
 	
-	protected E621Middleware(Context ctx)
+	protected E621Middleware(Context new_ctx)
 	{
-		this.ctx = ctx;
+		if(new_ctx != null)
+		{
+			this.ctx = new_ctx;
+		}
 		
 		cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"cache/");
 		full_cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"full_cache/");
@@ -124,6 +127,11 @@ public class E621Middleware extends E621
 		settings.registerOnSharedPreferenceChangeListener(settingsListener);
 		
 		setup();
+	}
+	
+	public static E621Middleware getInstance()
+	{
+		return getInstance(null);
 	}
 	
 	public static E621Middleware getInstance(Context ctx)
@@ -336,7 +344,7 @@ public class E621Middleware extends E621
 		}
 	}
 	
-	public Integer gerSearchResultsPages(String tags, int results_per_page)
+	public Integer getSearchResultsPages(String tags, int results_per_page)
 	{
 		Integer count = getSearchResultsCount(tags);
 		
@@ -344,6 +352,31 @@ public class E621Middleware extends E621
 		{
 			return null;
 		}
+		
+		return (int) Math.ceil(((double)count)/((double)results_per_page));
+	}
+	
+	public Integer getSearchContinueResultsPages(String tags, int results_per_page)
+	{
+		Pair<String,String> pair = interrupt.getSearch(tags);
+		
+		if(pair == null)
+		{
+			return null;
+		}
+		
+		String search_new = tags + " id:>" + pair.right + " order:id";
+		String search_old = tags + " id:<" + pair.left;
+		
+		Integer count_new = getSearchResultsCount(search_new);
+		Integer count_old = getSearchResultsCount(search_old);
+		
+		if(count_new == null || count_old == null)
+		{
+			return null;
+		}
+		
+		int count = count_new + count_old;
 		
 		return (int) Math.ceil(((double)count)/((double)results_per_page));
 	}
