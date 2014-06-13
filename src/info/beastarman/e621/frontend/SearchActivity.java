@@ -245,8 +245,26 @@ public class SearchActivity extends BaseActivity
 		for (final E621Image img : e621Search.images) {
 			ImageView imgView = new ImageView(getApplicationContext());
 			RelativeLayout rel = new RelativeLayout(getApplicationContext());
+			RelativeLayout imageWrapper = new RelativeLayout(getApplicationContext());
 			ProgressBar bar = new ProgressBar(getApplicationContext());
 			ImageButton download = new ImageButton(getApplicationContext());
+			
+			if(img.has_children())
+			{
+				imageWrapper.setBackgroundResource(R.drawable.has_children_mark);
+			}
+			else if(img.parent_id != null)
+			{
+				imageWrapper.setBackgroundResource(R.drawable.has_parent_mark);
+			}
+			else if(img.status == E621Image.FLAGGED)
+			{
+				imageWrapper.setBackgroundResource(R.drawable.delete_mark);
+			}
+			else if(img.status == E621Image.PENDING)
+			{
+				imageWrapper.setBackgroundResource(R.drawable.pending_mark);
+			}
 
 			if(cur_min_id != null)
 			{
@@ -303,13 +321,15 @@ public class SearchActivity extends BaseActivity
 			    });
 			}
 
-			rel.setPadding(0, 20, 0, 20);
+			rel.setPadding(0, dpToPx(10), 0, dpToPx(10));
+			imageWrapper.setPadding(dpToPx(5),dpToPx(2),dpToPx(5),dpToPx(2));
 
 			imageViews.add(imgView);
 
-			rel.addView(bar);
-			rel.addView(imgView);
-			rel.addView(download);
+			imageWrapper.addView(bar);
+			imageWrapper.addView(imgView);
+			imageWrapper.addView(download);
+			rel.addView(imageWrapper);
 			layout.addView(rel);
 
 			imgView.setTag(R.id.imagePosition, position);
