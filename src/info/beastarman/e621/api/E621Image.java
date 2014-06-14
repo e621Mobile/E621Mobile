@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Element;
 
@@ -50,6 +49,8 @@ public class E621Image implements Serializable
 	
 	public int status = ACTIVE;
 	
+	public boolean has_comments = false;
+	
 	public E621Image()
 	{
 	}
@@ -58,84 +59,67 @@ public class E621Image implements Serializable
 	{
 		E621Image img = new E621Image();
 
-		try {
-			img.preview_url = json.getString("preview_url");
-		} catch (JSONException e) {} 
-		try {
-			img.sample_url = json.getString("sample_url");
-		} catch (JSONException e) {} 
-		try {
-			img.file_url = json.getString("file_url");
-		} catch (JSONException e) {} 
-		try {
-			img.id = json.getString("id");
-		} catch (JSONException e) {} 
-		try {
-			img.rating = json.getString("rating");
-		} catch (JSONException e) {} 
-		try {
-			img.file_ext = json.getString("file_ext");
-		} catch (JSONException e) {} 
-		try {
-			img.preview_width = json.getInt("preview_width");
-		} catch (JSONException e) {} 
-		try {
-			img.preview_height = json.getInt("preview_height");
-		} catch (JSONException e) {} 
-		try {
-			img.sample_width = json.getInt("sample_width");
-		} catch (JSONException e) {} 
-		try {
-			img.sample_height = json.getInt("sample_height");
-		} catch (JSONException e) {} 
-		try {
-			img.width = json.getInt("width");
-		} catch (JSONException e) {} 
-		try {
-			img.height = json.getInt("height");
-		} catch (JSONException e) {} 
-		try {
-			if(!json.isNull(("parent_id")))
-			{
-				img.parent_id = String.valueOf(json.getInt("parent_id"));
-			}
-		} catch (JSONException e) {} 
-		try {
-			img.score = json.getInt("score");
-		} catch (JSONException e) {} 
-		try {
-			String status = json.getString("status");
-			
-			if(status.equals("active"))
-			{
-				img.status = ACTIVE;
-			}
-			else if(status.equals("flagged"))
-			{
-				img.status = FLAGGED;
-			}
-			else if(status.equals("pending"))
-			{
-				img.status = PENDING;
-			}
-			else if(status.equals("deleted"))
-			{
-				img.status = DELETED;
-			}
-		} catch (JSONException e) {} 
-		try {
-			String children = json.getString("children").trim();
-			if(children.length() > 0)
-			{
-				img.children = new ArrayList<String>(Arrays.asList(children.split(",")));
-			}
-		} catch (JSONException e) {} 
-		try {
-			for(String tag : json.getString("tags").split("\\s"))
-			{
-				img.tags.add(new E621Tag(tag));
-			}
-		} catch (JSONException e) {} 
+		img.preview_url = json.optString("preview_url","");
+		
+		img.sample_url = json.optString("sample_url","");
+		
+		img.file_url = json.optString("file_url","");
+		
+		img.id = json.optString("id","666");
+		
+		img.rating = json.optString("rating",EXPLICIT);
+		
+		img.file_ext = json.optString("file_ext","jpg");
+		
+		img.preview_width = json.optInt("preview_width",1);
+		
+		img.preview_height = json.optInt("preview_height",1);
+		
+		img.sample_width = json.optInt("sample_width",1); 
+		
+		img.sample_height = json.optInt("sample_height",1);
+		
+		img.width = json.optInt("width",1); 
+		
+		img.height = json.optInt("height",1);
+		
+		if(!json.isNull(("parent_id")))
+		{
+			img.parent_id = String.valueOf(json.optInt("parent_id"));
+		}
+		
+		img.score = json.optInt("score",0);
+		
+		String status = json.optString("status","active");
+		if(status.equals("active"))
+		{
+			img.status = ACTIVE;
+		}
+		else if(status.equals("flagged"))
+		{
+			img.status = FLAGGED;
+		}
+		else if(status.equals("pending"))
+		{
+			img.status = PENDING;
+		}
+		else if(status.equals("deleted"))
+		{
+			img.status = DELETED;
+		}
+		
+		String children = json.optString("children","").trim();
+		if(children.length() > 0)
+		{
+			img.children = new ArrayList<String>(Arrays.asList(children.split(",")));
+		}
+		
+		for(String tag : json.optString("tags","").split("\\s"))
+		{
+			if(tag.length() > 0)img.tags.add(new E621Tag(tag));
+		}
+		
+		img.has_comments = json.optBoolean("has_comments",false);
 		
 		return img;
 	}
@@ -150,6 +134,7 @@ public class E621Image implements Serializable
 		img.id = xml.getAttribute("id");  
 		img.rating = xml.getAttribute("rating"); 
 		img.file_ext = xml.getAttribute("file_ext");
+		img.has_comments = xml.getAttribute("has_comments").equals("true");
 		
 		if(xml.getAttribute("parent_id").length() > 0)
 		{

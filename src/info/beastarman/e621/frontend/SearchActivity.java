@@ -20,10 +20,12 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -242,28 +244,97 @@ public class SearchActivity extends BaseActivity
 		
 		int position = e621Search.offset;
 		
-		for (final E621Image img : e621Search.images) {
+		for (final E621Image img : e621Search.images)
+		{
+			LinearLayout resultWrapper = new LinearLayout(getApplicationContext());
 			ImageView imgView = new ImageView(getApplicationContext());
 			RelativeLayout rel = new RelativeLayout(getApplicationContext());
 			RelativeLayout imageWrapper = new RelativeLayout(getApplicationContext());
 			ProgressBar bar = new ProgressBar(getApplicationContext());
 			ImageButton download = new ImageButton(getApplicationContext());
+			RelativeLayout detailsWrapper = new RelativeLayout(getApplicationContext());
+			TextView details = new TextView(getApplicationContext());
+			
+			resultWrapper.setOrientation(LinearLayout.VERTICAL);
+			
+			ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(new ViewGroup.LayoutParams(
+					ViewGroup.LayoutParams.WRAP_CONTENT,
+					ViewGroup.LayoutParams.WRAP_CONTENT));
+			resultWrapper.setLayoutParams(lp);
+			
+			lp = new ViewGroup.LayoutParams(new ViewGroup.LayoutParams(
+					ViewGroup.LayoutParams.MATCH_PARENT,
+					ViewGroup.LayoutParams.WRAP_CONTENT));
+			detailsWrapper.setLayoutParams(lp);
+			detailsWrapper.setBackgroundColor(getResources().getColor(R.color.detailsBackgroundColor));
+			
+			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+				    RelativeLayout.LayoutParams.WRAP_CONTENT, 
+				    RelativeLayout.LayoutParams.WRAP_CONTENT);
+			params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+			details.setLayoutParams(params);
+			
+			String detailsText = "";
+			
+			if(img.score == 0)
+			{
+				detailsText += "0";
+			}
+			else if(img.score > 0)
+			{
+				detailsText += "<font color=#00FF00>↑" + String.valueOf(img.score) + "</font>";
+			}
+			else if(img.score < 0)
+			{
+				detailsText += "<font color=#FF0000>↓" + String.valueOf(img.score) + "</font>";
+			}
+			
+			if(img.has_comments)
+			{
+				detailsText += " C";
+			}
+			
+			if(img.file_ext.equals("gif") || img.file_ext.equals("swf"))
+			{
+				detailsText += " A";
+			}
+			
+			if(img.rating.equals(E621Image.EXPLICIT))
+			{
+				detailsText += " <font color=#FF0000>E</font>";
+			}
+			else if(img.rating.equals(E621Image.QUESTIONABLE))
+			{
+				detailsText += " <font color=#FFFF00>Q</font>";
+			}
+			else if(img.rating.equals(E621Image.SAFE))
+			{
+				detailsText += " <font color=#00FF00>S</font>";
+			}
+			
+			details.setText(Html.fromHtml(detailsText));
+			
+			boolean has_border = false;
 			
 			if(img.has_children())
 			{
 				imageWrapper.setBackgroundResource(R.drawable.has_children_mark);
+				has_border = true;
 			}
 			else if(img.parent_id != null)
 			{
 				imageWrapper.setBackgroundResource(R.drawable.has_parent_mark);
+				has_border = true;
 			}
 			else if(img.status == E621Image.FLAGGED)
 			{
 				imageWrapper.setBackgroundResource(R.drawable.delete_mark);
+				has_border = true;
 			}
 			else if(img.status == E621Image.PENDING)
 			{
 				imageWrapper.setBackgroundResource(R.drawable.pending_mark);
+				has_border = true;
 			}
 
 			if(cur_min_id != null)
@@ -286,12 +357,12 @@ public class SearchActivity extends BaseActivity
 			
 			int image_height = (int) (layout_width * (((double)img.preview_height) / img.preview_width));
 			
-			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(
+			lp = new ViewGroup.LayoutParams(new ViewGroup.LayoutParams(
 					layout_width,
 					image_height));
 			imgView.setLayoutParams(lp);
 			
-			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+			params = new RelativeLayout.LayoutParams(
 				    RelativeLayout.LayoutParams.WRAP_CONTENT, 
 				    RelativeLayout.LayoutParams.WRAP_CONTENT);
 			params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
@@ -321,8 +392,11 @@ public class SearchActivity extends BaseActivity
 			    });
 			}
 
-			rel.setPadding(0, dpToPx(10), 0, dpToPx(10));
-			imageWrapper.setPadding(dpToPx(5),dpToPx(2),dpToPx(5),dpToPx(2));
+			resultWrapper.setPadding(0, dpToPx(10), 0, dpToPx(10));
+			if(has_border)
+			{
+				imageWrapper.setPadding(dpToPx(5),dpToPx(2),dpToPx(5),dpToPx(2));
+			}
 
 			imageViews.add(imgView);
 
@@ -330,7 +404,12 @@ public class SearchActivity extends BaseActivity
 			imageWrapper.addView(imgView);
 			imageWrapper.addView(download);
 			rel.addView(imageWrapper);
-			layout.addView(rel);
+			resultWrapper.addView(rel);
+			
+			detailsWrapper.addView(details);
+			resultWrapper.addView(detailsWrapper);
+			
+			layout.addView(resultWrapper);
 
 			imgView.setTag(R.id.imagePosition, position);
 			imgView.setTag(R.id.imageObject, img);
