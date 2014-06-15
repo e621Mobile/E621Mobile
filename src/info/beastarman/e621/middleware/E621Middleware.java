@@ -5,6 +5,7 @@ import info.beastarman.e621.api.E621;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
+import info.beastarman.e621.api.E621TagAlias;
 import info.beastarman.e621.backend.ImageCacheManager;
 import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.frontend.DownloadsActivity;
@@ -55,6 +56,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -479,13 +481,20 @@ public class E621Middleware extends E621
 		}).start();
 	}
 	
-	public boolean saveImage(E621Image img)
+	public boolean saveImage(final E621Image img)
 	{
-		InputStream in = getImage(img,getFileDownloadSize());
+		final InputStream in = getImage(img,getFileDownloadSize());
 		
 		if(in != null)
 		{
-			download_manager.createOrUpdate(img, in);
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					download_manager.createOrUpdate(img, in);
+				}
+			}).start();
 			
 			return true;
 		}
@@ -674,7 +683,7 @@ public class E621Middleware extends E621
 			public void run() {
 				try
 				{
-					download_manager.updateTags();
+					download_manager.updateMetadata();
 					mNotificationManager.cancel(UPDATE_TAGS_NOTIFICATION_ID);
 				}
 				finally
@@ -1211,29 +1220,36 @@ public class E621Middleware extends E621
 		{
 			super(base_path, 0);
 			
-			setVersion(3);
+			SQLiteDatabase db = getDB();
+			
+			setVersion(4,db);
+			
+			db.close();
 		}
 		
 		@Override
-		protected synchronized void update_db(int version)
+		protected synchronized void update_db(int version, SQLiteDatabase db)
 		{
-			super.update_db(version);
+			super.update_db(version, db);
 			
 			switch(version)
 			{
 				case 1:
-					update_0_1();
+					update_0_1(db);
 					break;
 				case 2:
-					update_1_2();
+					update_1_2(db);
 					break;
 				case 3:
-					update_2_3();
+					update_2_3(db);
+					break;
+				case 4:
+					update_3_4(db);
 					break;
 			}
 		}
 		
-		protected synchronized void update_0_1()
+		protected synchronized void update_0_1(SQLiteDatabase db)
 		{
 			db.execSQL("CREATE TABLE tags (" +
 					"id TEXT PRIMARY KEY" +
@@ -1254,7 +1270,7 @@ public class E621Middleware extends E621
 			);
 		}
 		
-		protected synchronized void update_1_2()
+		protected synchronized void update_1_2(SQLiteDatabase db)
 		{
 			db.execSQL("CREATE TABLE e621image (" +
 					"image TEXT PRIMARY KEY" +
@@ -1266,50 +1282,115 @@ public class E621Middleware extends E621
 			);
 		}
 		
-		protected synchronized void update_2_3()
+		protected synchronized void update_2_3(SQLiteDatabase db)
 		{
 			db.execSQL("ALTER TABLE e621image ADD COLUMN width INTEGER DEFAULT 1;");
 			db.execSQL("ALTER TABLE e621image ADD COLUMN height INTEGER DEFAULT 1;");
 		}
 		
+		protected synchronized void update_3_4(SQLiteDatabase db)
+		{
+			db.execSQL("ALTER TABLE tags ADD COLUMN name TEXT DEFAULT '';");
+			
+			db.execSQL("CREATE TABLE tag_alias (" +
+					"alias TEXT" +
+					", " +
+					"id TEXT" +
+					", " +
+					"tag TEXT" +
+					", " +
+					"PRIMARY KEY(alias)" +
+					", " +
+					"FOREIGN KEY (tag) REFERENCES tags(id)" +
+				");"
+			);
+			
+			db.execSQL("DROP TABLE image_tags;");
+			
+			db.execSQL("CREATE TABLE image_tag (" +
+					"image TEXT" +
+					", " +
+					"tag TEXT" +
+					", " +
+					"PRIMARY KEY(image,tag)" +
+					", " +
+					"FOREIGN KEY (image) REFERENCES images(id)" +
+					", " +
+					"FOREIGN KEY (tag) REFERENCES tags(id)" +
+				");"
+			);
+			
+			db.execSQL("DELETE FROM tags WHERE 1;");
+		}
+		
 		public ArrayList<E621DownloadedImage> search(int page, int limit, SearchQuery query)
 		{
-			Cursor c = db.rawQuery("SELECT images.id as id, e621image.width as width, e621image.height as height FROM images INNER JOIN e621image ON e621image.image = images.id WHERE " + query.toSql() + " ORDER BY id LIMIT ? OFFSET ?;", new String[]{String.valueOf(limit),String.valueOf(limit*page)});
+			String sqlQuery = toSql(query);
 			
-			if(c == null || !c.moveToFirst())
+			Log.d("Msg",sqlQuery);
+			
+			SQLiteDatabase db = getDB();
+			
+			try
 			{
-				return new ArrayList<E621DownloadedImage>();
-			}
-			
-			ArrayList<E621DownloadedImage> ins = new ArrayList<E621DownloadedImage>();
-			
-			for(;limit>0; limit--)
-			{
-				ins.add(new E621DownloadedImage(
-						c.getString(c.getColumnIndex("id")),
-						c.getInt(c.getColumnIndex("width")),
-						c.getInt(c.getColumnIndex("height"))
-					));
+				Cursor c = db.rawQuery("SELECT images.id as id, e621image.width as width, e621image.height as height FROM images INNER JOIN e621image ON e621image.image = images.id WHERE " + sqlQuery + " ORDER BY id LIMIT ? OFFSET ?;", new String[]{String.valueOf(limit),String.valueOf(limit*page)});
 				
-				if(!c.moveToNext())
+				if(c == null || !c.moveToFirst())
 				{
-					break;
+					if(c != null) c.close();
+					
+					return new ArrayList<E621DownloadedImage>();
 				}
+				
+				ArrayList<E621DownloadedImage> ins = new ArrayList<E621DownloadedImage>();
+				
+				for(;limit>0; limit--)
+				{
+					ins.add(new E621DownloadedImage(
+							c.getString(c.getColumnIndex("id")),
+							c.getInt(c.getColumnIndex("width")),
+							c.getInt(c.getColumnIndex("height"))
+						));
+					
+					if(!c.moveToNext())
+					{
+						break;
+					}
+				}
+				
+				c.close();
+				
+				return ins;
 			}
-			
-			return ins;
+			finally
+			{
+				db.close();
+			}
 		}
 		
 		public int totalEntries(SearchQuery query)
 		{
-			Cursor c = db.rawQuery("SELECT COUNT(*) as c FROM images WHERE " + query.toSql() + ";", null);
+			String sqlQuery = toSql(query);
 			
-			if(c == null || !c.moveToFirst())
+			SQLiteDatabase db = getDB();
+			Cursor c = null;
+			
+			try
 			{
-				return 0;
+				c = db.rawQuery("SELECT COUNT(*) as c FROM images WHERE " + sqlQuery + ";", null);
+				
+				if(c == null || !c.moveToFirst())
+				{
+					return 0;
+				}
+				
+				return c.getInt(c.getColumnIndex("c"));
 			}
-			
-			return c.getInt(c.getColumnIndex("c"));
+			finally
+			{
+				if(c != null) c.close();
+				db.close();
+			}
 		}
 		
 		public synchronized boolean hasFile(E621Image img)
@@ -1336,7 +1417,11 @@ public class E621Middleware extends E621
 			
 			String[] query_params = new String[]{id};
 			
-			db.delete("image_tags", "image = ?", query_params);
+			SQLiteDatabase db = getDB();
+			
+			db.delete("image_tag", "image = ?", query_params);
+			
+			db.close();
 		}
 		
 		public synchronized void createOrUpdate(E621Image img, InputStream in)
@@ -1345,141 +1430,324 @@ public class E621Middleware extends E621
 			
 			super.createOrUpdate(img.id + "." + img.file_ext, in);
 			
-			ContentValues e621image_values = new ContentValues();
-			e621image_values.put("image", img.id + "." + img.file_ext);
-			e621image_values.put("rating", img.rating);
-			e621image_values.put("width", img.width);
-			e621image_values.put("height", img.height);
+			SQLiteDatabase db = getDB();
 			
 			try
 			{
-				db.insert("e621image", null, e621image_values);
-			}
-			catch(SQLiteException e)
-			{
-			}
-			
-			for(E621Tag tag : img.tags)
-			{
-				ContentValues tag_values = new ContentValues();
-				tag_values.put("id", tag.getTag());
-
+				ContentValues e621image_values = new ContentValues();
+				e621image_values.put("image", img.id + "." + img.file_ext);
+				e621image_values.put("rating", img.rating);
+				e621image_values.put("width", img.width);
+				e621image_values.put("height", img.height);
+				
 				try
 				{
-					db.insert("tags", null, tag_values);
+					db.insert("e621image", null, e621image_values);
 				}
 				catch(SQLiteException e)
 				{
 				}
 				
-				ContentValues image_tag_values = new ContentValues();
-				image_tag_values.put("image", img.id + "." + img.file_ext);
-				image_tag_values.put("tag", tag.getTag());
+				int i=0;
 				
-				try
+				for(i=0; i<img.tags.size(); i++)
 				{
-					db.insert("image_tags", null, image_tag_values);
-				}
-				catch(SQLiteException e)
-				{
-				}
-			}
-		}
-		
-		protected void updateTags()
-		{
-			Cursor c = db.rawQuery("SELECT id FROM images;", null);
-
-			if(!(c != null && c.moveToFirst()))
-			{
-				return;
-			}
-			
-			final List<E621Image> images = Collections.synchronizedList(new ArrayList<E621Image>());
-			ArrayList<Thread> threads = new ArrayList<Thread>();
-			
-			final Semaphore s = new Semaphore(10, true);
-			
-			while(true)
-			{
-				final String id = c.getString(c.getColumnIndex("id")).split("\\.")[0];
-				
-				Thread t = new Thread(new Runnable()
-				{
-					@Override
-					public void run() {
-						try {
-							try {
-								s.acquire();
-							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							
-							images.add(post__show(id));
-							
-							s.release();
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+					E621Tag tag = img.tags.get(i);
+					
+					Cursor c = db.rawQuery("SELECT id FROM tags WHERE name = ?;", new String[]{tag.getTag()});
+					
+					if(c == null || !c.moveToFirst())
+					{
+						ArrayList<E621Tag> loaded_tag = tag__index(1,1,null,null,null,tag.getTag(),null);
+						
+						if(loaded_tag.size() < 1)
+						{
+							continue;
+						}
+						else
+						{
+							tag = loaded_tag.get(0);
+							img.tags.set(i,tag);
 						}
 					}
-				});
-				
-				t.start();
-				
-				threads.add(t);
-				
-				if(!c.moveToNext())
-				{
-					break;
+					else
+					{
+						tag.setId(c.getInt(c.getColumnIndex("id")));
+						img.tags.set(i,tag);
+					}
+					
+					ContentValues image_tag_values = new ContentValues();
+					image_tag_values.put("image", img.id + "." + img.file_ext);
+					image_tag_values.put("tag", tag.getId());
+					
+					try
+					{
+						db.insert("image_tag", null, image_tag_values);
+					}
+					catch(SQLiteException e)
+					{
+					}
 				}
 			}
-			
-			c.close();
-			
-			for(Thread t : threads)
+			finally
 			{
-				try {
-					t.join();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				db.close();
 			}
-			
-			updateTags(images);
 		}
 		
-		protected synchronized void updateTags(List<E621Image> images)
+		public synchronized void updateMetadata()
 		{
+			Log.d("Msg","Starting Tag sync");
+			updateTagBase();
+			Log.d("Msg","Starting Tag Alias sync");
+			updateTagAliasBase();
+			Log.d("Msg","Starting Image Tag sync");
+			updateImageTags();
+		}
+		
+		protected void updateTagAliasBase()
+		{
+			SQLiteDatabase db = getDB();
+			
+			try
+			{
+				Cursor c = db.rawQuery("SELECT MAX(id) as max_id FROM tag_alias;", null);
+				
+				Integer max_id = null;
+				
+				if(c != null && c.moveToFirst())
+				{
+					max_id = c.getInt(c.getColumnIndex("max_id"));
+				}
+				
+				if(c != null) c.close();
+				
+				int page = 0;
+				boolean stop = false;
+				ArrayList<E621TagAlias> tag_aliases;
+				
+				do
+				{
+					db.beginTransaction();
+					
+					try
+					{
+						stop = false;
+						
+						tag_aliases = tag_alias__index(true,"date",page);
+						
+						for(E621TagAlias tag_alias : tag_aliases)
+						{
+							if(tag_alias.alias_id > max_id)
+							{
+								ContentValues values = new ContentValues();
+								values.put("alias", tag_alias.name);
+								values.put("id", tag_alias.alias_id);
+								values.put("tag", tag_alias.id);
+								
+								db.insert("tag_alias", null, values);
+							}
+							else
+							{
+								stop = true;
+							}
+						}
+						
+						page++;
+						
+						db.setTransactionSuccessful();
+					}
+					finally
+					{
+						db.endTransaction();
+					}
+				}
+				while(!stop && (tag_aliases.size() > 0));
+			}
+			finally
+			{
+				db.close();
+			}
+		}
+		
+		private HashMap<String,String> getAllTags()
+		{
+			SQLiteDatabase db = getDB();
+			
 			db.beginTransaction();
 			try
 			{
-				HashSet<E621Tag> tags = new HashSet<E621Tag>();
+				Cursor c = db.rawQuery("SELECT id,name FROM tags;", null);
 				
-				for(E621Image img : images)
+				HashMap<String,String> ret = new HashMap<String,String>();
+				
+				if(c == null || !c.moveToFirst())
 				{
-					for(E621Tag tag : img.tags)
+					if(c != null) c.close();
+					
+					return ret; 
+				}
+				
+				while(!c.isClosed())
+				{
+					ret.put(c.getString(c.getColumnIndex("name")), c.getString(c.getColumnIndex("id")));
+					
+					if(!c.moveToNext())
 					{
-						if(!tags.contains(tag))
-						{
-							tags.add(tag);
-							
-							ContentValues tag_values = new ContentValues();
-							tag_values.put("id", tag.getTag());
-		
-							try
-							{
-								db.insert("tags", null, tag_values);
-							}
-							catch(SQLiteException e)
-							{
-							}
-						}
+						break;
 					}
 				}
 				
+				c.close();
+				
+				db.setTransactionSuccessful();
+				
+				return ret;
+			}
+			finally
+			{
+				db.endTransaction();
+			}
+		}
+		
+		protected void updateTagBase()
+		{
+			SQLiteDatabase db = getDB();
+			
+			try
+			{
+				Cursor c = db.rawQuery("SELECT MAX(id) as max_id FROM tags;", null);
+				
+				Integer max_id = null;
+				
+				if(c != null && c.moveToFirst())
+				{
+					max_id = c.getInt(c.getColumnIndex("max_id"));
+				}
+				
+				if(c != null) c.close();
+				
+				int page = 0;
+				ArrayList<E621Tag> tags;
+				
+				do
+				{
+					db.beginTransaction();
+					
+					try
+					{
+						tags = tag__index(10000,page,null,null,max_id,null,null);
+						
+						for(E621Tag tag : tags)
+						{
+							ContentValues values = new ContentValues();
+							values.put("name", tag.getTag());
+							values.put("id", tag.getId());
+							
+							db.insert("tags", null, values);
+						}
+						
+						page++;
+						
+						db.setTransactionSuccessful();
+					}
+					finally
+					{
+						db.endTransaction();
+					}
+				}
+				while(tags.size() == 10000);
+			}
+			finally
+			{
+				db.close();
+			}
+		}
+		
+		protected void updateImageTags()
+		{
+			final List<E621Image> images = Collections.synchronizedList(new ArrayList<E621Image>());
+			SQLiteDatabase db = getDB();
+			
+			try
+			{
+				Cursor c = db.rawQuery("SELECT image FROM e621image;", null);
+	
+				if(!(c != null && c.moveToFirst()))
+				{
+					if(c != null) c.close();
+					
+					return;
+				}
+				
+				ArrayList<Thread> threads = new ArrayList<Thread>();
+				
+				final Semaphore s = new Semaphore(10, true);
+				
+				while(true)
+				{
+					final String id = c.getString(c.getColumnIndex("image")).split("\\.")[0];
+					
+					Thread t = new Thread(new Runnable()
+					{
+						@Override
+						public void run() {
+							try {
+								try {
+									s.acquire();
+								} catch (InterruptedException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								
+								images.add(post__show(id));
+								
+								s.release();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+					});
+					
+					t.start();
+					
+					threads.add(t);
+					
+					if(!c.moveToNext())
+					{
+						break;
+					}
+				}
+				
+				c.close();
+				
+				for(Thread t : threads)
+				{
+					try {
+						t.join();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+			finally
+			{
+				db.close();
+			}
+			
+			updateImageTags(images);
+		}
+		
+		protected synchronized void updateImageTags(List<E621Image> images)
+		{
+			HashMap<String,String> tagMap = getAllTags();
+			
+			SQLiteDatabase db = getDB();
+			db.beginTransaction();
+			try
+			{
 				for(E621Image img : images)
 				{
 					ContentValues e621image_values = new ContentValues();
@@ -1490,10 +1758,7 @@ public class E621Middleware extends E621
 					
 					try
 					{
-						if(db.insert("e621image", null, e621image_values) == -1)
-						{
-							db.update("e621image", e621image_values, "image = ?", new String[]{img.id + "." + img.file_ext});
-						}
+						db.update("e621image", e621image_values, "image = ?", new String[]{img.id + "." + img.file_ext});
 					}
 					catch(SQLiteException e)
 					{
@@ -1503,11 +1768,11 @@ public class E621Middleware extends E621
 					{
 						ContentValues image_tag_values = new ContentValues();
 						image_tag_values.put("image", img.id + "." + img.file_ext);
-						image_tag_values.put("tag", tag.getTag());
+						image_tag_values.put("tag", tagMap.get(tag.getTag()));
 						
 						try
 						{
-							db.insert("image_tags", null, image_tag_values);
+							db.insert("image_tag", null, image_tag_values);
 						}
 						catch(SQLiteException e)
 						{
@@ -1520,7 +1785,155 @@ public class E621Middleware extends E621
 			finally
 			{
 				db.endTransaction();
+				db.close();
 			}
+		}
+		
+		public String antiAlias(String alias)
+		{
+			String ret = alias;
+			
+			SQLiteDatabase db = getDB();
+			
+			try
+			{
+				Cursor c = db.rawQuery("SELECT id FROM tag_alias WHERE alias = ?;", new String[]{alias});
+				
+				if(c == null || !c.moveToFirst())
+				{
+					if(c != null) c.close();
+					
+					c = db.rawQuery("SELECT id FROM tags WHERE name = ?", new String[]{alias});
+					
+					if(c == null || !c.moveToFirst())
+					{
+						if(c != null) c.close();
+						
+						return "-1";
+					}
+					
+					ret = c.getString(c.getColumnIndex("id"));
+					
+					return ret;
+				}
+				
+				ret = c.getString(c.getColumnIndex("id"));
+				
+				c.close();
+			}
+			finally
+			{
+				db.close();
+			}
+			
+			return ret;
+		}
+		
+		private String toSql(SearchQuery sq)
+		{
+			String sql = " 1 ";
+			
+			for(String s : sq.ands)
+			{
+				if(s.contains(":"))
+				{
+					String meta = s.split(":")[0];
+					String value= s.split(":")[1];
+					
+					if(meta.equals("rating"))
+					{
+						value = value.substring(0, 1);
+						
+						if(value.equals(E621Image.SAFE) || value.equals(E621Image.QUESTIONABLE) || value.equals(E621Image.EXPLICIT))
+						{
+							sql = sql + " AND";
+							sql = sql + String.format(" EXISTS(SELECT 1 FROM e621image WHERE image=id AND rating=\"%1$s\") ", value);
+						}
+					}
+				}
+				else
+				{
+					s = antiAlias(s);
+					
+					if(s == null) continue;
+					
+					sql = sql + " AND";
+					sql = sql + String.format(" EXISTS(SELECT 1 FROM image_tag WHERE image=id AND tag=\"%1$s\") ", s);
+				}
+			}
+			
+			if(sq.ors.size() > 0)
+			{
+				sql = sql + " AND ( 0 ";
+				
+				for(String s : sq.ors)
+				{
+					if(s.contains(":"))
+					{
+						String meta = s.split(":")[0];
+						String value= s.split(":")[1];
+						
+						if(meta.equals("rating"))					{
+							value = value.substring(0, 1);
+							
+							if(value.equals(E621Image.SAFE) || value.equals(E621Image.QUESTIONABLE) || value.equals(E621Image.EXPLICIT))
+							{
+								sql = sql + " OR";
+								sql = sql + String.format(" EXISTS(SELECT 1 FROM e621image WHERE image=id AND rating=\"%1$s\") ", value);
+							}
+						}
+					}
+					else
+					{
+						s = antiAlias(s);
+						
+						if(s == null) continue;
+						
+						sql = sql + " OR";
+						sql = sql + String.format(" EXISTS(SELECT 1 FROM image_tag WHERE image=id AND tag=\"%1$s\") ", s);
+					}
+				}
+				
+				sql = sql + " ) ";
+			}
+			
+			if(sq.nots.size() > 0)
+			{
+				sql = sql + " AND NOT ( 0 ";
+				
+				for(String s : sq.nots)
+				{
+					if(s.contains(":"))
+					{
+						String meta = s.split(":")[0];
+						String value= s.split(":")[1];
+						
+						if(meta.equals("rating"))
+						{
+							value = value.substring(0, 1);
+							
+							if(value.equals(E621Image.SAFE) || value.equals(E621Image.QUESTIONABLE) || value.equals(E621Image.EXPLICIT))
+							{
+								sql = sql + " OR";
+								sql = sql + String.format(" EXISTS(SELECT 1 FROM e621image WHERE image=id AND rating=\"%1$s\") ", value);
+							}
+						}
+					}
+					else
+					{
+						s = antiAlias(s);
+						
+						if(s == null) continue;
+						
+						sql = sql + " OR";
+						sql = sql + String.format(" EXISTS(SELECT 1 FROM image_tag WHERE image=id AND tag=\"%1$s\") ", s);
+					}
+				}
+				
+				sql = sql + " ) ";
+			}
+			
+			return sql;
 		}
 	}
 	

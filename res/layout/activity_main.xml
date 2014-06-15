@@ -126,7 +126,7 @@
                     android:layout_alignParentLeft="true"
                     android:layout_toLeftOf="@+id/textView2"
                     android:onClick="visit_mascot_website"
-                    android:text="Visit website" />
+                    android:text="@string/artists_website" />
 
                 <Button
                     android:id="@+id/button3"
@@ -136,7 +136,7 @@
                     android:layout_alignParentRight="true"
                     android:layout_toRightOf="@+id/textView2"
                     android:onClick="change_mascot"
-                    android:text="Change mascot" />
+                    android:text="@string/change_mascot" />
 
                 <TextView
                     android:id="@+id/textView2"

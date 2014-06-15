@@ -11,7 +11,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_search">Search</string>
     <string name="search_button">Search</string>
-    <string name="search_input">Search...</string>
+    <string name="search_input">Search…</string>
     <string name="prev_page">Previous</string>
     <string name="next_page">Next</string>
     <string name="page_counter">"Page\n%1$s/%2$s"</string>
@@ -28,5 +28,7 @@
     <string name="continue_later">Continue later</string>
     <string name="continue_search">Continue Search</string>
     <string name="title_activity_search_continue">Search Continued</string>
+    <string name="artists_website">Artist`s website</string>
+    <string name="change_mascot">Change mascot</string>
 
 </resources>

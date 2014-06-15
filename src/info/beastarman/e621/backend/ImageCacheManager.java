@@ -23,7 +23,6 @@ public class ImageCacheManager
 {
 	protected File base_path;
 	protected File cache_file;
-	protected SQLiteDatabase db;
 	
 	protected int version = 0;
 	
@@ -38,6 +37,15 @@ public class ImageCacheManager
 		
 		cache_file = new File(base_path, ".cache.sqlite3");
 		
+		getDB().close();
+		
+		clean();
+	}
+	
+	protected SQLiteDatabase getDB()
+	{
+		SQLiteDatabase db;
+		
 		try
 		{
 			db = SQLiteDatabase.openDatabase(cache_file.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
@@ -45,15 +53,15 @@ public class ImageCacheManager
 		catch(SQLiteException e)
 		{
 			db = SQLiteDatabase.openOrCreateDatabase(cache_file, null);
-			new_db();
+			new_db(db);
 		}
 		
-		clean();
+		setVersion(version,db);
 		
-		setVersion(version);
+		return db;
 	}
 	
-	protected synchronized void new_db()
+	protected synchronized void new_db(SQLiteDatabase db)
 	{
 		db.execSQL("CREATE TABLE images (" +
 						"id TEXT PRIMARY KEY" +
@@ -65,7 +73,7 @@ public class ImageCacheManager
 				);
 	}
 	
-	protected void setVersion(int version)
+	protected void setVersion(int version, SQLiteDatabase db)
 	{
 		if(version < this.version)
 		{
@@ -76,13 +84,13 @@ public class ImageCacheManager
 		
 		while(db.getVersion() < version)
 		{
-			update_db(db.getVersion()+1);
+			update_db(db.getVersion()+1, db);
 			
 			db.setVersion(db.getVersion()+1);
 		}
 	}
 	
-	protected synchronized void update_db(int version)
+	protected synchronized void update_db(int version, SQLiteDatabase db)
 	{
 	}
 	
@@ -114,40 +122,28 @@ public class ImageCacheManager
 		ContentValues updateMap = new ContentValues();
 		updateMap.put("last_access", dateFormat.format(new Date()));
 		
-		if(db.update("images", updateMap, "(SELECT id FROM images WHERE id = ?)", query_params) > 0)
+		SQLiteDatabase db = getDB();
+		
+		try
 		{
-			try {
-				return new FileInputStream(new File(base_path,id));
-			} catch (FileNotFoundException e) {
-				db.delete("images", "id = ?", query_params);
+			if(db.update("images", updateMap, "(SELECT id FROM images WHERE id = ?)", query_params) > 0)
+			{
+				try {
+					return new FileInputStream(new File(base_path,id));
+				} catch (FileNotFoundException e) {
+					db.delete("images", "id = ?", query_params);
+					return null;
+				}
+			}
+			else
+			{
 				return null;
 			}
 		}
-		else
-		{
-			return null;
-		}
-	}
-	
-	public ArrayList<InputStream> getFile(String[] ids)
-	{
-		ArrayList<InputStream> ins = new ArrayList<InputStream>();
-		
-		db.beginTransaction();
-		try
-		{
-			for(String id : ids)
-			{
-				ins.add(getFile(id));
-			}
-			db.setTransactionSuccessful();
-		}
 		finally
 		{
-			db.endTransaction();
+			db.close();
 		}
-		
-		return ins;
 	}
 	
 	public synchronized void createOrUpdate(String id, InputStream in)
@@ -167,58 +163,59 @@ public class ImageCacheManager
 
 		String[] query_params = new String[]{id};
 		
+		SQLiteDatabase db = getDB();
+		
 		try
 		{
-			db.insert("images", null, values);
+			try
+			{
+				db.insert("images", null, values);
+			}
+			catch(SQLiteException e)
+			{
+				values.remove("id");
+				db.update("images", values, "(SELECT id FROM images WHERE id = ?)", query_params);
+			}
+			
+			try {
+				BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(new File(base_path,id)));
+				out.write(data);
+				out.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		catch(SQLiteException e)
+		finally
 		{
-			values.remove("id");
-			db.update("images", values, "(SELECT id FROM images WHERE id = ?)", query_params);
+			db.close();
+			
+			clean();
 		}
-		
-		try {
-			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(new File(base_path,id)));
-			out.write(data);
-			out.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		clean();
 	}
 	
 	public synchronized void removeFile(String id)
 	{
 		String[] query_params = new String[]{id};
 		
-		if(db.delete("images", "id = ?", query_params) > 0)
-		{
-			new File(base_path,id).delete();
-		}
-	}
-	
-	public void removeFile(String[] ids)
-	{
-		db.beginTransaction();
+		SQLiteDatabase db = getDB();
+		
 		try
 		{
-			for(String id : ids)
+			if(db.delete("images", "id = ?", query_params) > 0)
 			{
-				removeFile(id);
+				new File(base_path,id).delete();
 			}
-			db.setTransactionSuccessful();
 		}
 		finally
 		{
-			db.endTransaction();
+			db.close();
 		}
 	}
-	
+		
 	public synchronized void clean()
 	{
 		if(max_size <= 0)
@@ -226,45 +223,66 @@ public class ImageCacheManager
 			return;
 		}
 		
-		long to_remove = totalSize() - max_size;
-		
-		Cursor c = db.rawQuery("SELECT * FROM images ORDER BY last_access, file_size;", null);
-		
-		if(!(c != null && c.moveToFirst()))
-		{
-			return;
-		}
-		
 		ArrayList<String> remove_ids = new ArrayList<String>();
 		
-		while(to_remove > 0)
+		SQLiteDatabase db = getDB();
+		
+		try
 		{
-			remove_ids.add(c.getString(c.getColumnIndex("id")));
-			to_remove -= c.getLong(c.getColumnIndex("file_size"));
+			long to_remove = totalSize() - max_size;
 			
-			if(!c.moveToNext())
+			Cursor c = db.rawQuery("SELECT * FROM images ORDER BY last_access, file_size;", null);
+			
+			if(!(c != null && c.moveToFirst()))
 			{
-				break;
+				return;
 			}
+			
+			while(to_remove > 0)
+			{
+				remove_ids.add(c.getString(c.getColumnIndex("id")));
+				to_remove -= c.getLong(c.getColumnIndex("file_size"));
+				
+				if(!c.moveToNext())
+				{
+					break;
+				}
+			}
+			
+			c.close();
+		}
+		finally
+		{
+			db.close();
 		}
 		
-		c.close();
-		
-		removeFile(remove_ids.toArray(new String[remove_ids.size()]));
+		for(String s : remove_ids)
+		{
+			removeFile(s);
+		}
 	}
 	
 	public long totalSize()
 	{
-		Cursor c = db.rawQuery("SELECT SUM(file_size) as size FROM images;",null);
+		SQLiteDatabase db = getDB();
 		
-		long l = 0;
-		
-		if(c != null && c.moveToFirst())
+		try
 		{
-			l = c.getLong(c.getColumnIndex("size"));
-			c.close();
+			Cursor c = db.rawQuery("SELECT SUM(file_size) as size FROM images;",null);
+			
+			long l = 0;
+			
+			if(c != null && c.moveToFirst())
+			{
+				l = c.getLong(c.getColumnIndex("size"));
+				c.close();
+			}
+			
+			return l;
 		}
-		
-		return l;
+		finally
+		{
+			db.close();
+		}
 	}
 }

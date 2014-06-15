@@ -7,8 +7,6 @@ import java.util.Arrays;
 import org.json.JSONObject;
 import org.w3c.dom.Element;
 
-import android.util.Log;
-
 public class E621Image implements Serializable
 {
 	private static final long serialVersionUID = 4972427634331752322L;
@@ -116,7 +114,7 @@ public class E621Image implements Serializable
 		
 		for(String tag : json.optString("tags","").split("\\s"))
 		{
-			if(tag.length() > 0)img.tags.add(new E621Tag(tag));
+			if(tag.length() > 0)img.tags.add(new E621Tag(tag,null));
 		}
 		
 		img.has_comments = json.optBoolean("has_comments",false);
@@ -189,7 +187,7 @@ public class E621Image implements Serializable
 		} catch (NumberFormatException e) {}
 		for(String tag : xml.getAttribute("tags").split("\\s"))
 		{
-			img.tags.add(new E621Tag(tag));
+			img.tags.add(new E621Tag(tag,null));
 		}
 		
 		return img;
@@ -197,8 +195,6 @@ public class E621Image implements Serializable
 	
 	public boolean has_children()
 	{
-		Log.d("Msg",children.toString());
-		
 		return (children.size() > 0);
 	}
 	

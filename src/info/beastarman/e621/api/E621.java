@@ -24,6 +24,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
@@ -31,6 +32,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import android.util.Log;
 
 public class E621
 {
@@ -163,8 +166,118 @@ public class E621
 				
 				if(jsonResponse.has("password_hash"))
 				{
-					jsonResponse.getString("password_hash");
+					return jsonResponse.getString("password_hash");
 				}
+		    }
+		}
+		catch (ClientProtocolException e)
+		{
+		}
+		catch (IOException e)
+		{
+		}
+		catch (JSONException e)
+        {
+		}
+		
+		return null;
+	}
+	
+	public ArrayList<E621TagAlias> tag_alias__index(Boolean approved, String order, Integer page)
+	{
+		String base = String.format("%s/tag_alias/index.json?",DOMAIN_NAME);
+		
+		List<NameValuePair> params = new LinkedList<NameValuePair>();
+		
+		if(approved != null) params.add(new BasicNameValuePair("approved", String.valueOf(approved)));
+		if(order != null) params.add(new BasicNameValuePair("order", order));
+		if(page != null) params.add(new BasicNameValuePair("page", String.valueOf(page+1)));
+		
+		base += URLEncodedUtils.format(params, "utf-8");
+		
+		try
+		{
+			ArrayList<E621TagAlias> aliases = new ArrayList<E621TagAlias>();
+			
+			HttpResponse response = tryHttpGet(base,5);
+			
+			StatusLine statusLine = response.getStatusLine();
+			
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONArray jsonResponse = new JSONArray(responseString);
+				
+				int i = 0;
+				
+				for(i=0; i<jsonResponse.length(); i++)
+				{
+					aliases.add(E621TagAlias.fromJson(jsonResponse.getJSONObject(i)));
+				}
+				
+				return aliases;
+		    }
+		}
+		catch (ClientProtocolException e)
+		{
+		}
+		catch (IOException e)
+		{
+		}
+		catch (JSONException e)
+        {
+		}
+		
+		return null;
+	}
+	
+	public ArrayList<E621Tag> tag__index(Integer limit, Integer page, String order, Integer id, Integer after_id, String name, String name_pattern)
+	{
+		String base = String.format("%s/tag/index.json?",DOMAIN_NAME);
+		
+		List<NameValuePair> params = new LinkedList<NameValuePair>();
+		
+		if(limit != null) params.add(new BasicNameValuePair("limit", String.valueOf(limit)));
+		if(page != null) params.add(new BasicNameValuePair("page", String.valueOf(page+1)));
+		if(order != null) params.add(new BasicNameValuePair("order", order));
+		if(id != null) params.add(new BasicNameValuePair("id", String.valueOf(id)));
+		if(after_id != null) params.add(new BasicNameValuePair("after_id", String.valueOf(after_id)));
+		if(name != null) params.add(new BasicNameValuePair("name", name));
+		if(name_pattern != null) params.add(new BasicNameValuePair("name_pattern", name_pattern));
+		
+		base += URLEncodedUtils.format(params, "utf-8");
+		
+		Log.d("Msg",base);
+		
+		try
+		{
+			ArrayList<E621Tag> tags = new ArrayList<E621Tag>();
+			
+			HttpResponse response = tryHttpGet(base,5);
+			
+			StatusLine statusLine = response.getStatusLine();
+			
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONArray jsonResponse = new JSONArray(responseString);
+				
+				int i = 0;
+				
+				for(i=0; i<jsonResponse.length(); i++)
+				{
+					tags.add(E621Tag.fromJson(jsonResponse.getJSONObject(i)));
+				}
+				
+				return tags;
 		    }
 		}
 		catch (ClientProtocolException e)
