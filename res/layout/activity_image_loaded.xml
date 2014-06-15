@@ -51,6 +51,39 @@
 
             <RelativeLayout
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/detailsBackgroundColor"
+                android:padding="10dp" >
+
+                <TextView
+                    android:id="@+id/textView1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tags ▼"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textColor="@color/white" />
+
+                <FrameLayout
+                    android:id="@+id/tagFrame"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@+id/textView1"
+                    android:layout_below="@+id/textView1" >
+
+                    <LinearLayout
+                        android:id="@+id/tagLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical" >
+
+                    </LinearLayout>
+
+                </FrameLayout>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content" >
 
                 <ProgressBar
