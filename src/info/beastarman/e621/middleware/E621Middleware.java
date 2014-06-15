@@ -1511,7 +1511,7 @@ public class E621Middleware extends E621
 			
 			try
 			{
-				Cursor c = db.rawQuery("SELECT MAX(id) as max_id FROM tag_alias;", null);
+				Cursor c = db.rawQuery("SELECT MAX(CAST(id AS INTEGER)) as max_id FROM tag_alias;", null);
 				
 				Integer max_id = null;
 				
@@ -1616,7 +1616,7 @@ public class E621Middleware extends E621
 			
 			try
 			{
-				Cursor c = db.rawQuery("SELECT MAX(id) as max_id FROM tags;", null);
+				Cursor c = db.rawQuery("SELECT MAX(CAST(id AS INTEGER)) as max_id FROM tags;", null);
 				
 				Integer max_id = null;
 				
