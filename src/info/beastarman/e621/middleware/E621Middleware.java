@@ -1134,6 +1134,11 @@ public class E621Middleware extends E621
 		}
 	}
 	
+	public E621Tag getTag(String name)
+	{
+		return download_manager.getTag(name);
+	}
+	
 	private class FailedDownloadManager
 	{
 		File file;
@@ -1222,7 +1227,7 @@ public class E621Middleware extends E621
 			
 			SQLiteDatabase db = getDB();
 			
-			setVersion(4,db);
+			setVersion(5,db);
 			
 			db.close();
 		}
@@ -1245,6 +1250,9 @@ public class E621Middleware extends E621
 					break;
 				case 4:
 					update_3_4(db);
+					break;
+				case 5:
+					update_4_5(db);
 					break;
 			}
 		}
@@ -1321,6 +1329,35 @@ public class E621Middleware extends E621
 			);
 			
 			db.execSQL("DELETE FROM tags WHERE 1;");
+		}
+		
+		protected synchronized void update_4_5(SQLiteDatabase db)
+		{
+			db.execSQL("ALTER TABLE tags ADD COLUMN type INTEGER DEFAULT " + String.valueOf(E621Tag.GENERAL) + ";");
+			
+			db.execSQL("DELETE FROM tags WHERE 1;");
+		}
+		
+		public E621Tag getTag(String name)
+		{
+			SQLiteDatabase db = getDB();
+			
+			Cursor c = db.rawQuery("SELECT id, name, type FROM tags WHERE name = ? LIMIT 1;", new String[]{name});
+			
+			if(c == null || !c.moveToFirst())
+			{
+				if(c != null) c.close();
+				
+				return null;
+			}
+			
+			E621Tag tag = new E621Tag(name,Integer.valueOf(c.getString(c.getColumnIndex("id"))),null,c.getInt(c.getColumnIndex("type")),null);
+			
+			c.close();
+			
+			db.close();
+			
+			return tag;
 		}
 		
 		public ArrayList<E621DownloadedImage> search(int page, int limit, SearchQuery query)
@@ -1643,6 +1680,7 @@ public class E621Middleware extends E621
 							ContentValues values = new ContentValues();
 							values.put("name", tag.getTag());
 							values.put("id", tag.getId());
+							values.put("type", tag.type);
 							
 							db.insert("tags", null, values);
 						}

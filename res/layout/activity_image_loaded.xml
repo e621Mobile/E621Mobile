@@ -55,52 +55,56 @@
                 android:background="@color/detailsBackgroundColor"
                 android:padding="10dp" >
 
-                <TextView
-                    android:id="@+id/textView1"
+                <RelativeLayout
+                    android:id="@+id/tagsToggle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tags ▼"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="@color/white" />
+                    android:layout_alignLeft="@+id/tagFrame"
+                    android:layout_alignRight="@+id/tagFrame"
+                    android:padding="4dp" >
+
+                    <TextView
+                        android:id="@+id/tags"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tags ▼"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="@color/white" />
+                </RelativeLayout>
 
                 <FrameLayout
                     android:id="@+id/tagFrame"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignLeft="@+id/textView1"
-                    android:layout_below="@+id/textView1" >
+                    android:layout_below="@id/tagsToggle" >
 
                     <LinearLayout
                         android:id="@+id/tagLayout"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical" >
-
                     </LinearLayout>
-
                 </FrameLayout>
-
             </RelativeLayout>
 
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
+                android:layout_height="wrap_content"
+                android:paddingTop="24dp" >
 
                 <ProgressBar
                     android:id="@+id/progressBarLoader"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"
-                    android:layout_centerHorizontal="true"
-                    android:paddingTop="24dp" />
+                    android:layout_centerHorizontal="true" />
 
                 <ImageView
                     android:id="@+id/imageWrapper"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"
-                    android:layout_centerHorizontal="true"
-                    android:paddingTop="24dp" />
+                    android:layout_centerHorizontal="true" />
 
             </RelativeLayout>
 

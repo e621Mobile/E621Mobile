@@ -2,7 +2,6 @@ package info.beastarman.e621.frontend;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
@@ -17,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -25,8 +25,11 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -181,6 +184,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        		
 	        		GIFView gifView = new GIFView(getApplicationContext());
 	        		gifView.setLayoutParams(lp);
+	        		gifView.setPadding(0, dpToPx(24), 0, 0);
 	        		
 	        		g.addView(gifView,index);
 	        		
@@ -191,11 +195,115 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		    		new Thread(new ImageLoadRunnable(handler,e621Image,e621,e621.getFileDownloadSize())).start();
 	        	}
 	        	
+	        	int i=0;
+	        	
+	        	for(i=0; i<e621Image.tags.size(); i++)
+	        	{
+	        		E621Tag temp = e621.getTag(e621Image.tags.get(i).getTag());
+	        		
+	        		if(temp != null)
+	        		{
+	        			e621Image.tags.set(i, temp);
+	        		}
+	        	}
+	        	
 	        	fillTags(e621Image.tags);
+	        	
+	        	final FrameLayout tagFrame = (FrameLayout) findViewById(R.id.tagFrame);
+	        	ViewGroup.LayoutParams params = tagFrame.getLayoutParams();
+	        	params.height=0;
+	        	tagFrame.setLayoutParams(params);
+	        	
+	        	tagFrame.post(new Runnable()
+	        	{
+	        		@Override
+					public void run()
+	        		{
+	        			View tagsToggle = findViewById(R.id.tagsToggle);
+	        			tagsToggle.setOnClickListener(new OnClickListener()
+	    	        	{
+	    	        		@Override
+	    					public void onClick(View arg0)
+	    	        		{
+	    	        			toogleTags();
+	    					}
+	    	        	});
+					}
+	        	});
 	        }
 	    });
 		
 		setContentView(mainView);
+	}
+	
+	public boolean tags_hidden = true;
+	
+	public void toogleTags()
+	{
+		if(tags_hidden)
+	    {
+	    	show_tags();
+	    }
+	    else
+	    {
+	    	hide_tags();
+	    }
+	}
+	
+	public void show_tags()
+	{
+		final FrameLayout tagFrame = (FrameLayout) findViewById(R.id.tagFrame);
+		tagFrame.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+	    final int targetHeight = tagFrame.getMeasuredHeight();
+	    
+	    Log.d("Msg",String.valueOf(tagFrame.getVisibility()));
+	    
+	    Animation a = new Animation()
+		{
+		    @Override
+		    protected void applyTransformation(float interpolatedTime, Transformation t)
+		    {
+		    	ViewGroup.LayoutParams drawerParams = (ViewGroup.LayoutParams) tagFrame.getLayoutParams();
+		    	
+		        drawerParams.height = (int) (interpolatedTime * targetHeight);
+		        
+		        Log.d("Msg",String.valueOf(drawerParams.height));
+		        
+		        tagFrame.setLayoutParams(drawerParams);
+		    }
+		};
+
+		a.setDuration(300);
+		tagFrame.startAnimation(a);
+		((View)tagFrame.getParent()).invalidate();
+		
+		tags_hidden = false;
+	}
+	
+	public void hide_tags()
+	{
+		final FrameLayout tagFrame = (FrameLayout) findViewById(R.id.tagFrame);
+		tagFrame.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+	    final int targetHeight = tagFrame.getMeasuredHeight();
+	    
+	    Animation a = new Animation()
+		{
+		    @Override
+		    protected void applyTransformation(float interpolatedTime, Transformation t)
+		    {
+		    	interpolatedTime = 1f - interpolatedTime;
+		    	
+		    	ViewGroup.LayoutParams drawerParams = (ViewGroup.LayoutParams) tagFrame.getLayoutParams();
+		    	
+		        drawerParams.height = (int) (interpolatedTime * targetHeight);
+		        tagFrame.setLayoutParams(drawerParams);
+		    }
+		};
+
+		a.setDuration(300);
+		tagFrame.startAnimation(a);
+		
+		tags_hidden = true;
 	}
 	
 	public void fillTags(ArrayList<E621Tag> tags)
