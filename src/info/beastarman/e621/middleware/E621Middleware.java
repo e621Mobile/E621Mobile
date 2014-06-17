@@ -266,6 +266,15 @@ public class E621Middleware extends E621
 		        AlarmManager.INTERVAL_HOUR*3, alarmIntent);
 		
 		interrupt = new InterruptedSearchManager(interrupted_path);
+		
+		String savedLogin = settings.getString("userLogin",null);
+		String savedPasswordHash = settings.getString("userPasswordHash",null);
+		
+		if(savedLogin!=null && savedPasswordHash!=null)
+		{
+			login = savedLogin;
+			password_hash = savedPasswordHash;
+		}
 	}
 	
 	public boolean playGifs()
@@ -1027,13 +1036,22 @@ public class E621Middleware extends E621
 		return comment__create(id,body,login,password_hash);
 	}
 	
-	public boolean login(String name, String password)
+	public boolean login(String name, String password, boolean remember)
 	{
 		password_hash = user__login(name,password);
 		
 		if(password_hash != null)
 		{
 			login = name;
+			
+			if(remember)
+			{
+				SharedPreferences.Editor editor = settings.edit();
+				editor.putString("userLogin", login);
+				editor.putString("userPasswordHash", password_hash);
+				editor.commit();
+			}
+			
 			return true;
 		}
 		else
@@ -1047,6 +1065,11 @@ public class E621Middleware extends E621
 	{
 		password_hash = null;
 		login = null;
+		
+		SharedPreferences.Editor editor = settings.edit();
+		editor.remove("userLogin");
+		editor.remove("userPasswordHash");
+		editor.commit();
 	}
 	
 	public String getLoggedUser()

@@ -23,6 +23,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -467,14 +468,14 @@ public class SlideMenuBaseActivity extends BaseActivity
 		usernameArea.setVisibility(View.GONE);
 	}
 	
-	public void confirmSignUp(View v, final String username, final String password)
+	public void confirmSignUp(View v, final String username, final String password, final boolean remember)
 	{
 		new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				if(!e621.login(username, password))
+				if(!e621.login(username, password,remember))
 				{
 					runOnUiThread(new Runnable()
 					{
@@ -521,8 +522,9 @@ public class SlideMenuBaseActivity extends BaseActivity
 						{
 							EditText username = (EditText) view.findViewById(R.id.username);
 							EditText password = (EditText) view.findViewById(R.id.password);
+							CheckBox remember = (CheckBox) view.findViewById(R.id.rememberCheckBox);
 							
-							activity.confirmSignUp(v,username.getText().toString(),password.getText().toString());
+							activity.confirmSignUp(v,username.getText().toString(),password.getText().toString(),remember.isChecked());
 							dismiss();
 						}
 					});
