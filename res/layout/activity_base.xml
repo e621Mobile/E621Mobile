@@ -41,6 +41,32 @@
             android:padding="1dp" >
 
             <LinearLayout
+                android:id="@+id/usernameArea"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="userClick"
+                android:padding="4dp" >
+
+                <ImageView
+                    android:id="@+id/imageView0"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_launcher" />
+
+                <TextView
+                    android:id="@+id/usernameText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="12dp"
+                    android:text="username"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/white" />
+
+            </LinearLayout>
+            
+            <LinearLayout
+                android:id="@+id/signInArea"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:onClick="login"
@@ -53,14 +79,14 @@
                     android:src="@drawable/ic_launcher" />
 
                 <TextView
-                    android:id="@+id/tags"
+                    android:id="@+id/signInText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:paddingLeft="12dp"
                     android:text="@string/login"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/gray" />
+                    android:textColor="@color/white" />
 
             </LinearLayout>
 

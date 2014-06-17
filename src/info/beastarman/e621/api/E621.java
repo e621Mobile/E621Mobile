@@ -17,7 +17,9 @@ import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -293,6 +295,214 @@ public class E621
 		return null;
 	}
 	
+	public Boolean favorite__create(int id, String login, String password_hash)
+	{
+		String base = String.format("%s/favorite/create.json?",DOMAIN_NAME);
+		
+		List<NameValuePair> params = new LinkedList<NameValuePair>();
+		
+		params.add(new BasicNameValuePair("id", String.valueOf(id)));
+		params.add(new BasicNameValuePair("login", login));
+		params.add(new BasicNameValuePair("password_hash", password_hash));
+		
+		try
+		{
+			HttpResponse response = tryHttpPost(base,params,5);
+			
+			StatusLine statusLine = response.getStatusLine();
+			
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONObject jsonResponse = new JSONObject(responseString);
+		        
+		        return jsonResponse.optBoolean("success",false);
+		    }
+		}
+		catch (ClientProtocolException e)
+		{
+		}
+		catch (IOException e)
+		{
+		}
+		catch (JSONException e)
+        {
+		}
+		
+		return null;
+	}
+
+	public Boolean favorite__destroy(int id, String login, String password_hash)
+	{
+		String base = String.format("%s/favorite/destroy.json?",DOMAIN_NAME);
+		
+		List<NameValuePair> params = new LinkedList<NameValuePair>();
+		
+		params.add(new BasicNameValuePair("id", String.valueOf(id)));
+		params.add(new BasicNameValuePair("login", login));
+		params.add(new BasicNameValuePair("password_hash", password_hash));
+		
+		base += URLEncodedUtils.format(params, "utf-8");
+		
+		try
+		{
+			HttpResponse response = tryHttpPost(base,params,5);
+			
+			StatusLine statusLine = response.getStatusLine();
+			
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONObject jsonResponse = new JSONObject(responseString);
+		        
+		        return jsonResponse.optBoolean("success",false);
+		    }
+		}
+		catch (ClientProtocolException e)
+		{
+		}
+		catch (IOException e)
+		{
+		}
+		catch (JSONException e)
+        {
+		}
+		
+		return null;
+	}
+	
+	public class E621Vote
+	{
+		public boolean success = false;
+		public int score = 0;
+		public boolean removed_vote = false;
+		
+		public E621Vote(){};
+		
+		public E621Vote(int score, boolean removed_vote)
+		{
+			this.success = true;
+			this.score = score;
+			this.removed_vote = removed_vote;
+		}
+	}
+	
+	public E621Vote post__vote(int id, boolean up, String login, String password_hash)
+	{
+		String base = String.format("%s/post/vote.json?",DOMAIN_NAME);
+		
+		List<NameValuePair> params = new LinkedList<NameValuePair>();
+		
+		params.add(new BasicNameValuePair("id", String.valueOf(id)));
+		params.add(new BasicNameValuePair("score", (up?"1":"-1")));
+		params.add(new BasicNameValuePair("login", login));
+		params.add(new BasicNameValuePair("password_hash", password_hash));
+		
+		base += URLEncodedUtils.format(params, "utf-8");
+		
+		try
+		{
+			HttpResponse response = tryHttpPost(base,params,5);
+			
+			StatusLine statusLine = response.getStatusLine();
+			
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONObject jsonResponse = new JSONObject(responseString);
+		        
+		        if(jsonResponse.optBoolean("success",false))
+		        {
+		        	int change = (up?1:-1);
+		        	return new E621Vote(jsonResponse.getInt("score"),(jsonResponse.getInt("change")*change) > 0);
+		        }
+		        else
+		        {
+		        	return new E621Vote();
+		        }
+		    }
+		}
+		catch (ClientProtocolException e)
+		{
+		}
+		catch (IOException e)
+		{
+		}
+		catch (JSONException e)
+        {
+		}
+		
+		return null;
+	}
+	
+	public Boolean comment__create(int id, String body, String login, String password_hash)
+	{
+		String base = String.format("%s/comment/create.json?",DOMAIN_NAME);
+		
+		List<NameValuePair> params = new LinkedList<NameValuePair>();
+		
+		params.add(new BasicNameValuePair("comment[post_id]", String.valueOf(id)));
+		params.add(new BasicNameValuePair("comment[body]", body));
+		params.add(new BasicNameValuePair("login", login));
+		params.add(new BasicNameValuePair("password_hash", password_hash));
+		
+		try
+		{
+			HttpResponse response = tryHttpPost(base,params,5);
+			
+			StatusLine statusLine = response.getStatusLine();
+			
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONObject jsonResponse;
+				
+		        try {
+					jsonResponse = new JSONObject(responseString);
+				} catch (JSONException e) {
+					return true;
+				}
+		        
+		        if(jsonResponse.optBoolean("success",false))
+		        {
+		        	return false;
+		        }
+		        else
+		        {
+		        	return true;
+		        }
+		    }
+		    
+		    return true;
+		}
+		catch (ClientProtocolException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
 		final HttpParams httpParams = new BasicHttpParams();
@@ -303,6 +513,28 @@ public class E621
 		{
 			try {
 				return httpclient.execute(new HttpGet(url));
+			} catch (ClientProtocolException e1) {
+				continue;
+			} catch (IOException e1) {
+				continue;
+			}
+		}
+		
+		return httpclient.execute(new HttpGet(url));
+	}
+	
+	protected HttpResponse tryHttpPost(String url, List<NameValuePair> pairs, Integer tries) throws ClientProtocolException, IOException
+	{
+		final HttpParams httpParams = new BasicHttpParams();
+	    HttpConnectionParams.setConnectionTimeout(httpParams, 30000);
+		HttpClient httpclient = new DefaultHttpClient(httpParams);
+		
+		for(;tries>=0; tries--)
+		{
+			try {
+				HttpPost post = new HttpPost(url);
+				post.setEntity(new UrlEncodedFormEntity(pairs));
+				return httpclient.execute(post);
 			} catch (ClientProtocolException e1) {
 				continue;
 			} catch (IOException e1) {

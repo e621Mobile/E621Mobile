@@ -21,7 +21,7 @@
     <string name="title_activity_downloads">Local Storage</string>
     <string name="local_search_button">Local Search</string>
     <string name="internet_search_button">Online Search</string>
-    <string name="login">Login</string>
+    <string name="login">Sign In</string>
     <string name="sync">Sync</string>
     <string name="title_activity_error_report">ErrorReportActivity</string>
     <string name="subscribe">Subscribe</string>

@@ -6,17 +6,24 @@ import java.util.ArrayList;
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621DownloadedImage;
 import info.beastarman.e621.middleware.ImageViewHandler;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Message;
 import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -81,6 +88,8 @@ public class SlideMenuBaseActivity extends BaseActivity
                 	
                 	continue_search_label.setTextColor(getResources().getColor(R.color.gray));
                 }
+                
+                loginout_front();
 			}
         });
     }
@@ -372,10 +381,24 @@ public class SlideMenuBaseActivity extends BaseActivity
         	return true;
         }
     }
-	
+	 
 	public void login(View v)
 	{
-		Toast.makeText(getApplicationContext(), "Feature not implemented yet.", Toast.LENGTH_SHORT).show();
+		LoginDialogFragment fragment = new LoginDialogFragment();
+		fragment.show(getFragmentManager(), "LoginDialog");
+	}
+	
+	public void logout()
+	{
+		e621.logout();
+		
+		loginout_front();
+	}
+	
+	public void userClick(View v)
+	{
+		LogoutDialogFragment fragment = new LogoutDialogFragment();
+		fragment.show(getFragmentManager(), "LogoutDialog");
 	}
 	
 	public void dummy(View v)
@@ -393,5 +416,182 @@ public class SlideMenuBaseActivity extends BaseActivity
 		{
 			super.onBackPressed();
 		}
+	}
+	
+	public void loginout_front()
+	{
+		if(e621.getLoggedUser() == null)
+		{
+			runOnUiThread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					logout_front();
+				}
+			});
+		}
+		else
+		{
+			runOnUiThread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					login_front();
+				}
+			});
+		}
+	}
+	
+	public void login_front()
+	{
+		View usernameArea = findViewById(R.id.usernameArea);
+		View signInArea = findViewById(R.id.signInArea);
+		
+		usernameArea.setVisibility(View.VISIBLE);
+		signInArea.setVisibility(View.GONE);
+		
+		TextView username = (TextView) findViewById(R.id.usernameText);
+		
+		username.setText(e621.getLoggedUser());
+	}
+	
+	public void logout_front()
+	{
+
+		View usernameArea = findViewById(R.id.usernameArea);
+		View signInArea = findViewById(R.id.signInArea);
+		
+		signInArea.setVisibility(View.VISIBLE);
+		usernameArea.setVisibility(View.GONE);
+	}
+	
+	public void confirmSignUp(View v, final String username, final String password)
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				if(!e621.login(username, password))
+				{
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							Toast.makeText(getApplicationContext(), "Could not login. Please try again.", Toast.LENGTH_SHORT).show();
+						}
+					});
+				}
+				
+				loginout_front();
+			}
+		}).start();
+	}
+	
+	public void cancelSignUp(View v)
+	{
+	}
+	
+	public static class LoginDialogFragment extends DialogFragment
+	{
+		@Override
+	    public Dialog onCreateDialog(Bundle savedInstanceState)
+		{
+			LayoutInflater inflater = getActivity().getLayoutInflater();
+			
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			
+			final View view = inflater.inflate(R.layout.sign_up_dialog,null);
+			
+			view.post(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					final SlideMenuBaseActivity activity = ((SlideMenuBaseActivity)getActivity());
+					Button confirm = (Button) view.findViewById(R.id.confirmSignUp);
+					
+					confirm.setOnClickListener(new OnClickListener()
+					{
+						@Override
+						public void onClick(View v)
+						{
+							EditText username = (EditText) view.findViewById(R.id.username);
+							EditText password = (EditText) view.findViewById(R.id.password);
+							
+							activity.confirmSignUp(v,username.getText().toString(),password.getText().toString());
+							dismiss();
+						}
+					});
+					
+					Button cancel = (Button) view.findViewById(R.id.cancelSignUp);
+					
+					cancel.setOnClickListener(new OnClickListener()
+					{
+						@Override
+						public void onClick(View v)
+						{
+							activity.cancelSignUp(v);
+							dismiss();
+						}
+					});
+				}
+			});
+			
+			builder.setView(view);
+			
+	        return builder.create();
+	    }
+	}
+	
+	public static class LogoutDialogFragment extends DialogFragment
+	{
+		@Override
+	    public Dialog onCreateDialog(Bundle savedInstanceState)
+		{
+			LayoutInflater inflater = getActivity().getLayoutInflater();
+			
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			
+			final View view = inflater.inflate(R.layout.logout_dialog,null);
+			
+			view.post(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					final SlideMenuBaseActivity activity = ((SlideMenuBaseActivity)getActivity());
+					Button confirm = (Button) view.findViewById(R.id.confirmSignUp);
+					
+					confirm.setOnClickListener(new OnClickListener()
+					{
+						@Override
+						public void onClick(View v)
+						{
+							activity.logout();
+							dismiss();
+						}
+					});
+					
+					Button cancel = (Button) view.findViewById(R.id.cancelSignUp);
+					
+					cancel.setOnClickListener(new OnClickListener()
+					{
+						@Override
+						public void onClick(View v)
+						{
+							dismiss();
+						}
+					});
+				}
+			});
+			
+			builder.setView(view);
+			
+	        return builder.create();
+	    }
 	}
 }

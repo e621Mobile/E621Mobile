@@ -97,6 +97,7 @@ public class E621Middleware extends E621
 	private AlarmManager alarmMgr;
 	private PendingIntent alarmIntent;
 	
+	private String login = null;
 	private String password_hash = null;
 	
 	Context ctx;
@@ -1004,18 +1005,53 @@ public class E621Middleware extends E621
 		}
 	}
 	
+	public Boolean post_favorite(int id, boolean create)
+	{
+		if(create)
+		{
+			return favorite__create(id,login,password_hash);
+		}
+		else
+		{
+			return favorite__destroy(id,login,password_hash);
+		}
+	}
+	
+	public E621Vote post__vote(int id, boolean up)
+	{
+		return post__vote(id,up,login,password_hash);
+	}
+	
+	public Boolean comment__create(int id, String body)
+	{
+		return comment__create(id,body,login,password_hash);
+	}
+	
 	public boolean login(String name, String password)
 	{
 		password_hash = user__login(name,password);
 		
 		if(password_hash != null)
 		{
+			login = name;
 			return true;
 		}
 		else
 		{
+			login = null;
 			return false;
 		}
+	}
+	
+	public void logout()
+	{
+		password_hash = null;
+		login = null;
+	}
+	
+	public String getLoggedUser()
+	{
+		return login;
 	}
 	
 	public void continue_later(String search, String seen_past, String seen_until)
