@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.middleware.GIFViewHandler;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
@@ -146,6 +147,55 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        @Override
 	        public void run() 
 	        {
+	        	if(e621.getLoggedUser() != null)
+	    		{
+	    			new Thread(new Runnable() {
+	    		        public void run()
+	    		        {
+	    		        	E621Search search;
+	    					try {
+	    						search = e621.post__index("fav:"+e621.getLoggedUser() + " id:" + image.getId(), 0, 1);
+	    					} catch (IOException e) {
+	    						return;
+	    					}
+	    		        	
+	    		        	if(search != null)
+	    		        	{
+	    		        		if(search.images.size() > 0)
+	    		        		{
+	    		        			is_faved = true;
+	    		        			
+	    		        			runOnUiThread(new Runnable()
+	    		        			{
+	    		        				@Override
+	    								public void run()
+	    		        				{
+	    									ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
+	    									
+	    									favButton.setImageResource(android.R.drawable.star_big_on);
+	    								}
+	    		        			});
+	    		        		}
+	    		        		else
+	    		        		{
+	    		        			is_faved = false;
+	    		        			
+	    		        			runOnUiThread(new Runnable()
+	    		        			{
+	    		        				@Override
+	    								public void run()
+	    		        				{
+	    									ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
+	    									
+	    									favButton.setImageResource(android.R.drawable.star_big_off);
+	    								}
+	    		        			});
+	    		        		}
+	    		        	}
+	    		        }
+	    		    }).start();
+	    		}
+	        	
 	        	if(e621.isSaved(e621Image))
 	        	{
 	        		ImageButton button = (ImageButton)findViewById(R.id.downloadButton);
@@ -650,5 +700,54 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		startActivity(intent);
 		
 		return true;
+	}
+	
+	Boolean is_faved = null;
+	
+	public void fav(View v)
+	{
+		if(is_faved == null) return;
+		
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				final Boolean ret = e621.post_favorite(Integer.parseInt(e621Image.id), !is_faved);
+				
+				if(ret != null)
+				{
+					if(ret)
+					{
+						is_faved = !is_faved;
+						
+						final ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
+						
+						if(is_faved)
+						{
+							runOnUiThread(new Runnable()
+							{
+								@Override
+								public void run()
+								{
+									favButton.setImageResource(android.R.drawable.star_big_on);
+								}
+							});
+						}
+						else
+						{
+							runOnUiThread(new Runnable()
+							{
+								@Override
+								public void run()
+								{
+									favButton.setImageResource(android.R.drawable.star_big_off);
+								}
+							});
+						}
+					}
+				}
+			}
+		}).start();
 	}
 }
