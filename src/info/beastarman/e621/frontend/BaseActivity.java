@@ -27,6 +27,8 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
+		Log.i(E621Middleware.LOG_TAG, "onCreate() " + this.getClass().toString());
+		
 		super.onCreate(savedInstanceState);
 		
 		e621 = E621Middleware.getInstance(getApplicationContext());
@@ -35,9 +37,57 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	}
 	
 	@Override
+	protected void onDestroy()
+	{
+		Log.i(E621Middleware.LOG_TAG, "onDestroy() " + this.getClass().toString());
+		
+		super.onDestroy();
+	}
+	
+	@Override
+	protected void onStart()
+	{
+		Log.i(E621Middleware.LOG_TAG, "onStart() " + this.getClass().toString());
+		
+		super.onStart();
+	}
+	
+	@Override
+	protected void onStop()
+	{
+		Log.i(E621Middleware.LOG_TAG, "onStop() " + this.getClass().toString());
+		
+		super.onStop();
+	}
+	
+	@Override
+	protected void onResume()
+	{
+		Log.i(E621Middleware.LOG_TAG, "onResume() " + this.getClass().toString());
+		
+		super.onResume();
+	}
+	
+	@Override
+	protected void onPause()
+	{
+		Log.i(E621Middleware.LOG_TAG, "onPause() " + this.getClass().toString());
+		
+		super.onPause();
+	}
+	
+	@Override
+	protected void onRestart()
+	{
+		Log.i(E621Middleware.LOG_TAG, "onRestart() " + this.getClass().toString());
+		
+		super.onRestart();
+	}
+	
+	@Override
 	public void uncaughtException (Thread thread, Throwable e)
 	{
-		Log.e("Msg",Log.getStackTraceString(e)); 
+		Log.e(E621Middleware.LOG_TAG,Log.getStackTraceString(e)); 
 		
 		try {
 			String[] get_pid = {
@@ -52,7 +102,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 			String[] get_log = {
 				"sh",
 				"-c",
-				"logcat -d -v time | grep " + pid + " 2> /dev/null"
+				"logcat -d -v time | grep -e " + pid + " -e " + E621Middleware.LOG_TAG + " 2> /dev/null"
 			};
 			
 			process = Runtime.getRuntime().exec(get_log);

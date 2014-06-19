@@ -18,7 +18,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -388,8 +387,6 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	
 	public void voteUp(View view)
 	{
-		Log.d("Msg","Up");
-		
 		if(vote == null)
 		{
 			return;
@@ -426,8 +423,6 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	
 	public void voteDown(View view)
 	{
-		Log.d("Msg","Down");
-		
 		if(vote == null)
 		{
 			return;
@@ -482,8 +477,6 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		tagFrame.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 	    final int targetHeight = tagFrame.getMeasuredHeight();
 	    
-	    Log.d("Msg",String.valueOf(tagFrame.getVisibility()));
-	    
 	    Animation a = new Animation()
 		{
 		    @Override
@@ -492,8 +485,6 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		    	ViewGroup.LayoutParams drawerParams = (ViewGroup.LayoutParams) tagFrame.getLayoutParams();
 		    	
 		        drawerParams.height = (int) (interpolatedTime * targetHeight);
-		        
-		        Log.d("Msg",String.valueOf(drawerParams.height));
 		        
 		        tagFrame.setLayoutParams(drawerParams);
 		    }

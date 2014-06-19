@@ -57,7 +57,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -100,6 +99,8 @@ public class E621Middleware extends E621
 	
 	private String login = null;
 	private String password_hash = null;
+	
+	public static final String LOG_TAG = "E621MobileLogging";
 	
 	Context ctx;
 	
@@ -276,6 +277,22 @@ public class E621Middleware extends E621
 			login = savedLogin;
 			password_hash = savedPasswordHash;
 		}
+	}
+	
+	@Override
+	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
+	{
+		android.util.Log.i(LOG_TAG,"GET " + url);
+		
+		return super.tryHttpGet(url, tries);
+	}
+	
+	@Override
+	protected HttpResponse tryHttpPost(String url, List<NameValuePair> pairs, Integer tries) throws ClientProtocolException, IOException
+	{
+		android.util.Log.i(LOG_TAG,"POST " + url);
+		
+		return super.tryHttpPost(url, pairs, tries);
 	}
 	
 	public boolean playGifs()
@@ -1033,14 +1050,8 @@ public class E621Middleware extends E621
 		
 		String sid = String.valueOf(id);
 		
-		Log.d("Msg",String.valueOf(ret != null));
-		Log.d("Msg",String.valueOf(ret.success));
-		Log.d("Msg",String.valueOf(e621ImageCache.keySet()));
-		
 		if(ret != null && ret.success && e621ImageCache.containsKey(sid))
 		{
-			Log.d("Msg",String.valueOf(ret.score));
-			
 			E621Image img = e621ImageCache.get(sid);
 			img.score = ret.score;
 			e621ImageCache.put(sid, img);
@@ -1236,7 +1247,14 @@ public class E621Middleware extends E621
 			try {
 				in = new FileInputStream(file);
 				
-				ArrayList<String> ret = new ArrayList<String>(Arrays.asList(IOUtils.toString(in).trim().split("\\s+")));
+				String temp = IOUtils.toString(in).trim();
+				
+				if(temp.length() == 0)
+				{
+					return new ArrayList<String>();
+				}
+				
+				ArrayList<String> ret = new ArrayList<String>(Arrays.asList(temp.split("\\s+")));
 				
 				in.close();
 				
@@ -1292,7 +1310,7 @@ public class E621Middleware extends E621
 		
 		public synchronized void removeFile(String file)
 		{
-			if(!hasFile(file))
+			if(hasFile(file))
 			{
 				ArrayList<String> files = getFiles();
 				files.remove(file);
@@ -1445,8 +1463,6 @@ public class E621Middleware extends E621
 		public ArrayList<E621DownloadedImage> search(int page, int limit, SearchQuery query)
 		{
 			String sqlQuery = toSql(query);
-			
-			Log.d("Msg",sqlQuery);
 			
 			SQLiteDatabase db = getDB();
 			
@@ -1616,11 +1632,13 @@ public class E621Middleware extends E621
 		
 		public synchronized void updateMetadata()
 		{
-			Log.d("Msg","Starting Tag sync");
+			android.util.Log.i(LOG_TAG,"Starting Tag sync");
 			updateTagBase();
-			Log.d("Msg","Starting Tag Alias sync");
+			
+			android.util.Log.i(LOG_TAG,"Starting Tag Alias sync");
 			updateTagAliasBase();
-			Log.d("Msg","Starting Image Tag sync");
+			
+			android.util.Log.i(LOG_TAG,"Starting Image Tag sync");
 			updateImageTags();
 		}
 		

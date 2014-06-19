@@ -35,8 +35,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import android.util.Log;
-
 public class E621
 {
 	String DOMAIN_NAME = "https://e621.net";
@@ -252,8 +250,6 @@ public class E621
 		if(name_pattern != null) params.add(new BasicNameValuePair("name_pattern", name_pattern));
 		
 		base += URLEncodedUtils.format(params, "utf-8");
-		
-		Log.d("Msg",base);
 		
 		try
 		{
