@@ -7,6 +7,7 @@ import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
+import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.middleware.GIFViewHandler;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageNavigator;
@@ -147,6 +148,8 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        @Override
 	        public void run() 
 	        {
+	        	retrieveVote();
+	        	
 	        	if(e621.getLoggedUser() != null)
 	    		{
 	    			new Thread(new Runnable() {
@@ -284,6 +287,179 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	    });
 		
 		setContentView(mainView);
+	}
+	
+	public static final int NO_VOTE = 0;
+	public static final int VOTE_UP = 1;
+	public static final int VOTE_DOWN= 2;
+	
+	public Integer vote = null;
+	
+	public void retrieveVote()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				E621Search s = null;
+				
+				try {
+					s = e621.post__index("id:" + e621Image.id + " voted:" + e621.getLoggedUser(), 0, 1);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				if(s!=null)
+				{
+					if(s.images.size() > 0)
+					{
+						try {
+							s = e621.post__index("id:" + e621Image.id + " votedup:" + e621.getLoggedUser(), 0, 1);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						if(s!=null)
+						{
+							if(s.images.size() > 0)
+							{
+								vote = VOTE_UP;
+							}
+							else
+							{
+								vote = VOTE_DOWN;
+							}
+						}
+					}
+					else
+					{
+						vote = NO_VOTE;
+					}
+				}
+				
+				if(vote != null)
+				{
+					final TextView score = (TextView) findViewById(R.id.score);
+					
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							score.setText(String.valueOf(e621Image.score));
+							
+							if(vote.equals(VOTE_UP))
+							{
+								score.setTextColor(getResources().getColor(R.color.green));
+							}
+							else if(vote.equals(VOTE_DOWN))
+							{
+								score.setTextColor(getResources().getColor(R.color.red));
+							}
+						}
+					});
+				}
+			}
+		}).start();
+	}
+	
+	public void updateScore(int score)
+	{
+		TextView scoreView = (TextView) findViewById(R.id.score);
+		scoreView.setText(String.valueOf(score));
+		
+		switch(vote)
+		{
+			case NO_VOTE:
+				scoreView.setTextColor(getResources().getColor(R.color.white));
+				break;
+			case VOTE_UP:
+				scoreView.setTextColor(getResources().getColor(R.color.green));
+				break;
+			case VOTE_DOWN:
+				scoreView.setTextColor(getResources().getColor(R.color.red));
+				break;
+			default:
+				break;
+		}
+	}
+	
+	public void voteUp(View view)
+	{
+		Log.d("Msg","Up");
+		
+		if(vote == null)
+		{
+			return;
+		}
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				final E621Vote v = e621.post__vote(Integer.parseInt(e621Image.id), true);
+				
+				if(v != null && v.success)
+				{
+					if(vote.equals(VOTE_UP))
+					{
+						vote = NO_VOTE;
+					}
+					else
+					{
+						vote = VOTE_UP;
+					}
+					
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							updateScore(v.score);
+						}
+					});
+				}
+			}
+		}).start();
+	}
+	
+	public void voteDown(View view)
+	{
+		Log.d("Msg","Down");
+		
+		if(vote == null)
+		{
+			return;
+		}
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				final E621Vote v = e621.post__vote(Integer.parseInt(e621Image.id), false);
+				
+				if(v != null && v.success)
+				{
+					if(vote.equals(VOTE_DOWN))
+					{
+						vote = NO_VOTE;
+					}
+					else
+					{
+						vote = VOTE_DOWN;
+					}
+					
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							updateScore(v.score);
+						}
+					});
+				}
+			}
+		}).start();
 	}
 	
 	public boolean tags_hidden = true;

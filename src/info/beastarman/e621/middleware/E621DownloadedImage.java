@@ -16,4 +16,9 @@ public class E621DownloadedImage implements Serializable
 		this.width = width;
 		this.height = height;
 	}
+	
+	public String getId()
+	{
+		return filename.split("\\.")[0];
+	}
 }

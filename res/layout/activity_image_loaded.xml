@@ -133,21 +133,38 @@
                     android:layout_height="match_parent"
                     android:layout_alignParentBottom="true"
                     android:layout_alignParentTop="true"
-                    android:layout_centerHorizontal="true" >
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true" >
 
-                    <ImageButton
-                        android:id="@+id/imageButton3"
-                        android:layout_width="55dp"
-                        android:layout_height="45dp"
-                        android:src="@android:drawable/arrow_up_float"
-                        android:visibility="visible" />
+                    <Button
+                        android:id="@+id/scoreDown"
+                        style="?android:attr/buttonStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:onClick="voteDown"
+                        android:text="-"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="@color/red"
+                        android:typeface="monospace" />
 
-                    <ImageButton
-                        android:id="@+id/imageButton4"
-                        android:layout_width="55dp"
-                        android:layout_height="45dp"
-                        android:src="@android:drawable/arrow_down_float"
-                        android:visibility="visible" />
+                    <TextView
+                        android:id="@+id/score"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="..."
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textColor="@color/white" />
+
+                    <Button
+                        android:id="@+id/scoreUp"
+                        style="?android:attr/buttonStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:onClick="voteUp"
+                        android:text="+"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="@color/green"
+                        android:typeface="monospace" />
 
                 </LinearLayout>
 

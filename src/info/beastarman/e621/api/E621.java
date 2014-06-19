@@ -379,22 +379,6 @@ public class E621
 		return null;
 	}
 	
-	public class E621Vote
-	{
-		public boolean success = false;
-		public int score = 0;
-		public boolean removed_vote = false;
-		
-		public E621Vote(){};
-		
-		public E621Vote(int score, boolean removed_vote)
-		{
-			this.success = true;
-			this.score = score;
-			this.removed_vote = removed_vote;
-		}
-	}
-	
 	public E621Vote post__vote(int id, boolean up, String login, String password_hash)
 	{
 		String base = String.format("%s/post/vote.json?",DOMAIN_NAME);

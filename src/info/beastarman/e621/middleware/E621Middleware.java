@@ -6,6 +6,7 @@ import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621TagAlias;
+import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.backend.ImageCacheManager;
 import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.frontend.DownloadsActivity;
@@ -298,7 +299,7 @@ public class E621Middleware extends E621
 		{
 			E621Image img = super.post__show(id);
 			
-			e621ImageCache.put(id, img);
+			e621ImageCache.put(img.id, img);
 			
 			return img;
 		}
@@ -1024,6 +1025,28 @@ public class E621Middleware extends E621
 		{
 			return favorite__destroy(id,login,password_hash);
 		}
+	}
+	
+	public E621Vote post__vote(int id, boolean up, String login, String password_hash)
+	{
+		E621Vote ret = super.post__vote(id, up, login, password_hash);
+		
+		String sid = String.valueOf(id);
+		
+		Log.d("Msg",String.valueOf(ret != null));
+		Log.d("Msg",String.valueOf(ret.success));
+		Log.d("Msg",String.valueOf(e621ImageCache.keySet()));
+		
+		if(ret != null && ret.success && e621ImageCache.containsKey(sid))
+		{
+			Log.d("Msg",String.valueOf(ret.score));
+			
+			E621Image img = e621ImageCache.get(sid);
+			img.score = ret.score;
+			e621ImageCache.put(sid, img);
+		}
+		
+		return ret;
 	}
 	
 	public E621Vote post__vote(int id, boolean up)

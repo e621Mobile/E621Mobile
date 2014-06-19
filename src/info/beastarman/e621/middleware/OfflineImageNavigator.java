@@ -50,7 +50,7 @@ public class OfflineImageNavigator implements ImageNavigator
 	
 	@Override
 	public String getId() {
-		return img.filename;
+		return img.getId();
 	}
 	
 	public String toString()
