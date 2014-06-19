@@ -94,7 +94,7 @@ public class ImageCacheManager
 	{
 	}
 	
-	public boolean hasFile(String id)
+	public synchronized boolean hasFile(String id)
 	{
 		InputStream in = getFile(id);
 		
@@ -115,7 +115,7 @@ public class ImageCacheManager
 		}
 	}
 	
-	public InputStream getFile(String id)
+	public synchronized InputStream getFile(String id)
 	{
 		String[] query_params = new String[]{id};
 		
@@ -262,7 +262,7 @@ public class ImageCacheManager
 		}
 	}
 	
-	public long totalSize()
+	public synchronized long totalSize()
 	{
 		SQLiteDatabase db = getDB();
 		
