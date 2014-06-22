@@ -1111,6 +1111,11 @@ public class E621Middleware extends E621
 		return login;
 	}
 	
+	public boolean isLoggedIn()
+	{
+		return getLoggedUser() != null;
+	}
+	
 	public void continue_later(String search, String seen_past, String seen_until)
 	{
 		search= prepareQuery(search);

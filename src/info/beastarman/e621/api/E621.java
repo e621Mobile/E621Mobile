@@ -342,8 +342,6 @@ public class E621
 		params.add(new BasicNameValuePair("login", login));
 		params.add(new BasicNameValuePair("password_hash", password_hash));
 		
-		base += URLEncodedUtils.format(params, "utf-8");
-		
 		try
 		{
 			HttpResponse response = tryHttpPost(base,params,5);
@@ -386,8 +384,6 @@ public class E621
 		params.add(new BasicNameValuePair("login", login));
 		params.add(new BasicNameValuePair("password_hash", password_hash));
 		
-		base += URLEncodedUtils.format(params, "utf-8");
-		
 		try
 		{
 			HttpResponse response = tryHttpPost(base,params,5);
@@ -412,6 +408,57 @@ public class E621
 		        {
 		        	return new E621Vote();
 		        }
+		    }
+		}
+		catch (ClientProtocolException e)
+		{
+		}
+		catch (IOException e)
+		{
+		}
+		catch (JSONException e)
+        {
+		}
+		
+		return null;
+	}
+	
+	public ArrayList<E621Comment> comment__index(Integer post_id, Integer page)
+	{
+		String base = String.format("%s/comment/index.json?",DOMAIN_NAME);
+		
+		List<NameValuePair> params = new LinkedList<NameValuePair>();
+		
+		if(post_id != null) params.add(new BasicNameValuePair("post_id", String.valueOf(post_id)));
+		if(page != null) params.add(new BasicNameValuePair("page", String.valueOf(page+1)));
+		
+		base += URLEncodedUtils.format(params, "utf-8");
+		
+		try
+		{
+			ArrayList<E621Comment> comments = new ArrayList<E621Comment>();
+			
+			HttpResponse response = tryHttpGet(base,5);
+			
+			StatusLine statusLine = response.getStatusLine();
+			
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONArray jsonResponse = new JSONArray(responseString);
+				
+				int i = 0;
+				
+				for(i=0; i<jsonResponse.length(); i++)
+				{
+					comments.add(E621Comment.fromJson(jsonResponse.getJSONObject(i)));
+				}
+				
+				return comments;
 		    }
 		}
 		catch (ClientProtocolException e)

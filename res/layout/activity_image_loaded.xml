@@ -169,6 +169,61 @@
                 </LinearLayout>
 
             </RelativeLayout>
+            
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@color/detailsBackgroundColor"
+                android:padding="10dp" >
+
+                <RelativeLayout
+                    android:id="@+id/commentsToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@+id/commentsFrame"
+                    android:layout_alignRight="@+id/commentsFrame"
+                    android:padding="4dp" >
+
+                    <TextView
+                        android:id="@+id/comments"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Comments ▼"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="@color/white" />
+                </RelativeLayout>
+
+                <FrameLayout
+                    android:id="@+id/commentsFrame"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/commentsToggle" >
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" >
+
+                        <LinearLayout
+                            android:id="@+id/commentsLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical" >
+                        </LinearLayout>
+
+                        <Button
+                            android:id="@+id/loadMore"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/commentsLayout"
+                            android:layout_centerHorizontal="true"
+                            android:onClick="loadMoreComments"
+                            android:text="Load More" />
+
+                    </RelativeLayout>
+
+                </FrameLayout>
+            </RelativeLayout>
 
         </LinearLayout>
 

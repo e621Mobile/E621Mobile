@@ -2,12 +2,20 @@ package info.beastarman.e621.frontend;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.api.DText;
+import info.beastarman.e621.api.DTextObject;
+import info.beastarman.e621.api.E621Comment;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621Vote;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.GIFViewHandler;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageNavigator;
@@ -18,6 +26,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -36,6 +45,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class ImageActivity extends BaseActivity implements OnClickListener
 {
@@ -59,6 +69,8 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		setContentView(R.layout.activity_image);
 		
 		image = (ImageNavigator) getIntent().getSerializableExtra(NAVIGATOR);
+		
+		setTitle("#" + image.getId());
 		
 		intent = (Intent) getIntent().getParcelableExtra(INTENT);
 		
@@ -148,55 +160,8 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        public void run() 
 	        {
 	        	retrieveVote();
-	        	
-	        	if(e621.getLoggedUser() != null)
-	    		{
-	    			new Thread(new Runnable() {
-	    		        public void run()
-	    		        {
-	    		        	E621Search search;
-	    					try {
-	    						search = e621.post__index("fav:"+e621.getLoggedUser() + " id:" + image.getId(), 0, 1);
-	    					} catch (IOException e) {
-	    						return;
-	    					}
-	    		        	
-	    		        	if(search != null)
-	    		        	{
-	    		        		if(search.images.size() > 0)
-	    		        		{
-	    		        			is_faved = true;
-	    		        			
-	    		        			runOnUiThread(new Runnable()
-	    		        			{
-	    		        				@Override
-	    								public void run()
-	    		        				{
-	    									ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
-	    									
-	    									favButton.setImageResource(android.R.drawable.star_big_on);
-	    								}
-	    		        			});
-	    		        		}
-	    		        		else
-	    		        		{
-	    		        			is_faved = false;
-	    		        			
-	    		        			runOnUiThread(new Runnable()
-	    		        			{
-	    		        				@Override
-	    								public void run()
-	    		        				{
-	    									ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
-	    									
-	    									favButton.setImageResource(android.R.drawable.star_big_off);
-	    								}
-	    		        			});
-	    		        		}
-	    		        	}
-	    		        }
-	    		    }).start();
-	    		}
+	        	retrieveFav();
+	        	retrieveComments();
 	        	
 	        	if(e621.isSaved(e621Image))
 	        	{
@@ -282,10 +247,213 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	    	        	});
 					}
 	        	});
+	        	
+	        	String artists = "";
+	    		
+	    		for(E621Tag t : e621Image.tags)
+	    		{
+	    			if(t.type == E621Tag.ARTIST)
+	    			{
+	    				if(artists.length() == 0)
+	    				{
+	    					artists += ": " + t.getTag();
+	    				}
+	    				else
+	    				{
+	    					artists += ", " + t.getTag();
+	    				}
+	    			}
+	    		}
+	    		
+	    		setTitle("#" + e621Image.id + artists);
 	        }
 	    });
 		
 		setContentView(mainView);
+	}
+	
+	int commentsNextPage = 0;
+	
+	public void retrieveComments()
+	{
+		loadComments();
+	}
+	
+	private Semaphore loadSemaphore = new Semaphore(1);
+	
+	public void loadComments()
+	{
+		if(!loadSemaphore.tryAcquire())
+		{
+			return;
+		}
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				ArrayList<E621Comment> comments = e621.comment__index(Integer.valueOf(e621Image.id),commentsNextPage++);
+				
+				if(comments.size() > 0)
+				{
+					appendComments(comments);
+				}
+				else
+				{
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							findViewById(R.id.loadMore).setVisibility(View.GONE);
+						}
+					});
+				}
+				
+				loadSemaphore.release();
+			}
+		}).start();
+	}
+	
+	public void loadMoreComments(View v)
+	{
+		loadComments();
+	}
+	
+	public void appendComments(List<E621Comment> comments)
+	{
+		final ViewGroup comments_container = (ViewGroup) findViewById(R.id.commentsLayout);
+		final ArrayList<View> views = new ArrayList<View>();
+		
+		for(E621Comment cmt : comments)
+		{
+			View v = getLayoutInflater().inflate(R.layout.comment_area, null, false);
+			
+			TextView username = (TextView) v.findViewById(R.id.username);
+			username.setText(cmt.creator);
+			
+			TextView time = (TextView) v.findViewById(R.id.time);
+			time.setText(formatCommentTime(cmt.created_at));
+			
+			ViewGroup group = (ViewGroup) v.findViewById(R.id.dtext);
+			group.addView(getDTextView(cmt.body));
+			
+			views.add(v);
+		}
+		
+		runOnUiThread(new Runnable()
+		{
+			public void run()
+			{
+				for(View v : views)
+				{
+					comments_container.addView(v);
+				}
+			}
+		});
+	}
+	
+	public String formatCommentTime(Date time)
+	{
+		Date now = new Date();
+		
+		long minutes = TimeUnit.MINUTES.convert(now.getTime() - time.getTime(), TimeUnit.MILLISECONDS);
+		
+		if(minutes == 0)
+		{
+			return "Less than a minute ago";
+		}
+		else if(minutes < 60)
+		{
+			return minutes + " minutes ago";
+		}
+		else if(TimeUnit.HOURS.convert(minutes, TimeUnit.MINUTES) < 24)
+		{
+			return TimeUnit.HOURS.convert(minutes, TimeUnit.MINUTES) + " hours ago";
+		}
+		else if(TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES) < 30)
+		{
+			return TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES) + " days ago";
+		}
+		else if(TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES) < 365)
+		{
+			return (int)Math.floor(12F*TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES)/365F) + " months ago";
+		}
+		else
+		{
+			return (int)Math.floor(TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES)/365F) + " years ago";
+		}
+	}
+	
+	public View getDTextView(DText text)
+	{
+		LinearLayout container = new LinearLayout(getApplicationContext());
+		container.setOrientation(LinearLayout.VERTICAL);
+		
+		for(DTextObject obj : text)
+		{
+			TextView t = new TextView(getApplicationContext());
+			t.setText(obj.raw());
+			container.addView(t);
+		}
+		
+		return container;
+	}
+	
+	public void retrieveFav()
+	{
+		if(!e621.isLoggedIn())
+		{
+			ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
+			favButton.setImageResource(android.R.drawable.star_big_off);
+			
+			return;
+		}
+	
+		new Thread(new Runnable() {
+	        public void run()
+	        {
+	        	E621Search search;
+				try {
+					search = e621.post__index("fav:"+e621.getLoggedUser() + " id:" + image.getId(), 0, 1);
+				} catch (IOException e) {
+					return;
+				}
+	        	
+	        	if(search != null)
+	        	{
+	        		if(search.images.size() > 0)
+	        		{
+	        			is_faved = true;
+	        			
+	        			runOnUiThread(new Runnable()
+	        			{
+	        				@Override
+							public void run()
+	        				{
+								ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
+								
+								favButton.setImageResource(android.R.drawable.star_big_on);
+							}
+	        			});
+	        		}
+	        		else
+	        		{
+	        			is_faved = false;
+	        			
+	        			runOnUiThread(new Runnable()
+	        			{
+	        				@Override
+							public void run()
+	        				{
+								ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
+								
+								favButton.setImageResource(android.R.drawable.star_big_off);
+							}
+	        			});
+	        		}
+	        	}
+	        }
+	    }).start();
 	}
 	
 	public static final int NO_VOTE = 0;
@@ -296,6 +464,11 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	
 	public void retrieveVote()
 	{
+		if(!e621.isLoggedIn() || vote!=null)
+		{
+			updateScore(e621Image.score);
+		}
+		
 		new Thread(new Runnable()
 		{
 			@Override
@@ -369,6 +542,8 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		TextView scoreView = (TextView) findViewById(R.id.score);
 		scoreView.setText(String.valueOf(score));
 		
+		if(vote == null) return;
+		
 		switch(vote)
 		{
 			case NO_VOTE:
@@ -387,6 +562,13 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	
 	public void voteUp(View view)
 	{
+		if(!e621.isLoggedIn())
+		{
+			Toast.makeText(getApplicationContext(), "Please log in at the home screen.", Toast.LENGTH_SHORT).show();
+			
+			return;
+		}
+		
 		if(vote == null)
 		{
 			return;
@@ -423,6 +605,13 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	
 	public void voteDown(View view)
 	{
+		if(!e621.isLoggedIn())
+		{
+			Toast.makeText(getApplicationContext(), "Please log in at the home screen.", Toast.LENGTH_SHORT).show();
+			
+			return;
+		}
+		
 		if(vote == null)
 		{
 			return;
@@ -873,6 +1062,13 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	
 	public void fav(View v)
 	{
+		if(!e621.isLoggedIn())
+		{
+			Toast.makeText(getApplicationContext(), "Please log in at the home screen.", Toast.LENGTH_SHORT).show();
+			
+			return;
+		}
+		
 		if(is_faved == null) return;
 		
 		new Thread(new Runnable()
@@ -917,4 +1113,6 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 			}
 		}).start();
 	}
+
+	
 }
