@@ -29,7 +29,10 @@ public class ImageHandler extends Handler
 		handleInputStream(in);
 
 		try {
-			in.close();
+			if(in != null)
+			{
+				in.close();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

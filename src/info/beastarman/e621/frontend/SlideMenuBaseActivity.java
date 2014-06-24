@@ -181,6 +181,11 @@ public class SlideMenuBaseActivity extends BaseActivity
         }
     }
 	
+	public void sendErrorReport(View v)
+	{
+		uncaughtException();
+	}
+	
 	boolean continue_is_open = false;
 	
 	public void toggleContinueSearch(View v)

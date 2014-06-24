@@ -15,7 +15,6 @@ import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621Vote;
-import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.GIFViewHandler;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageNavigator;
@@ -26,7 +25,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -895,7 +893,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		final ImageButton button = (ImageButton)view;
 		button.setImageResource(android.R.drawable.stat_sys_download);
 		
-		e621.saveImageAsync(e621Image, this, new Runnable()
+		e621.saveImageAsync(e621Image,new Runnable()
 		{
 			@Override
 			public void run() {
@@ -935,7 +933,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 					}
 				});
 			}
-		});
+		},false);
 	}
 
 	@Override

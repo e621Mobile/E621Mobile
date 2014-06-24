@@ -102,11 +102,8 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		super.onRestart();
 	}
 	
-	@Override
-	public void uncaughtException (Thread thread, Throwable e)
+	public void uncaughtException()
 	{
-		Log.e(E621Middleware.LOG_TAG,Log.getStackTraceString(e)); 
-		
 		try {
 			String[] get_pid = {
 				"sh",
@@ -137,5 +134,13 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		{
 			System.exit(0);
 		}
+	}
+	
+	@Override
+	public void uncaughtException(Thread thread, Throwable e)
+	{
+		Log.e(E621Middleware.LOG_TAG,Log.getStackTraceString(e));
+		
+		uncaughtException();
 	}
 }

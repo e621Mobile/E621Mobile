@@ -57,7 +57,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -421,51 +420,58 @@ public class E621Middleware extends E621
 	private Semaphore saveImageSemaphore = new Semaphore(1);
 	private ArrayList<E621Image> downloading = new ArrayList<E621Image>();
 	
-	public void saveImageAsync(final E621Image img, Activity activity, final Runnable success_callback, final Runnable error_callback)
+	public void saveImageAsync(final E621Image img, final Runnable success_callback, final Runnable error_callback, final boolean notificate)
 	{
-		try {
-			saveImageSemaphore.acquire();
-			
-			if(saveImageNotificationManager == null)
-			{
-				saveImageNotificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-			}
-			
-			if(downloading.contains(img))
-			{
+		failed_download_manager.addFile(img.id);
+		
+		if(notificate)
+		{
+			try {
+				saveImageSemaphore.acquire();
+				
+				if(saveImageNotificationManager == null)
+				{
+					saveImageNotificationManager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+				}
+				
+				if(downloading.contains(img))
+				{
+					return;
+				}
+				
+				if(downloading.size() == 0)
+				{
+					NotificationCompat.Builder mBuilder =
+					        new NotificationCompat.Builder(ctx)
+					        .setSmallIcon(R.drawable.ic_launcher)
+					        .setContentTitle("Downloading images")
+					        .setContentText("Please wait")
+					        .setOngoing(true);
+					
+					Intent resultIntent = new Intent(ctx, DownloadsActivity.class);
+					PendingIntent pIntent = PendingIntent.getActivity(ctx, 0, resultIntent, 0);
+					
+					mBuilder.setContentIntent(pIntent);
+					
+					saveImageNotificationManager.notify(SAVE_IMAGES_NOTIFICATION_ID,mBuilder.build());
+				}
+				
+				downloading.add(img);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 				return;
 			}
-			
-			if(downloading.size() == 0)
+			finally
 			{
-				NotificationCompat.Builder mBuilder =
-				        new NotificationCompat.Builder(ctx)
-				        .setSmallIcon(R.drawable.ic_launcher)
-				        .setContentTitle("Downloading images")
-				        .setContentText("Please wait")
-				        .setOngoing(true);
-				
-				Intent resultIntent = new Intent(activity, DownloadsActivity.class);
-				PendingIntent pIntent = PendingIntent.getActivity(activity, 0, resultIntent, 0);
-				
-				mBuilder.setContentIntent(pIntent);
-				
-				saveImageNotificationManager.notify(SAVE_IMAGES_NOTIFICATION_ID,mBuilder.build());
+				saveImageSemaphore.release();
 			}
-			
-			downloading.add(img);
-		} catch (InterruptedException e) {
-			return;
-		}
-		finally
-		{
-			saveImageSemaphore.release();
 		}
 		
 		new Thread(new Runnable()
 		{
 			@Override
-			public void run() {
+			public void run()
+			{
 				boolean successfull = saveImage(img);
 				
 				if(successfull)
@@ -483,28 +489,29 @@ public class E621Middleware extends E621
 					{
 						error_callback.run();
 					}
-					
-					failed_download_manager.addFile(img.id);
 				}
 				
-				try {
-					saveImageSemaphore.acquire();
-					
-					downloading.remove(img);
-					
-					if(downloading.size() == 0)
+				if(notificate)
+				{
+					try
 					{
-						saveImageNotificationManager.cancel(SAVE_IMAGES_NOTIFICATION_ID);
+						saveImageSemaphore.acquire();
+						
+						downloading.remove(img);
+						
+						if(downloading.size() == 0)
+						{
+							saveImageNotificationManager.cancel(SAVE_IMAGES_NOTIFICATION_ID);
+						}
 					}
-				}
-				catch(InterruptedException e)
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				finally
-				{
-					saveImageSemaphore.release();
+					catch(InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					finally
+					{
+						saveImageSemaphore.release();
+					}
 				}
 			}
 		}).start();
@@ -538,7 +545,7 @@ public class E621Middleware extends E621
 		download_manager.removeFile(img);
 	}
 	
-	Semaphore getImageSemaphore = new Semaphore(3);
+	Semaphore getImageSemaphore = new Semaphore(10);
 	
 	private byte[] getImageFromInternet(String url)
 	{
@@ -967,10 +974,7 @@ public class E621Middleware extends E621
 			
 			if(img != null)
 			{
-				if(saveImage(img))
-				{
-					failed_download_manager.removeFile(file);
-				}
+				saveImageAsync(img,null,null,true);
 			}
 		}
 	}
@@ -1148,11 +1152,6 @@ public class E621Middleware extends E621
 		
 		int total_new = getSearchResultsCountForce(search_new);
 		int total_old = getSearchResultsCountForce(search_old);
-		
-		Log.d(LOG_TAG,String.valueOf(total_new + total_old));
-		Log.d(LOG_TAG,String.valueOf(total_new + total_old));
-		Log.d(LOG_TAG,String.valueOf(page));
-		Log.d(LOG_TAG,String.valueOf(limit));
 		
 		if((page+1)*limit < total_new) // All new
 		{

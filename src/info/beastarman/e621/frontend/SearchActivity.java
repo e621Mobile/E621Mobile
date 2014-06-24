@@ -441,7 +441,7 @@ public class SearchActivity extends BaseActivity
 	{
 		v.setImageResource(android.R.drawable.stat_sys_download);
 		
-		e621.saveImageAsync(img, this, new Runnable()
+		e621.saveImageAsync(img, new Runnable()
 		{
 			@Override
 			public void run() {
@@ -481,7 +481,7 @@ public class SearchActivity extends BaseActivity
 					}
 				});
 			}
-		});
+		},false);
 	}
 	
 	public void removeImage(final E621Image img, ImageButton v)

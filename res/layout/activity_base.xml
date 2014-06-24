@@ -170,6 +170,33 @@
                 </LinearLayout>
 
             </FrameLayout>
+            
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="sendErrorReport"
+                android:padding="4dp" >
+
+                <ImageView
+                    android:id="@+id/imageView4"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_launcher" />
+
+                <TextView
+                    android:id="@+id/send_error_report_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toRightOf="@+id/imageView4"
+                    android:paddingLeft="12dp"
+                    android:text="@string/send_error_report"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/white" />
+
+            </RelativeLayout>
+
+            <include layout="@layout/hr"/>
 
         </LinearLayout>
 
