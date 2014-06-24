@@ -189,7 +189,7 @@
                         android:id="@+id/comments"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Comments ▼"
+                        android:text="Comments"
                         android:textAppearance="?android:attr/textAppearanceMedium"
                         android:textColor="@color/white" />
                 </RelativeLayout>

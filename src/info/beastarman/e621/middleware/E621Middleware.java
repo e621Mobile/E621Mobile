@@ -57,6 +57,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -1148,6 +1149,11 @@ public class E621Middleware extends E621
 		int total_new = getSearchResultsCountForce(search_new);
 		int total_old = getSearchResultsCountForce(search_old);
 		
+		Log.d(LOG_TAG,String.valueOf(total_new + total_old));
+		Log.d(LOG_TAG,String.valueOf(total_new + total_old));
+		Log.d(LOG_TAG,String.valueOf(page));
+		Log.d(LOG_TAG,String.valueOf(limit));
+		
 		if((page+1)*limit < total_new) // All new
 		{
 			E621Search results = post__index(search_new,page,limit);
@@ -1166,7 +1172,7 @@ public class E621Middleware extends E621
 			
 			return new E621Search(images,page*limit,total_new+total_old,limit);
 		}
-		else if((page+1)*limit < (total_new + total_old)) // Some old
+		else if(page*limit < (total_new + total_old)) // Some old
 		{
 			int old_offset = (page*limit) - total_new;
 			

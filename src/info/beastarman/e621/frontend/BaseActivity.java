@@ -28,7 +28,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
-		Log.i(E621Middleware.LOG_TAG, "onCreate() " + this.getClass().getName());
+		Log.i(E621Middleware.LOG_TAG, hashCode() + " onCreate() " + this.getClass().getName());
 		
 		Intent intent = getIntent();
 		if(intent != null)
@@ -57,7 +57,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onDestroy()
 	{
-		Log.i(E621Middleware.LOG_TAG, "onDestroy() " + this.getClass().getName());
+		Log.i(E621Middleware.LOG_TAG, hashCode() + " onDestroy() " + this.getClass().getName());
 		
 		super.onDestroy();
 	}
@@ -65,7 +65,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onStart()
 	{
-		Log.i(E621Middleware.LOG_TAG, "onStart() " + this.getClass().getName());
+		Log.i(E621Middleware.LOG_TAG, hashCode() + " onStart() " + this.getClass().getName());
 		
 		super.onStart();
 	}
@@ -73,7 +73,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onStop()
 	{
-		Log.i(E621Middleware.LOG_TAG, "onStop() " + this.getClass().getName());
+		Log.i(E621Middleware.LOG_TAG, hashCode() + " onStop() " + this.getClass().getName());
 		
 		super.onStop();
 	}
@@ -81,7 +81,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onResume()
 	{
-		Log.i(E621Middleware.LOG_TAG, "onResume() " + this.getClass().getName());
+		Log.i(E621Middleware.LOG_TAG, hashCode() + " onResume() " + this.getClass().getName());
 		
 		super.onResume();
 	}
@@ -89,7 +89,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onPause()
 	{
-		Log.i(E621Middleware.LOG_TAG, "onPause() " + this.getClass().getName());
+		Log.i(E621Middleware.LOG_TAG, hashCode() + " onPause() " + this.getClass().getName());
 		
 		super.onPause();
 	}
@@ -97,7 +97,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onRestart()
 	{
-		Log.i(E621Middleware.LOG_TAG, "onRestart() " + this.getClass().getName());
+		Log.i(E621Middleware.LOG_TAG, hashCode() + " onRestart() " + this.getClass().getName());
 		
 		super.onRestart();
 	}
