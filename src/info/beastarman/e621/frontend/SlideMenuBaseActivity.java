@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621DownloadedImage;
-import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -13,7 +12,6 @@ import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Message;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -82,8 +80,13 @@ public class SlideMenuBaseActivity extends BaseActivity
                 
                 for(final String search : saved_searches)
                 {
-                	saved_search_container.addView(getSearchItemView(search));
-                	saved_search_container.addView(getLayoutInflater().inflate(R.layout.hr, saved_search_container, false));
+                	View row = getSearchItemView(search);
+                	saved_search_container.addView(row);
+                	
+                	View hr = getLayoutInflater().inflate(R.layout.hr, saved_search_container, false);
+                	saved_search_container.addView(hr);
+                	
+                	row.setTag(R.id.hr, hr);
                 }
                 
                 if(saved_searches.size() == 0)
@@ -164,13 +167,38 @@ public class SlideMenuBaseActivity extends BaseActivity
 		row.setOnLongClickListener(new OnLongClickListener()
 		{
 			@Override
-			public boolean onLongClick(View v) {
-				// TODO Auto-generated method stub
-				return false;
+			public boolean onLongClick(final View v) {
+				final SlideMenuBaseActivity activity = SlideMenuBaseActivity.this;
+				
+				E621ConfirmDialogFragment fragment = new E621ConfirmDialogFragment();
+				fragment.setTitle("Do you want to remove this search?");
+				fragment.setConfirmLabel("Yes");
+				fragment.setCancelLabel("No");
+				
+				fragment.setConfirmRunnable(new Runnable()
+				{
+					public void run()
+					{
+						e621.removeSearch(search);
+						activity.removeSearch(v);
+					}
+				});
+				
+				fragment.show(getFragmentManager(), "RemoveSearchDialog");
+				
+				return true;
 			}
 		});
 		
 		return row;
+	}
+	
+	public void removeSearch(View v)
+	{
+		View hr = (View)v.getTag(R.id.hr);
+		
+		((ViewGroup)v.getParent()).removeView(v);
+		((ViewGroup)hr.getParent()).removeView(hr);
 	}
 	
 	@Override
@@ -229,6 +257,9 @@ public class SlideMenuBaseActivity extends BaseActivity
 		final FrameLayout wrapper = (FrameLayout) findViewById(R.id.savedSearchWrapper);
 		final ImageView arrow = (ImageView) findViewById(R.id.continue_arrow);
 		
+		wrapper.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+	    final int targetHeight = wrapper.getMeasuredHeight();
+		
 		Animation a = new Animation()
 		{
 		    @Override
@@ -236,9 +267,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 		    {
 		    	ViewGroup.LayoutParams drawerParams = (ViewGroup.LayoutParams) wrapper.getLayoutParams();
 		    	
-		    	int height = dpToPx((36+1)*saved_searches.size());
-		    	
-		        drawerParams.height = (int) (interpolatedTime * height);
+		        drawerParams.height = (int) (interpolatedTime * targetHeight);
 		        wrapper.setLayoutParams(drawerParams);
 		        
 		        arrow.setRotation(270f + (90f*interpolatedTime));
@@ -247,6 +276,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 
 		a.setDuration(300);
 		wrapper.startAnimation(a);
+		((View)wrapper.getParent()).invalidate();
 		
 		continue_is_open = true;
 	}
@@ -256,6 +286,9 @@ public class SlideMenuBaseActivity extends BaseActivity
 		final FrameLayout wrapper = (FrameLayout) findViewById(R.id.savedSearchWrapper);
 		final ImageView arrow = (ImageView) findViewById(R.id.continue_arrow);
 		
+		wrapper.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+	    final int targetHeight = wrapper.getMeasuredHeight();
+		
 		Animation a = new Animation()
 		{
 		    @Override
@@ -264,10 +297,8 @@ public class SlideMenuBaseActivity extends BaseActivity
 		    	interpolatedTime = 1f - interpolatedTime;
 		    	
 		    	ViewGroup.LayoutParams drawerParams = (ViewGroup.LayoutParams) wrapper.getLayoutParams();
-
-		    	int height = dpToPx((36+1)*saved_searches.size());
 		    	
-		        drawerParams.height = (int) (interpolatedTime * height);
+		        drawerParams.height = (int) (interpolatedTime * targetHeight);
 		        wrapper.setLayoutParams(drawerParams);
 		        
 		        arrow.setRotation(270f + (90f*interpolatedTime));
@@ -276,6 +307,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 
 		a.setDuration(300);
 		wrapper.startAnimation(a);
+		((View)wrapper.getParent()).invalidate();
 		
 		continue_is_open = false;
 	}

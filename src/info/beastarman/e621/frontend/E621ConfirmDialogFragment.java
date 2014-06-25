@@ -80,7 +80,7 @@ public class E621ConfirmDialogFragment extends DialogFragment
 				
 				Button cancel = (Button) view.findViewById(R.id.cancelSignUp);
 				
-				confirm.setText(E621ConfirmDialogFragment.this.cancelLabel);
+				cancel.setText(E621ConfirmDialogFragment.this.cancelLabel);
 				cancel.setOnClickListener(new OnClickListener()
 				{
 					@Override

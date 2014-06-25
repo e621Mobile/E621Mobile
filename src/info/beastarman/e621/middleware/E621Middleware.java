@@ -1140,6 +1140,13 @@ public class E621Middleware extends E621
 		return interrupt.getAllSearches();
 	}
 	
+	public void removeSearch(String search)
+	{
+		search = prepareQuery(search);
+		
+		interrupt.remove(search);
+	}
+	
 	HashMap<Pair<String,Integer>,E621Search> continue_cache = new HashMap<Pair<String,Integer>,E621Search>();
 	
 	@SuppressWarnings("unchecked")
@@ -2166,6 +2173,20 @@ public class E621Middleware extends E621
 			db.close();
 		}
 		
+		public void remove(String search)
+		{
+			SQLiteDatabase db = get_db();
+			
+			remove(search,db);
+			
+			db.close();
+		}
+		
+		private void remove(String search, SQLiteDatabase db)
+		{
+			db.delete("search", "search_query = ?", new String[]{search});
+		}
+		
 		private void add(String search, String seen_past, String seen_until, SQLiteDatabase db)
 		{
 			search = search.trim();
@@ -2182,10 +2203,13 @@ public class E621Middleware extends E621
 		{
 			search = search.trim();
 			
-			Pair<String,String> current = getSearch(search);
+			Pair<String,String> current = getSearch(search,db);
 			
-			seen_past = String.valueOf(Math.min(Integer.parseInt(seen_past),Integer.parseInt(current.left)));
-			seen_until= String.valueOf(Math.max(Integer.parseInt(seen_until),Integer.parseInt(current.right)));
+			if(current != null)
+			{
+				seen_past = String.valueOf(Math.min(Integer.parseInt(seen_past),Integer.parseInt(current.left)));
+				seen_until= String.valueOf(Math.max(Integer.parseInt(seen_until),Integer.parseInt(current.right)));
+			}
 			
 			ContentValues values = new ContentValues();
 			values.put("seen_past", seen_past);
@@ -2197,6 +2221,16 @@ public class E621Middleware extends E621
 		public Pair<String,String> getSearch(String search)
 		{
 			SQLiteDatabase db = get_db();
+			
+			Pair<String,String> ret = getSearch(search,db);
+			
+			db.close();
+			
+			return ret;
+		}
+		
+		private Pair<String,String> getSearch(String search, SQLiteDatabase db)
+		{
 			Pair<String,String> ret = null;
 			
 			search = search.trim();
@@ -2213,7 +2247,10 @@ public class E621Middleware extends E621
 				c.close();
 			}
 			
-			db.close();
+			if(ret.left == null || ret.right == null)
+			{
+				ret = null;
+			}
 			
 			return ret;
 		}
@@ -2224,7 +2261,7 @@ public class E621Middleware extends E621
 			
 			SQLiteDatabase db = get_db();
 			
-			Cursor c = db.rawQuery("SELECT search_query FROM search;", null);
+			Cursor c = db.rawQuery("SELECT search_query FROM search ORDER BY search_query;", null);
 			
 			if(!(c != null && c.moveToFirst()))
 			{

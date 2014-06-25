@@ -3,4 +3,5 @@
     <item type="id" name="imageId"/>
     <item type="id" name="imagePosition"/>
     <item type="id" name="imageObject"/>
+    <item type="id" name="hr"/>
 </resources>

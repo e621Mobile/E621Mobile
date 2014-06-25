@@ -27,178 +27,177 @@
 
     <FrameLayout
         android:id="@+id/sidemenu_wrapper"
-        android:layout_width="200dp"
+        android:layout_width="180dp"
         android:layout_height="fill_parent"
         android:onClick="dummy" >
 
-        <LinearLayout
-            android:id="@+id/sidemenu"
+        <ScrollView
+            android:id="@+id/scrollView1"
             android:layout_width="200dp"
             android:layout_height="match_parent"
             android:layout_gravity="top|right"
-            android:background="@drawable/sidebar_background"
-            android:orientation="vertical"
-            android:padding="1dp" >
+            android:background="@drawable/sidebar_background" >
 
             <LinearLayout
-                android:id="@+id/usernameArea"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="userClick"
-                android:padding="4dp" >
-
-                <ImageView
-                    android:id="@+id/imageView0"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_launcher" />
-
-                <TextView
-                    android:id="@+id/usernameText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:paddingLeft="12dp"
-                    android:text="username"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/white" />
-
-            </LinearLayout>
-            
-            <LinearLayout
-                android:id="@+id/signInArea"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="login"
-                android:padding="4dp" >
-
-                <ImageView
-                    android:id="@+id/imageView1"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_launcher" />
-
-                <TextView
-                    android:id="@+id/signInText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:paddingLeft="12dp"
-                    android:text="@string/login"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/white" />
-
-            </LinearLayout>
-
-            <include layout="@layout/hr"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="4dp" >
-
-                <ImageView
-                    android:id="@+id/imageView2"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_launcher" />
-
-                <TextView
-                    android:id="@+id/textView2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:paddingLeft="12dp"
-                    android:text="@string/sync"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/white" />
-
-            </LinearLayout>
-
-            <include layout="@layout/hr"/>
-            
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="toggleContinueSearch"
-                android:padding="4dp" >
-
-                <ImageView
-                    android:id="@+id/imageView3"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_launcher" />
-
-                <TextView
-                    android:id="@+id/continue_search_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_toRightOf="@+id/imageView3"
-                    android:paddingLeft="12dp"
-                    android:text="@string/continue_search"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/white" />
-
-                <ImageView
-                    android:id="@+id/continue_arrow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginRight="8dp"
-                    android:alpha="0.5"
-                    android:rotation="270"
-                    android:src="@android:drawable/arrow_down_float" />
-
-            </RelativeLayout>
-
-            <include layout="@layout/hr"/>
-
-            <FrameLayout
-                android:id="@+id/savedSearchWrapper"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:background="@color/gray" >
+                android:id="@+id/sidemenu"
+                android:layout_width="200dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="1dp" >
 
                 <LinearLayout
-                    android:id="@+id/savedSearchContainer"
+                    android:id="@+id/usernameArea"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical" >
+                    android:onClick="userClick"
+                    android:padding="4dp" >
 
+                    <ImageView
+                        android:id="@+id/imageView0"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_launcher" />
+
+                    <TextView
+                        android:id="@+id/usernameText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:paddingLeft="12dp"
+                        android:text="username"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="@color/white" />
                 </LinearLayout>
 
-            </FrameLayout>
-            
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="sendErrorReport"
-                android:padding="4dp" >
-
-                <ImageView
-                    android:id="@+id/imageView4"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_launcher" />
-
-                <TextView
-                    android:id="@+id/send_error_report_label"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/signInArea"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_toRightOf="@+id/imageView4"
-                    android:paddingLeft="12dp"
-                    android:text="@string/send_error_report"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/white" />
+                    android:onClick="login"
+                    android:padding="4dp" >
 
-            </RelativeLayout>
+                    <ImageView
+                        android:id="@+id/imageView1"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_launcher" />
 
-            <include layout="@layout/hr"/>
+                    <TextView
+                        android:id="@+id/signInText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:paddingLeft="12dp"
+                        android:text="@string/login"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="@color/white" />
+                </LinearLayout>
 
-        </LinearLayout>
+                <include layout="@layout/hr" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="4dp" >
+
+                    <ImageView
+                        android:id="@+id/imageView2"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_launcher" />
+
+                    <TextView
+                        android:id="@+id/textView2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:paddingLeft="12dp"
+                        android:text="@string/sync"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="@color/white" />
+                </LinearLayout>
+
+                <include layout="@layout/hr" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="toggleContinueSearch"
+                    android:padding="4dp" >
+
+                    <ImageView
+                        android:id="@+id/imageView3"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_launcher" />
+
+                    <TextView
+                        android:id="@+id/continue_search_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toRightOf="@+id/imageView3"
+                        android:paddingLeft="12dp"
+                        android:text="@string/continue_search"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="@color/white" />
+
+                    <ImageView
+                        android:id="@+id/continue_arrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginRight="8dp"
+                        android:alpha="0.5"
+                        android:rotation="270"
+                        android:src="@android:drawable/arrow_down_float" />
+                </RelativeLayout>
+
+                <include layout="@layout/hr" />
+
+                <FrameLayout
+                    android:id="@+id/savedSearchWrapper"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:background="@color/gray" >
+
+                    <LinearLayout
+                        android:id="@+id/savedSearchContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" >
+                    </LinearLayout>
+                </FrameLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="sendErrorReport"
+                    android:padding="4dp" >
+
+                    <ImageView
+                        android:id="@+id/imageView4"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_launcher" />
+
+                    <TextView
+                        android:id="@+id/send_error_report_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toRightOf="@+id/imageView4"
+                        android:paddingLeft="12dp"
+                        android:text="@string/send_error_report"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="@color/white" />
+                </RelativeLayout>
+
+                <include layout="@layout/hr" />
+            </LinearLayout>
+
+        </ScrollView>
 
     </FrameLayout>
 
