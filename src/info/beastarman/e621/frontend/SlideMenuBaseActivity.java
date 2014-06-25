@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621DownloadedImage;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -12,6 +13,7 @@ import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Message;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -20,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.Button;
@@ -155,6 +158,15 @@ public class SlideMenuBaseActivity extends BaseActivity
 				Intent intent = new Intent(getApplication(), SearchContinueActivity.class);
 				intent.putExtra(DownloadsActivity.SEARCH,search);
 				startActivity(intent);
+			}
+		});
+		
+		row.setOnLongClickListener(new OnLongClickListener()
+		{
+			@Override
+			public boolean onLongClick(View v) {
+				// TODO Auto-generated method stub
+				return false;
 			}
 		});
 		
@@ -403,7 +415,21 @@ public class SlideMenuBaseActivity extends BaseActivity
 	
 	public void userClick(View v)
 	{
-		LogoutDialogFragment fragment = new LogoutDialogFragment();
+		final SlideMenuBaseActivity activity = this;
+		
+		E621ConfirmDialogFragment fragment = new E621ConfirmDialogFragment();
+		fragment.setTitle("Do you want to logout?");
+		fragment.setConfirmLabel("Yes");
+		fragment.setCancelLabel("No");
+		
+		fragment.setConfirmRunnable(new Runnable()
+		{
+			public void run()
+			{
+				activity.logout();
+			}
+		});
+		
 		fragment.show(getFragmentManager(), "LogoutDialog");
 	}
 	
@@ -542,54 +568,6 @@ public class SlideMenuBaseActivity extends BaseActivity
 						public void onClick(View v)
 						{
 							activity.cancelSignUp(v);
-							dismiss();
-						}
-					});
-				}
-			});
-			
-			builder.setView(view);
-			
-	        return builder.create();
-	    }
-	}
-	
-	public static class LogoutDialogFragment extends DialogFragment
-	{
-		@Override
-	    public Dialog onCreateDialog(Bundle savedInstanceState)
-		{
-			LayoutInflater inflater = getActivity().getLayoutInflater();
-			
-			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-			
-			final View view = inflater.inflate(R.layout.logout_dialog,null);
-			
-			view.post(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					final SlideMenuBaseActivity activity = ((SlideMenuBaseActivity)getActivity());
-					Button confirm = (Button) view.findViewById(R.id.confirmSignUp);
-					
-					confirm.setOnClickListener(new OnClickListener()
-					{
-						@Override
-						public void onClick(View v)
-						{
-							activity.logout();
-							dismiss();
-						}
-					});
-					
-					Button cancel = (Button) view.findViewById(R.id.cancelSignUp);
-					
-					cancel.setOnClickListener(new OnClickListener()
-					{
-						@Override
-						public void onClick(View v)
-						{
 							dismiss();
 						}
 					});
