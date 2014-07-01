@@ -4,4 +4,7 @@
     <item type="id" name="imagePosition"/>
     <item type="id" name="imageObject"/>
     <item type="id" name="hr"/>
+    <item type="id" name="imageView"/>
+    <item type="id" name="progressBar"/>
+    <item type="id" name="wrapper"/>
 </resources>
