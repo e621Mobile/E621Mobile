@@ -226,6 +226,40 @@ public class SlideMenuBaseActivity extends BaseActivity
 		uncaughtException();
 	}
 	
+	boolean user_is_open = false;
+	
+	public void userClick(View v)
+	{
+		if(!user_is_open)
+		{
+			open_user();
+		}
+		else
+		{
+			close_user();
+		}
+	}
+	
+	public void open_user()
+	{
+		FrameLayout wrapper = (FrameLayout) findViewById(R.id.userOptionsWrapper);
+		ImageView arrow = (ImageView) findViewById(R.id.continue_arrow_user);
+		
+		open_sidemenu_submenu(wrapper,arrow);
+		
+		user_is_open = true;
+	}
+	
+	public void close_user()
+	{
+		FrameLayout wrapper = (FrameLayout) findViewById(R.id.userOptionsWrapper);
+		ImageView arrow = (ImageView) findViewById(R.id.continue_arrow_user);
+		
+		close_sidemenu_submenu(wrapper,arrow);
+		
+		user_is_open = false;
+	}
+	
 	boolean continue_is_open = false;
 	
 	public void toggleContinueSearch(View v)
@@ -252,11 +286,8 @@ public class SlideMenuBaseActivity extends BaseActivity
 		}
 	}
 	
-	public void open_continue()
+	private void open_sidemenu_submenu(final FrameLayout wrapper, final ImageView arrow)
 	{
-		final FrameLayout wrapper = (FrameLayout) findViewById(R.id.savedSearchWrapper);
-		final ImageView arrow = (ImageView) findViewById(R.id.continue_arrow);
-		
 		wrapper.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 	    final int targetHeight = wrapper.getMeasuredHeight();
 		
@@ -277,15 +308,10 @@ public class SlideMenuBaseActivity extends BaseActivity
 		a.setDuration(300);
 		wrapper.startAnimation(a);
 		((View)wrapper.getParent()).invalidate();
-		
-		continue_is_open = true;
 	}
 	
-	public void close_continue()
+	private void close_sidemenu_submenu(final FrameLayout wrapper, final ImageView arrow)
 	{
-		final FrameLayout wrapper = (FrameLayout) findViewById(R.id.savedSearchWrapper);
-		final ImageView arrow = (ImageView) findViewById(R.id.continue_arrow);
-		
 		wrapper.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 	    final int targetHeight = wrapper.getMeasuredHeight();
 		
@@ -308,6 +334,24 @@ public class SlideMenuBaseActivity extends BaseActivity
 		a.setDuration(300);
 		wrapper.startAnimation(a);
 		((View)wrapper.getParent()).invalidate();
+	}
+	
+	public void open_continue()
+	{
+		FrameLayout wrapper = (FrameLayout) findViewById(R.id.savedSearchWrapper);
+		ImageView arrow = (ImageView) findViewById(R.id.continue_arrow);
+		
+		open_sidemenu_submenu(wrapper,arrow);
+		
+		continue_is_open = true;
+	}
+	
+	public void close_continue()
+	{
+		FrameLayout wrapper = (FrameLayout) findViewById(R.id.savedSearchWrapper);
+		ImageView arrow = (ImageView) findViewById(R.id.continue_arrow);
+		
+		close_sidemenu_submenu(wrapper,arrow);
 		
 		continue_is_open = false;
 	}
@@ -445,7 +489,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 		loginout_front();
 	}
 	
-	public void userClick(View v)
+	public void logout(View v)
 	{
 		final SlideMenuBaseActivity activity = this;
 		

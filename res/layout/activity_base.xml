@@ -45,29 +45,86 @@
                 android:orientation="vertical"
                 android:padding="1dp" >
 
-                <LinearLayout
+                <RelativeLayout
                     android:id="@+id/usernameArea"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:onClick="userClick"
-                    android:padding="4dp" >
+		            android:layout_height="wrap_content" >
+		            
+                    	<RelativeLayout
+                    	    android:id="@+id/usernameButton"
+		                    android:layout_width="match_parent"
+		                    android:layout_height="wrap_content"
+		                    android:onClick="userClick"
+		                    android:padding="4dp" >
+		
+		                    <ImageView
+		                        android:id="@+id/imageView0"
+		                        android:layout_width="32dp"
+		                        android:layout_height="32dp"
+		                        android:src="@drawable/ic_launcher" />
+		
+		                    <TextView
+		                        android:id="@+id/usernameText"
+		                        android:layout_width="wrap_content"
+		                        android:layout_height="wrap_content"
+		                        android:layout_centerVertical="true"
+		                        android:layout_toRightOf="@+id/imageView0"
+		                        android:paddingLeft="12dp"
+		                        android:text="username"
+		                        android:textAppearance="?android:attr/textAppearanceSmall"
+		                        android:textColor="@color/white" />
+		
+		                    <ImageView
+		                        android:id="@+id/continue_arrow_user"
+		                        android:layout_width="wrap_content"
+		                        android:layout_height="wrap_content"
+		                        android:layout_alignParentRight="true"
+		                        android:layout_centerVertical="true"
+		                        android:layout_marginRight="8dp"
+		                        android:alpha="0.5"
+		                        android:rotation="270"
+		                        android:src="@android:drawable/arrow_down_float" />
+		                </RelativeLayout>
+		                
+		                <FrameLayout
+		                    android:id="@+id/userOptionsWrapper"
+		                    android:layout_width="match_parent"
+		                    android:layout_height="0dp"
+		                    android:layout_below="@id/usernameButton"
+		                    android:background="@color/gray" >
+		
+		                    <LinearLayout
+		                        android:id="@+id/userOptionsContainer"
+		                        android:layout_width="match_parent"
+		                        android:layout_height="wrap_content"
+		                        android:orientation="vertical" >
+		                        
+		                        <include layout="@layout/hr" />
+		                        
+		                        <LinearLayout
+		                            android:layout_width="match_parent"
+		                            android:layout_height="36dp"
+		                            android:onClick="logout"
+		                            android:orientation="horizontal"
+		                            android:paddingLeft="20dp" >
+		                        
+		                        		<TextView
+		                        		    android:layout_width="wrap_content"
+		                        		    android:layout_height="wrap_content"
+		                        		    android:layout_gravity="center_vertical"
+		                        		    android:paddingLeft="12dp"
+		                        		    android:text="logout"
+		                        		    android:textAppearance="?android:attr/textAppearanceSmall"
+		                        		    android:textColor="@color/white" >
 
-                    <ImageView
-                        android:id="@+id/imageView0"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/ic_launcher" />
-
-                    <TextView
-                        android:id="@+id/usernameText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:paddingLeft="12dp"
-                        android:text="username"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="@color/white" />
-                </LinearLayout>
+		                        		</TextView>
+		                            
+		                        </LinearLayout>
+		                        
+		                    </LinearLayout>
+		                </FrameLayout>
+		                
+                </RelativeLayout>
 
                 <LinearLayout
                     android:id="@+id/signInArea"
