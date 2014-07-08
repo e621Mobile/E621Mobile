@@ -226,6 +226,16 @@ public class SlideMenuBaseActivity extends BaseActivity
 		uncaughtException();
 	}
 	
+	public void open_favs(View v)
+	{
+		if(e621.isLoggedIn())
+		{
+			Intent intent = new Intent(this, SearchActivity.class);
+			intent.putExtra(SearchActivity.SEARCH,"fav:"+e621.getLoggedUser());
+			startActivity(intent);
+		}
+	}
+	
 	boolean user_is_open = false;
 	
 	public void userClick(View v)

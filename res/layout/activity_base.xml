@@ -104,6 +104,28 @@
 		                        <LinearLayout
 		                            android:layout_width="match_parent"
 		                            android:layout_height="36dp"
+		                            android:onClick="open_favs"
+		                            android:orientation="horizontal"
+		                            android:paddingLeft="20dp" >
+		                        
+		                        		<TextView
+		                        		    android:layout_width="wrap_content"
+		                        		    android:layout_height="wrap_content"
+		                        		    android:layout_gravity="center_vertical"
+		                        		    android:paddingLeft="12dp"
+		                        		    android:text="Favorites"
+		                        		    android:textAppearance="?android:attr/textAppearanceSmall"
+		                        		    android:textColor="@color/white" >
+
+		                        		</TextView>
+		                            
+		                        </LinearLayout>
+		                        
+		                        <include layout="@layout/hr" />
+		                        
+		                        <LinearLayout
+		                            android:layout_width="match_parent"
+		                            android:layout_height="36dp"
 		                            android:onClick="logout"
 		                            android:orientation="horizontal"
 		                            android:paddingLeft="20dp" >
@@ -113,7 +135,7 @@
 		                        		    android:layout_height="wrap_content"
 		                        		    android:layout_gravity="center_vertical"
 		                        		    android:paddingLeft="12dp"
-		                        		    android:text="logout"
+		                        		    android:text="Logout"
 		                        		    android:textAppearance="?android:attr/textAppearanceSmall"
 		                        		    android:textColor="@color/white" >
 
