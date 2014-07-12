@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
@@ -21,11 +22,14 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -64,7 +68,7 @@ public class SearchActivity extends BaseActivity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_search);
+		trySearch();
 		
 		ActionBar actionBar = getActionBar();
 	    actionBar.setDisplayHomeAsUpEnabled(true);
@@ -84,6 +88,11 @@ public class SearchActivity extends BaseActivity
 		if(previous_page<0) previous_page = null;
 		
 		((EditText) findViewById(R.id.searchInput)).setText(search);
+	}
+	
+	private void trySearch()
+	{
+		setContentView(R.layout.activity_search);
 		
 		Integer total_pages = getSearchResultsPages(search, limit);
 		
@@ -103,6 +112,7 @@ public class SearchActivity extends BaseActivity
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
 
+		
 		final Handler handler = new SearchHandler(this);
 
 		new Thread(new Runnable() {
@@ -235,14 +245,30 @@ public class SearchActivity extends BaseActivity
 		final LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
 
-		if (e621Search == null) {
+		if (e621Search == null)
+		{
 			TextView t = new TextView(getApplicationContext());
 			t.setText(R.string.no_internet_no_results);
 			t.setGravity(Gravity.CENTER_HORIZONTAL);
-			t.setPadding(0, 24, 0, 0);
+			t.setPadding(0, dpToPx(24), 0, dpToPx(24));
 
 			layout.addView(t);
 
+			Button b = new Button(getApplicationContext());
+			b.setText("Try Again");
+			b.setGravity(Gravity.CENTER_HORIZONTAL);
+			
+			b.setOnClickListener(new OnClickListener()
+			{
+				@Override
+				public void onClick(View v)
+				{
+					trySearch();
+				}
+			});
+
+			layout.addView(b);
+			
 			return;
 		}
 		
@@ -257,7 +283,7 @@ public class SearchActivity extends BaseActivity
 			TextView t = new TextView(getApplicationContext());
 			t.setText(R.string.no_results);
 			t.setGravity(Gravity.CENTER_HORIZONTAL);
-			t.setPadding(0, 24, 0, 0);
+			t.setPadding(0, dpToPx(24), 0, 0);
 
 			layout.addView(t);
 
