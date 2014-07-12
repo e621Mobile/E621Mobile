@@ -56,6 +56,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 
 public class E621Middleware extends E621
@@ -264,8 +265,8 @@ public class E621Middleware extends E621
 		alarmIntent = PendingIntent.getBroadcast(ctx, 0, intent, 0);
 		
 		alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
-		        AlarmManager.INTERVAL_HOUR*3,
-		        AlarmManager.INTERVAL_HOUR*3, alarmIntent);
+				SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_HOUR,
+		        AlarmManager.INTERVAL_HOUR, alarmIntent);
 		
 		interrupt = new InterruptedSearchManager(interrupted_path);
 		
@@ -388,15 +389,15 @@ public class E621Middleware extends E621
 	
 	public Integer getSearchContinueResultsPages(String tags, int results_per_page)
 	{
-		Pair<String,String> pair = interrupt.getSearch(tags);
+		InterruptedSearch pair = interrupt.getSearch(tags);
 		
 		if(pair == null)
 		{
 			return null;
 		}
 		
-		String search_new = tags + " id:>" + pair.right + " order:id";
-		String search_old = tags + " id:<" + pair.left;
+		String search_new = tags + " id:>" + pair.min_id + " order:id";
+		String search_old = tags + " id:<" + pair.max_id;
 		
 		Integer count_new = getSearchResultsCount(search_new);
 		Integer count_old = getSearchResultsCount(search_old);
@@ -977,6 +978,11 @@ public class E621Middleware extends E621
 				saveImageAsync(img,null,null,true);
 			}
 		}
+		
+		for(InterruptedSearch interrupted : getAllSearches())
+		{
+			update_new_image_count(interrupted.search);
+		}
 	}
 	
 	public void sendReport(final String report)
@@ -1121,21 +1127,44 @@ public class E621Middleware extends E621
 		return getLoggedUser() != null;
 	}
 	
+	private void update_new_image_count(String search)
+	{
+		InterruptedSearch interrupted = interrupt.getSearch(search);
+		
+		String search_new = search + " id:>" + interrupted.max_id + " order:id";
+		String search_old = search + " id:<" + interrupted.min_id;
+		
+		try
+		{
+			int total_new = getSearchResultsCountForce(search_new);
+			int total_old = getSearchResultsCountForce(search_old);
+			
+			interrupt.update_new_image_count(search, total_new + total_old);
+		}
+		catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public void continue_later(String search, String seen_past, String seen_until)
 	{
 		search= prepareQuery(search);
 		
 		interrupt.addOrUpdateSearch(search, seen_past, seen_until);
+		
+		update_new_image_count(search);
 	}
 	
-	public Pair<String,String> get_continue_ids(String search)
+	public InterruptedSearch get_continue_ids(String search)
 	{
 		search = prepareQuery(search);
 		
 		return interrupt.getSearch(search);
 	}
 	
-	public ArrayList<String> getAllSearches()
+	public ArrayList<InterruptedSearch> getAllSearches()
 	{
 		return interrupt.getAllSearches();
 	}
@@ -1152,10 +1181,10 @@ public class E621Middleware extends E621
 	@SuppressWarnings("unchecked")
 	public E621Search continue_search(String search, int page, int limit) throws IOException
 	{
-		Pair<String,String> pair = interrupt.getSearch(search);
+		InterruptedSearch pair = interrupt.getSearch(search);
 		
-		String search_new = search + " id:>" + pair.right + " order:id";
-		String search_old = search + " id:<" + pair.left;
+		String search_new = search + " id:>" + pair.max_id + " order:id";
+		String search_old = search + " id:<" + pair.min_id;
 		
 		int total_new = getSearchResultsCountForce(search_new);
 		int total_old = getSearchResultsCountForce(search_old);
@@ -2092,9 +2121,25 @@ public class E621Middleware extends E621
 		}
 	}
 	
+	public class InterruptedSearch
+	{
+		public String search;
+		public Integer min_id;
+		public Integer max_id;
+		public int new_images;
+		
+		public InterruptedSearch(String search, Integer min_id, Integer max_id, int new_images)
+		{
+			this.search = search;
+			this.min_id = min_id;
+			this.max_id = max_id;
+			this.new_images = new_images;
+		}
+	}
+	
 	private class InterruptedSearchManager
 	{
-		protected int version = 0;
+		protected int version = 1;
 		protected File path;
 		
 		public InterruptedSearchManager(File path)
@@ -2134,7 +2179,7 @@ public class E621Middleware extends E621
 			
 			while(db.getVersion() < version)
 			{
-				update_db(db.getVersion()+1);
+				update_db(db, db.getVersion()+1);
 				
 				db.setVersion(db.getVersion()+1);
 			}
@@ -2142,8 +2187,21 @@ public class E621Middleware extends E621
 			return db;
 		}
 		
-		protected synchronized void update_db(int version)
+		protected synchronized void update_db(SQLiteDatabase db, int version)
 		{
+			switch(version)
+			{
+				case 1:
+					update_0_1(db);
+					break;
+				default:
+					break;
+			}
+		}
+		
+		protected synchronized void update_0_1(SQLiteDatabase db)
+		{
+			db.execSQL("ALTER TABLE search ADD COLUMN new_images INTEGER DEFAULT 0;");
 		}
 		
 		public void addOrUpdateSearch(String search, String seen_past, String seen_until)
@@ -2171,6 +2229,23 @@ public class E621Middleware extends E621
 			}
 			
 			db.close();
+		}
+		
+		public void update_new_image_count(String search, int new_image_count)
+		{
+			SQLiteDatabase db = get_db();
+			
+			update_new_image_count(search,new_image_count,db);
+			
+			db.close();
+		}
+		
+		private void update_new_image_count(String search, int new_image_count, SQLiteDatabase db)
+		{
+			ContentValues values = new ContentValues();
+			values.put("new_images", new_image_count);
+			
+			db.update("search", values, "search_query = ?", new String[]{search});
 		}
 		
 		public void remove(String search)
@@ -2203,12 +2278,12 @@ public class E621Middleware extends E621
 		{
 			search = search.trim();
 			
-			Pair<String,String> current = getSearch(search,db);
+			InterruptedSearch current = getSearch(search,db);
 			
 			if(current != null)
 			{
-				seen_past = String.valueOf(Math.min(Integer.parseInt(seen_past),Integer.parseInt(current.left)));
-				seen_until= String.valueOf(Math.max(Integer.parseInt(seen_until),Integer.parseInt(current.right)));
+				seen_past = String.valueOf(Math.min(Integer.parseInt(seen_past),current.min_id));
+				seen_until= String.valueOf(Math.max(Integer.parseInt(seen_until),current.max_id));
 			}
 			
 			ContentValues values = new ContentValues();
@@ -2218,50 +2293,49 @@ public class E621Middleware extends E621
 			db.update("search", values, "search_query = ?", new String[]{search});
 		}
 		
-		public Pair<String,String> getSearch(String search)
+		public InterruptedSearch getSearch(String search)
 		{
 			SQLiteDatabase db = get_db();
 			
-			Pair<String,String> ret = getSearch(search,db);
+			InterruptedSearch ret = getSearch(search,db);
 			
 			db.close();
 			
 			return ret;
 		}
 		
-		private Pair<String,String> getSearch(String search, SQLiteDatabase db)
+		private InterruptedSearch getSearch(String search, SQLiteDatabase db)
 		{
-			Pair<String,String> ret = null;
+			InterruptedSearch ret = null;
 			
 			search = search.trim();
 			
-			Cursor c = db.rawQuery("SELECT seen_past, seen_until FROM search WHERE search_query = ? LIMIT 1", new String[]{search});
+			Cursor c = db.rawQuery("SELECT seen_past, seen_until, new_images FROM search WHERE search_query = ? LIMIT 1", new String[]{search});
 			
 			if(c != null && c.moveToFirst())
 			{
 				if(c.getCount() > 0)
 				{
-					ret = new Pair<String,String>(c.getString(c.getColumnIndex("seen_past")),c.getString(c.getColumnIndex("seen_until")));
+					ret = new InterruptedSearch(
+							search,
+							Integer.parseInt(c.getString(c.getColumnIndex("seen_past"))),
+							Integer.parseInt(c.getString(c.getColumnIndex("seen_until"))),
+							c.getInt(c.getColumnIndex("new_images")));
 				}
 				
 				c.close();
 			}
 			
-			if(ret.left == null || ret.right == null)
-			{
-				ret = null;
-			}
-			
 			return ret;
 		}
 	
-		public ArrayList<String> getAllSearches()
+		public ArrayList<InterruptedSearch> getAllSearches()
 		{
-			ArrayList<String> searches = new ArrayList<String>();
+			ArrayList<InterruptedSearch> searches = new ArrayList<InterruptedSearch>();
 			
 			SQLiteDatabase db = get_db();
 			
-			Cursor c = db.rawQuery("SELECT search_query FROM search ORDER BY search_query;", null);
+			Cursor c = db.rawQuery("SELECT search_query, seen_past, seen_until, new_images FROM search ORDER BY search_query;", null);
 			
 			if(!(c != null && c.moveToFirst()))
 			{
@@ -2271,7 +2345,11 @@ public class E621Middleware extends E621
 			{
 				while(!c.isAfterLast())
 				{
-					searches.add(c.getString(c.getColumnIndex("search_query")));
+					searches.add(new InterruptedSearch(
+							c.getString(c.getColumnIndex("search_query")),
+							Integer.parseInt(c.getString(c.getColumnIndex("seen_past"))),
+							Integer.parseInt(c.getString(c.getColumnIndex("seen_until"))),
+							c.getInt(c.getColumnIndex("new_images"))));
 					
 					c.moveToNext();
 				}

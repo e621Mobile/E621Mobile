@@ -27,7 +27,7 @@
 
     <FrameLayout
         android:id="@+id/sidemenu_wrapper"
-        android:layout_width="200dp"
+        android:layout_width="0dp"
         android:layout_height="fill_parent"
         android:onClick="dummy" >
 
@@ -177,6 +177,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:onClick="sync"
                     android:padding="4dp" >
 
                     <ImageView

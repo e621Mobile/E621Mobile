@@ -25,8 +25,8 @@
     <string name="sync">Sync</string>
     <string name="title_activity_error_report">ErrorReportActivity</string>
     <string name="subscribe">Subscribe</string>
-    <string name="continue_later">Continue later from here</string>
-    <string name="continue_later_after">Continue later after here</string>
+    <string name="continue_later">Continue from here later</string>
+    <string name="continue_later_after">Continue after here later</string>
     <string name="continue_search">Continue Search</string>
     <string name="title_activity_search_continue">Search Continued</string>
     <string name="artists_website">Artist`s website</string>

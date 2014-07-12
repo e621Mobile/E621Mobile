@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621DownloadedImage;
+import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -40,7 +41,7 @@ public class SlideMenuBaseActivity extends BaseActivity
     private static final int SWIPE_MAX_OFF_PATH = 250;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
     
-    public ArrayList<String> saved_searches;
+    public ArrayList<InterruptedSearch> saved_searches;
 	
 	private GestureDetector gestureDetector;
     View.OnTouchListener gestureListener;
@@ -70,50 +71,78 @@ public class SlideMenuBaseActivity extends BaseActivity
         	@Override
 			public void run()
         	{
-        		FrameLayout wrapper = (FrameLayout) findViewById(R.id.sidemenu_wrapper);
-        		RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
-                drawerParams.width = 0;
-                wrapper.setLayoutParams(drawerParams);
-                
-                saved_searches = e621.getAllSearches();
-                LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
-                
-                for(final String search : saved_searches)
-                {
-                	View row = getSearchItemView(search);
-                	saved_search_container.addView(row);
-                	
-                	View hr = getLayoutInflater().inflate(R.layout.hr, saved_search_container, false);
-                	saved_search_container.addView(hr);
-                	
-                	row.setTag(R.id.hr, hr);
-                }
-                
-                if(saved_searches.size() == 0)
-                {
-                	TextView continue_search_label = (TextView) findViewById(R.id.continue_search_label);
-                	
-                	continue_search_label.setTextColor(getResources().getColor(R.color.gray));
-                }
-                
-                loginout_front();
+        		update_sidebar();
 			}
         });
     }
 	
-	private View getSearchItemView(final String search)
+	protected void onStart()
 	{
-		LinearLayout row = new LinearLayout(getApplicationContext());
-		row.setOrientation(LinearLayout.HORIZONTAL);
+		super.onStart();
+		
+		update_sidebar();
+	}
+	
+	private void update_sidebar()
+	{
+		FrameLayout wrapper = (FrameLayout) findViewById(R.id.sidemenu_wrapper);
+		
+		if(wrapper == null) return;
+		
+		RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
+        drawerParams.width = 0;
+        wrapper.setLayoutParams(drawerParams);
+        
+        saved_searches = e621.getAllSearches();
+        LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
+        saved_search_container.removeAllViews();
+        
+        for(final InterruptedSearch search : saved_searches)
+        {
+        	View row = getSearchItemView(search);
+        	saved_search_container.addView(row);
+        	
+        	View hr = getLayoutInflater().inflate(R.layout.hr, saved_search_container, false);
+        	saved_search_container.addView(hr);
+        	
+        	row.setTag(R.id.hr, hr);
+        }
+        
+        if(saved_searches.size() == 0)
+        {
+        	TextView continue_search_label = (TextView) findViewById(R.id.continue_search_label);
+        	
+        	continue_search_label.setTextColor(getResources().getColor(R.color.gray));
+        }
+        
+        loginout_front();
+	}
+	
+	public void sync(View v)
+	{
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				e621.sync();
+				
+				update_sidebar();
+			}
+		}).start();
+	}
+	
+	private View getSearchItemView(final InterruptedSearch search)
+	{
+		RelativeLayout row = new RelativeLayout(getApplicationContext());
 		row.setPadding(dpToPx(20), 0, 0, 0);
-		ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT,
-				ViewGroup.LayoutParams.WRAP_CONTENT);
+				dpToPx(36));
 		row.setLayoutParams(params);
 		
 		ImageView img = new ImageView(getApplicationContext());
 		img.setBackgroundResource(android.R.drawable.ic_menu_gallery);
-		params = new ViewGroup.LayoutParams(
+		params = new RelativeLayout.LayoutParams(
 				dpToPx(36),
 				dpToPx(36));
 		img.setPadding(dpToPx(2), dpToPx(2), dpToPx(2), dpToPx(2));
@@ -126,7 +155,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 			@Override
 			public void run()
 			{
-				ArrayList<E621DownloadedImage> images = e621.localSearch(0, 1, search);
+				ArrayList<E621DownloadedImage> images = e621.localSearch(0, 1, search.search);
 				
 				if(images.size() > 0)
 				{
@@ -140,15 +169,34 @@ public class SlideMenuBaseActivity extends BaseActivity
 		}).start();
 		
 		TextView text = new TextView(getApplicationContext());
-		text.setText(search);
-		text.setPadding(dpToPx(12), 0, 0, 0);
+		text.setText(search.search);
+		text.setPadding(dpToPx(36+12), 0, 0, 0);
 		text.setTextAppearance(getApplicationContext(), android.R.attr.textAppearanceSmall);
 		text.setTextColor(getResources().getColor(R.color.white));
-		params = new ViewGroup.LayoutParams(
+		params = new RelativeLayout.LayoutParams(
 				ViewGroup.LayoutParams.WRAP_CONTENT,
 				ViewGroup.LayoutParams.MATCH_PARENT);
 		text.setLayoutParams(params);
 		text.setGravity(Gravity.CENTER_VERTICAL);
+		
+		if(search.new_images > 0)
+		{
+			text.setPadding(text.getPaddingLeft(), 0, 0, dpToPx(8));
+			
+			TextView new_count = new TextView(getApplicationContext());
+			new_count.setText(String.valueOf(search.new_images) + " new");
+			new_count.setPadding(0,0,dpToPx(8),0);
+			new_count.setTextAppearance(getApplicationContext(), android.R.attr.textAppearanceSmall);
+			new_count.setTextSize(getResources().getDimension(R.dimen.new_images_text_size));
+			new_count.setTextColor(getResources().getColor(R.color.white));
+			params = new RelativeLayout.LayoutParams(
+					ViewGroup.LayoutParams.WRAP_CONTENT,
+					ViewGroup.LayoutParams.WRAP_CONTENT);
+			params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+			params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+			new_count.setLayoutParams(params);
+			row.addView(new_count);
+		}
 		
 		row.addView(img);
 		row.addView(text);
@@ -159,7 +207,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 			public void onClick(View arg0)
 			{
 				Intent intent = new Intent(getApplication(), SearchContinueActivity.class);
-				intent.putExtra(DownloadsActivity.SEARCH,search);
+				intent.putExtra(DownloadsActivity.SEARCH,search.search);
 				startActivity(intent);
 			}
 		});
@@ -179,7 +227,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 				{
 					public void run()
 					{
-						e621.removeSearch(search);
+						e621.removeSearch(search.search);
 						activity.removeSearch(v);
 					}
 				});

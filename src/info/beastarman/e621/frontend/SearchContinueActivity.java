@@ -3,7 +3,7 @@ package info.beastarman.e621.frontend;
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
-import info.beastarman.e621.backend.Pair;
+import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
 import info.beastarman.e621.middleware.OnlineContinueImageNavigator;
 
 import java.io.IOException;
@@ -19,7 +19,7 @@ public class SearchContinueActivity extends SearchActivity
 	{
 		super.onCreate(savedInstanceState);
 		
-		Pair<String,String> ids = e621.get_continue_ids(search);
+		InterruptedSearch ids = e621.get_continue_ids(search);
 		
 		if(ids == null)
 		{
@@ -33,20 +33,20 @@ public class SearchContinueActivity extends SearchActivity
 		{
 			if(min_id != null)
 			{
-				min_id = (Integer.parseInt(min_id) < Integer.parseInt(ids.left) ? min_id : ids.left);
+				min_id = (Integer.parseInt(min_id) < ids.min_id ? min_id : String.valueOf(ids.min_id));
 			}
 			else
 			{
-				min_id = ids.right;
+				min_id = String.valueOf(ids.min_id);
 			}
 			
 			if(max_id != null)
 			{
-				max_id = (Integer.parseInt(max_id) > Integer.parseInt(ids.right) ? max_id : ids.right);
+				max_id = (Integer.parseInt(max_id) > ids.max_id ? max_id : String.valueOf(ids.max_id));
 			}
 			else
 			{
-				max_id = ids.right;
+				max_id = String.valueOf(ids.max_id);
 			}
 		}
 	}
