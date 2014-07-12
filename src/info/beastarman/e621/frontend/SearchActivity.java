@@ -166,6 +166,9 @@ public class SearchActivity extends BaseActivity
 		case R.id.action_continue_later:
 			continue_later();
 			return true;
+		case R.id.action_continue_later_after:
+			continue_later_after();
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -188,6 +191,24 @@ public class SearchActivity extends BaseActivity
 				public void run()
 				{
 					e621.continue_later(SearchQuery.normalize(search), min_id, max_id);
+				}
+			}).start();
+		}
+		
+		Intent intent = new Intent(this, MainActivity.class);
+		startActivity(intent);
+	}
+	
+	public void continue_later_after()
+	{
+		if(cur_min_id != null && cur_max_id != null)
+		{
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					e621.continue_later(SearchQuery.normalize(search), cur_min_id, cur_max_id);
 				}
 			}).start();
 		}

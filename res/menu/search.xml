@@ -23,4 +23,10 @@
         android:orderInCategory="25"
         android:showAsAction="never|collapseActionView"
         android:title="@string/continue_later" android:icon="@drawable/ic_menu_forward"/>
+    
+    <item
+        android:id="@+id/action_continue_later_after"
+        android:orderInCategory="25"
+        android:showAsAction="never|collapseActionView"
+        android:title="@string/continue_later_after" android:icon="@drawable/ic_menu_forward"/>
 </menu>
