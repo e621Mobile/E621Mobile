@@ -42,6 +42,8 @@ public class SearchActivity extends BaseActivity
 	
 	public static String MIN_ID = "min_id";
 	public static String MAX_ID = "max_id";
+	
+	public static String PREVIOUS_PAGE = "previous_page";
 
 	public String search = "";
 	public int page = 0;
@@ -52,6 +54,8 @@ public class SearchActivity extends BaseActivity
 
 	public String cur_min_id = null;
 	public String cur_max_id = null;
+	
+	public Integer previous_page = null;
 
 	protected E621Search e621Search = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
@@ -75,6 +79,9 @@ public class SearchActivity extends BaseActivity
 
 		cur_min_id = min_id = getIntent().getStringExtra(SearchActivity.MIN_ID);
 		cur_max_id = max_id = getIntent().getStringExtra(SearchActivity.MAX_ID);
+		
+		previous_page = getIntent().getIntExtra(SearchActivity.PREVIOUS_PAGE, -666);
+		if(previous_page<0) previous_page = null;
 		
 		((EditText) findViewById(R.id.searchInput)).setText(search);
 		
@@ -606,9 +613,15 @@ public class SearchActivity extends BaseActivity
 		startActivity(intent);
 	}
 
-	public void search(View view) {
+	public void search(View view)
+	{
 		EditText editText = (EditText) findViewById(R.id.searchInput);
 		String search = editText.getText().toString().trim();
+		
+		if(page == 0 && search.equals(this.search))
+		{
+			return;
+		}
 
 		Intent intent = new Intent(this, SearchActivity.class);
 		intent.putExtra(SearchActivity.SEARCH, search);
@@ -623,13 +636,22 @@ public class SearchActivity extends BaseActivity
 			{
 				return;
 			}
-			Intent intent = new Intent(this, SearchActivity.class);
-			intent.putExtra(SearchActivity.SEARCH, search);
-			intent.putExtra(SearchActivity.PAGE, page - 1);
-			intent.putExtra(SearchActivity.LIMIT, limit);
-			intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
-			intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
-			startActivity(intent);
+			
+			if(previous_page!=null && previous_page == page-1)
+			{
+				finish();
+			}
+			else
+			{
+				Intent intent = new Intent(this, SearchActivity.class);
+				intent.putExtra(SearchActivity.SEARCH, search);
+				intent.putExtra(SearchActivity.PAGE, page - 1);
+				intent.putExtra(SearchActivity.LIMIT, limit);
+				intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
+				intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
+				intent.putExtra(SearchActivity.PREVIOUS_PAGE, page);
+				startActivity(intent);
+			}
 		}
 	}
 
@@ -639,14 +661,22 @@ public class SearchActivity extends BaseActivity
 		{
 			return;
 		}
-		
-		Intent intent = new Intent(this, SearchActivity.class);
-		intent.putExtra(SearchActivity.SEARCH, search);
-		intent.putExtra(SearchActivity.PAGE, page + 1);
-		intent.putExtra(SearchActivity.LIMIT, limit);
-		intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
-		intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
-		startActivity(intent);
+
+		if(previous_page!=null && previous_page == page+1)
+		{
+			finish();
+		}
+		else
+		{
+			Intent intent = new Intent(this, SearchActivity.class);
+			intent.putExtra(SearchActivity.SEARCH, search);
+			intent.putExtra(SearchActivity.PAGE, page + 1);
+			intent.putExtra(SearchActivity.LIMIT, limit);
+			intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
+			intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
+			intent.putExtra(SearchActivity.PREVIOUS_PAGE, page);
+			startActivity(intent);
+		}
 	}
 
 	private static class SearchHandler extends Handler {
