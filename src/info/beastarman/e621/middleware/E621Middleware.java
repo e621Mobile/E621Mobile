@@ -702,6 +702,11 @@ public class E621Middleware extends E621
 		return download_manager.getFile(id);
 	}
 	
+	public void update_tags()
+	{
+		download_manager.updateMetadata();
+	}
+	
 	public void update_tags(Activity activity)
 	{
 		if(!updateTagsSemaphore.tryAcquire())
@@ -1698,6 +1703,8 @@ public class E621Middleware extends E621
 			
 			android.util.Log.i(LOG_TAG,"Starting Image Tag sync");
 			updateImageTags();
+			
+			android.util.Log.i(LOG_TAG,"Sync completed");
 		}
 		
 		protected void updateTagAliasBase()
@@ -1867,64 +1874,77 @@ public class E621Middleware extends E621
 			
 			try
 			{
-				Cursor c = db.rawQuery("SELECT image FROM e621image;", null);
-	
-				if(!(c != null && c.moveToFirst()))
-				{
-					if(c != null) c.close();
-					
-					return;
-				}
-				
-				ArrayList<Thread> threads = new ArrayList<Thread>();
-				
-				final Semaphore s = new Semaphore(10, true);
+				int iteration = 0;
 				
 				while(true)
 				{
-					final String id = c.getString(c.getColumnIndex("image")).split("\\.")[0];
+					Cursor c = db.rawQuery("SELECT image FROM e621image LIMIT 50 OFFSET ?;", new String[]{String.valueOf(iteration*50)});
+		
+					iteration++;
 					
-					Thread t = new Thread(new Runnable()
+					android.util.Log.d(E621Middleware.LOG_TAG,"Iteration " + iteration);
+					
+					if(!(c != null && c.moveToFirst()))
 					{
-						@Override
-						public void run() {
-							try {
+						int count = c.getCount();
+						
+						if(c != null) c.close();
+						
+						if(count == 0) break;
+						
+						return;
+					}
+					
+					ArrayList<Thread> threads = new ArrayList<Thread>();
+					
+					final Semaphore s = new Semaphore(10, true);
+					
+					while(true)
+					{
+						final String id = c.getString(c.getColumnIndex("image")).split("\\.")[0];
+						
+						Thread t = new Thread(new Runnable()
+						{
+							@Override
+							public void run() {
 								try {
-									s.acquire();
-								} catch (InterruptedException e) {
+									try {
+										s.acquire();
+									} catch (InterruptedException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									
+									images.add(post__show(id));
+									
+									s.release();
+								} catch (IOException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
-								
-								images.add(post__show(id));
-								
-								s.release();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
 							}
+						});
+						
+						t.start();
+						
+						threads.add(t);
+						
+						if(!c.moveToNext())
+						{
+							break;
 						}
-					});
-					
-					t.start();
-					
-					threads.add(t);
-					
-					if(!c.moveToNext())
-					{
-						break;
 					}
-				}
-				
-				c.close();
-				
-				for(Thread t : threads)
-				{
-					try {
-						t.join();
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					
+					c.close();
+					
+					for(Thread t : threads)
+					{
+						try {
+							t.join();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}
 			}
@@ -1939,6 +1959,8 @@ public class E621Middleware extends E621
 		protected synchronized void updateImageTags(List<E621Image> images)
 		{
 			HashMap<String,String> tagMap = getAllTags();
+			
+			android.util.Log.i(LOG_TAG,"Starting to write images do db");
 			
 			SQLiteDatabase db = getDB();
 			db.beginTransaction();

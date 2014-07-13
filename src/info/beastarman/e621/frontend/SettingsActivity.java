@@ -33,7 +33,18 @@ public class SettingsActivity extends PreferenceActivity
 	
 	protected void updateTags()
 	{
-		e621.update_tags(this);
+		final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "","Updating tags. This may take an while. Please wait...", true);
+		dialog.setIndeterminate(true);
+		dialog.show();
+		
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run() {
+				e621.update_tags();
+				dialog.dismiss();
+			}
+		}).start();
 	}
 	
 	protected void clearCache()
