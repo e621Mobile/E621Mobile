@@ -18,7 +18,7 @@
             android:id="@+id/frameLayout1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/mascot_area" >
+            android:layout_alignBottom="@+id/linearLayout2" >
 
             <ImageView
                 android:id="@+id/mascot"
@@ -46,6 +46,7 @@
                     android:id="@+id/linearLayout1"
                     android:layout_width="fill_parent"
                     android:layout_height="140dp"
+                    android:layout_marginBottom="200dp"
                     android:background="#10FFFFFF"
                     android:gravity="center"
                     android:orientation="vertical" >
