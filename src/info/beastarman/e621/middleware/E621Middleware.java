@@ -1148,20 +1148,32 @@ public class E621Middleware extends E621
 	{
 		InterruptedSearch interrupted = interrupt.getSearch(search);
 		
-		String search_new = search + " id:>" + interrupted.max_id + " order:id";
-		String search_old = search + " id:<" + interrupted.min_id;
-		
-		try
+		if(interrupted.is_valid())
 		{
-			int total_new = getSearchResultsCountForce(search_new);
-			int total_old = getSearchResultsCountForce(search_old);
+			String search_new = search + " id:>" + interrupted.max_id + " order:id";
+			String search_old = search + " id:<" + interrupted.min_id;
 			
-			interrupt.update_new_image_count(search, total_new + total_old);
+			try
+			{
+				int total_new = getSearchResultsCountForce(search_new);
+				int total_old = getSearchResultsCountForce(search_old);
+				
+				interrupt.update_new_image_count(search, total_new + total_old);
+			}
+			catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		catch (IOException e)
+		else
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			try {
+				interrupt.update_new_image_count(search, getSearchResultsCountForce(search));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -2169,6 +2181,11 @@ public class E621Middleware extends E621
 			this.max_id = max_id;
 			this.new_images = new_images;
 		}
+		
+		public boolean is_valid()
+		{
+			return min_id!=null && max_id!=null;
+		}
 	}
 	
 	private class InterruptedSearchManager
@@ -2314,10 +2331,25 @@ public class E621Middleware extends E621
 			
 			InterruptedSearch current = getSearch(search,db);
 			
-			if(current != null)
+			if(current != null && current.is_valid())
 			{
-				seen_past = String.valueOf(Math.min(Integer.parseInt(seen_past),current.min_id));
-				seen_until= String.valueOf(Math.max(Integer.parseInt(seen_until),current.max_id));
+				if(seen_past != null)
+				{
+					seen_past = String.valueOf(Math.min(Integer.parseInt(seen_past),current.min_id));
+				}
+				else
+				{
+					seen_past = String.valueOf(current.min_id);
+				}
+				
+				if(seen_until != null)
+				{
+					seen_until = String.valueOf(Math.max(Integer.parseInt(seen_until),current.max_id));
+				}
+				else
+				{
+					seen_until = String.valueOf(current.max_id);
+				}
 			}
 			
 			ContentValues values = new ContentValues();
@@ -2350,10 +2382,13 @@ public class E621Middleware extends E621
 			{
 				if(c.getCount() > 0)
 				{
+					String seen_past = c.getString(c.getColumnIndex("seen_past"));
+					String seen_until = c.getString(c.getColumnIndex("seen_until"));
+					
 					ret = new InterruptedSearch(
 							search,
-							Integer.parseInt(c.getString(c.getColumnIndex("seen_past"))),
-							Integer.parseInt(c.getString(c.getColumnIndex("seen_until"))),
+							(seen_past==null||seen_past.equals("null"))?null:Integer.parseInt(seen_past),
+							(seen_until==null||seen_until.equals("null"))?null:Integer.parseInt(seen_until),
 							c.getInt(c.getColumnIndex("new_images")));
 				}
 				
@@ -2379,10 +2414,13 @@ public class E621Middleware extends E621
 			{
 				while(!c.isAfterLast())
 				{
+					String seen_past = c.getString(c.getColumnIndex("seen_past"));
+					String seen_until = c.getString(c.getColumnIndex("seen_until"));
+					
 					searches.add(new InterruptedSearch(
 							c.getString(c.getColumnIndex("search_query")),
-							Integer.parseInt(c.getString(c.getColumnIndex("seen_past"))),
-							Integer.parseInt(c.getString(c.getColumnIndex("seen_until"))),
+							(seen_past==null||seen_past.equals("null"))?null:Integer.parseInt(seen_past),
+							(seen_until==null||seen_until.equals("null"))?null:Integer.parseInt(seen_until),
 							c.getInt(c.getColumnIndex("new_images"))));
 					
 					c.moveToNext();

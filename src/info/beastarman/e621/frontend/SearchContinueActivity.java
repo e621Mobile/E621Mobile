@@ -21,7 +21,7 @@ public class SearchContinueActivity extends SearchActivity
 		
 		InterruptedSearch ids = e621.get_continue_ids(search);
 		
-		if(ids == null)
+		if(ids == null || !ids.is_valid())
 		{
 			Intent intent = new Intent(this, SearchActivity.class);
 			intent.putExtra(SearchActivity.SEARCH, search);

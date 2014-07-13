@@ -201,17 +201,14 @@ public class SearchActivity extends BaseActivity
 	
 	public void continue_later()
 	{
-		if(min_id != null && max_id != null)
+		new Thread(new Runnable()
 		{
-			new Thread(new Runnable()
+			@Override
+			public void run()
 			{
-				@Override
-				public void run()
-				{
-					e621.continue_later(SearchQuery.normalize(search), min_id, max_id);
-				}
-			}).start();
-		}
+				e621.continue_later(SearchQuery.normalize(search), min_id, max_id);
+			}
+		}).start();
 		
 		Intent intent = new Intent(this, MainActivity.class);
 		startActivity(intent);
@@ -219,17 +216,14 @@ public class SearchActivity extends BaseActivity
 	
 	public void continue_later_after()
 	{
-		if(cur_min_id != null && cur_max_id != null)
+		new Thread(new Runnable()
 		{
-			new Thread(new Runnable()
+			@Override
+			public void run()
 			{
-				@Override
-				public void run()
-				{
-					e621.continue_later(SearchQuery.normalize(search), cur_min_id, cur_max_id);
-				}
-			}).start();
-		}
+				e621.continue_later(SearchQuery.normalize(search), cur_min_id, cur_max_id);
+			}
+		}).start();
 		
 		Intent intent = new Intent(this, MainActivity.class);
 		startActivity(intent);
