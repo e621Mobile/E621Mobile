@@ -83,6 +83,13 @@ public class SlideMenuBaseActivity extends BaseActivity
 		update_sidebar();
 	}
 	
+	protected void onStop()
+	{
+		super.onStop();
+		
+		close_sidemenu();
+	}
+	
 	private void update_sidebar()
 	{
 		FrameLayout wrapper = (FrameLayout) findViewById(R.id.sidemenu_wrapper);
