@@ -68,7 +68,6 @@ public class SearchActivity extends BaseActivity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		trySearch();
 		
 		ActionBar actionBar = getActionBar();
 	    actionBar.setDisplayHomeAsUpEnabled(true);
@@ -86,6 +85,8 @@ public class SearchActivity extends BaseActivity
 		
 		previous_page = getIntent().getIntExtra(SearchActivity.PREVIOUS_PAGE, -666);
 		if(previous_page<0) previous_page = null;
+		
+		trySearch();
 		
 		((EditText) findViewById(R.id.searchInput)).setText(search);
 	}

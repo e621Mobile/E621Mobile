@@ -15,24 +15,29 @@ import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621Vote;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.GIFViewHandler;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.views.GIFView;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.view.ViewGroup;
@@ -208,6 +213,53 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		    			findViewById(R.id.progressBarLoader));
 		    		
 		    		new Thread(new ImageLoadRunnable(handler,e621Image,e621,e621.getFileDownloadSize())).start();
+	        	}
+	        	else
+	        	{
+	        		ViewGroup g = (ViewGroup) imgView.getParent();
+	        		
+	        		int index = g.indexOfChild(imgView);
+	        		
+	        		g.removeViewAt(index);
+	        		
+	        		LinearLayout rel = new LinearLayout(getApplicationContext());
+	        		rel.setOrientation(LinearLayout.VERTICAL);
+	        		rel.setLayoutParams(new ViewGroup.LayoutParams(
+	        				ViewGroup.LayoutParams.MATCH_PARENT,
+	        				ViewGroup.LayoutParams.WRAP_CONTENT));
+	        		
+	        		ImageView error_image = new ImageView(getApplicationContext());
+	        		error_image.setBackgroundResource(android.R.drawable.ic_menu_report_image);
+	        		LinearLayout.LayoutParams rel_params = new LinearLayout.LayoutParams(
+	        				ViewGroup.LayoutParams.WRAP_CONTENT,
+	        				ViewGroup.LayoutParams.WRAP_CONTENT);
+	        		rel_params.gravity = Gravity.CENTER_HORIZONTAL;
+	        		error_image.setLayoutParams(rel_params);
+	        		
+	        		rel.addView(error_image);
+	        		
+	        		TextView text = new TextView(getApplicationContext());
+	        		text.setText("File not supported. Click here to try opening it with another app.");
+	        		text.setTextColor(getResources().getColor(R.color.white));
+	        		text.setGravity(Gravity.CENTER_HORIZONTAL);
+	        		
+	        		rel.addView(text);
+	        		
+	        		g.addView(rel);
+	        		
+	        		rel.setOnClickListener(new OnClickListener()
+	        		{
+	        			@Override
+						public void onClick(View arg0)
+	        			{
+							Intent i = new Intent();
+							i.setAction(Intent.ACTION_VIEW);
+							i.setData(Uri.parse(e621Image.file_url));
+							startActivity(i);
+						}
+	        		});
+	        		
+	        		findViewById(R.id.progressBarLoader).setVisibility(View.GONE);
 	        	}
 	        	
 	        	int i=0;
