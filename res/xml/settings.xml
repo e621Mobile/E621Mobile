@@ -44,7 +44,10 @@
 	        custom:min="1" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Actions">
-        <Preference android:title="Clear cache" android:key="clearCache"/>
+        <Preference
+            android:title="Clear cache"
+            android:summary="Clear both thumbnail and full image cache"
+            android:key="clearCache"/>
         <Preference
             android:title="Update metadata"
             android:summary="Update downloaded images metadata"

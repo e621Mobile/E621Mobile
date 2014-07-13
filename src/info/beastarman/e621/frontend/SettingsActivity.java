@@ -5,6 +5,7 @@ import java.util.HashSet;
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.SeekBarDialogPreference;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
@@ -33,6 +34,22 @@ public class SettingsActivity extends PreferenceActivity
 	protected void updateTags()
 	{
 		e621.update_tags(this);
+	}
+	
+	protected void clearCache()
+	{
+		final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "","Clearing cache. Please wait...", true);
+		dialog.setIndeterminate(true);
+		dialog.show();
+		
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run() {
+				e621.clearCache();
+				dialog.dismiss();
+			}
+		}).start();
 	}
 
     public static class MyPreferenceFragment extends PreferenceFragment
@@ -63,6 +80,15 @@ public class SettingsActivity extends PreferenceActivity
             
             MultiSelectListPreference ratings = (MultiSelectListPreference)findPreference("allowedRatings");
             ratings.setValues(getPreferenceManager().getSharedPreferences().getStringSet("allowedRatings",new HashSet<String>()));
+            
+            Preference clearCache = (Preference)getPreferenceManager().findPreference("clearCache");
+            clearCache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0) {
+                	activity.clearCache();
+                    return true;
+                }
+            });
             
             Preference button = (Preference)getPreferenceManager().findPreference("updateTags");
             button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {

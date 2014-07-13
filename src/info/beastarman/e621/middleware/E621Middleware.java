@@ -58,6 +58,7 @@ import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -341,6 +342,17 @@ public class E621Middleware extends E621
 		}
 		
 		return ret;
+	}
+	
+	public void clearCache()
+	{
+		for (File child : cache_path.listFiles()) child.delete();
+		cache_path.delete();
+		
+		for (File child : full_cache_path.listFiles()) child.delete();
+		full_cache_path.delete();
+		
+		setup();
 	}
 	
 	public Integer getSearchResultsCount(String tags)
