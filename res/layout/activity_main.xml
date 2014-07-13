@@ -17,7 +17,8 @@
         <FrameLayout
             android:id="@+id/frameLayout1"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/mascot_area" >
 
             <ImageView
                 android:id="@+id/mascot"
@@ -71,13 +72,13 @@
                             android:layout_toLeftOf="@+id/view1"
                             android:onClick="localSearch"
                             android:text="@string/local_search_button" />
-                        
+
                         <View
-				            android:id="@+id/view1"
-				            android:layout_width="1dp"
-				            android:layout_height="1dp"
-				            android:layout_centerHorizontal="true" />
-                        
+                            android:id="@+id/view1"
+                            android:layout_width="1dp"
+                            android:layout_height="1dp"
+                            android:layout_centerHorizontal="true" />
+
                         <Button
                             android:id="@+id/dont_send_button"
                             android:layout_width="wrap_content"
@@ -87,13 +88,13 @@
                             android:layout_toRightOf="@+id/view1"
                             android:onClick="search"
                             android:text="@string/internet_search_button" />
-
                     </RelativeLayout>
                 </LinearLayout>
             </FrameLayout>
         </FrameLayout>
 
         <LinearLayout
+            android:id="@+id/mascot_area"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
