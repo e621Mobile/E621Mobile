@@ -39,9 +39,7 @@ public class ImageHandler extends Handler
 
 		if(this.loader != null)
 		{
-			ViewGroup v = ((ViewGroup)this.loader.getParent()); 
-			
-			v.removeView(this.loader);
+			this.loader.setVisibility(View.GONE);
 		}
 	}
 }

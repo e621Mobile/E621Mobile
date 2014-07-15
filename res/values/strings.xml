@@ -32,5 +32,6 @@
     <string name="artists_website">Artist`s website</string>
     <string name="change_mascot">Change mascot</string>
     <string name="send_error_report">Send Error Report</string>
+    <string name="get_full_image">Get full image</string>
 
 </resources>

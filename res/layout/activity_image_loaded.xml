@@ -92,15 +92,15 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="24dp" >
 
-                <ProgressBar
-                    android:id="@+id/progressBarLoader"
+                <ImageView
+                    android:id="@+id/imageWrapper"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"
                     android:layout_centerHorizontal="true" />
 
-                <ImageView
-                    android:id="@+id/imageWrapper"
+                <ProgressBar
+                    android:id="@+id/progressBarLoader"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"

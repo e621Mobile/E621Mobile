@@ -5,11 +5,5 @@
         android:orderInCategory="100"
         android:showAsAction="ifRoom"
         android:title="@string/action_settings" android:icon="@android:drawable/ic_menu_manage"/>
-    
-    <item
-        android:id="@+id/get_full_size"
-        android:orderInCategory="25"
-        android:showAsAction="never|collapseActionView"
-        android:title="@string/get_full_image" android:icon="@android:drawable/ic_menu_gallery"/>
 
 </menu>

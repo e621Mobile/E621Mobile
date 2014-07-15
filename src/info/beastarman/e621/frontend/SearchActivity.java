@@ -320,7 +320,8 @@ public class SearchActivity extends BaseActivity
 			imageViews.add(imgView);
 			
 			resultWrapper.measure(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-			image_y += resultWrapper.getMeasuredHeight() + dpToPx(10);
+			
+			if(e621.lazyLoad()) image_y += resultWrapper.getMeasuredHeight() + dpToPx(10);
 		}
 	}
 	

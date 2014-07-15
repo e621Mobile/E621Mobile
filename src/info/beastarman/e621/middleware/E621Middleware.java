@@ -302,6 +302,11 @@ public class E621Middleware extends E621
 		return settings.getBoolean("playGifs", true);
 	}
 	
+	public boolean lazyLoad()
+	{
+		return settings.getBoolean("lazyLoad", true);
+	}
+	
 	public int getFileDownloadSize()
 	{
 		return settings.getInt("prefferedFileDownloadSize", E621Image.SAMPLE);
@@ -655,7 +660,12 @@ public class E621Middleware extends E621
 		
 		if(size != E621Image.PREVIEW)
 		{
-			InputStream in = download_manager.getFile(img);
+			InputStream in = null;
+			
+			if(size == getFileDownloadSize())
+			{
+				in = download_manager.getFile(img);
+			}
 			
 			if(in != null)
 			{
@@ -663,7 +673,10 @@ public class E621Middleware extends E621
 			}
 			else
 			{
-				in = full_cache.getFile(img.id);
+				if(size == getFileDownloadSize())
+				{
+					in = full_cache.getFile(img.id);
+				}
 				
 				if(in != null)
 				{

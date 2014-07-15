@@ -53,4 +53,11 @@
             android:summary="Update downloaded images metadata"
             android:key="updateTags"/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="Interface">
+        <CheckBoxPreference
+            android:key="lazyLoad"
+            android:summary="Wait for images to show on screen before loading them"
+            android:title="Lazy image load" >
+        </CheckBoxPreference>
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -133,6 +133,9 @@ public class ImageActivity extends BaseActivity implements OnClickListener
             case R.id.action_settings:
                 open_settings();
                 return true;
+            case R.id.get_full_size:
+            	force_full_size();
+            	return true;
             case android.R.id.home:
             	if(goUp())
             	{
@@ -142,6 +145,25 @@ public class ImageActivity extends BaseActivity implements OnClickListener
                 return super.onOptionsItemSelected(item);
         }
     }
+	
+	public void force_full_size()
+	{
+		Log.d(E621Middleware.LOG_TAG,"force_full_size");
+		
+		ImageView imageWrapper = (ImageView) findViewById(R.id.imageWrapper);
+		View progressBarLoader = findViewById(R.id.progressBarLoader);
+		
+		//imageWrapper.setBackgroundResource(0);
+		progressBarLoader.setVisibility(View.VISIBLE);
+		
+		((View)imageWrapper.getParent()).invalidate();
+		
+		ImageViewHandler handler = new ImageViewHandler(
+			imageWrapper,
+			progressBarLoader);
+		
+		new Thread(new ImageLoadRunnable(handler,e621Image,e621,E621Image.FULL)).start();
+	}
     
     public void open_settings()
     {
@@ -991,7 +1013,14 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.image, menu);
+		if(e621.getFileDownloadSize() == E621Image.FULL)
+		{
+			getMenuInflater().inflate(R.menu.image_full, menu);
+		}
+		else
+		{
+			getMenuInflater().inflate(R.menu.image, menu);
+		}
 		return true;
 	}
 
