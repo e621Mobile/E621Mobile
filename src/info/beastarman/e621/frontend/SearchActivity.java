@@ -289,51 +289,39 @@ public class SearchActivity extends BaseActivity
 		
 		final LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
 
-		new Thread(new Runnable()
+		final ArrayList<View> views = new ArrayList<View>();
+		
+		int position = e621Search.offset;
+		
+		for (final E621Image img : e621Search.images)
 		{
-			public void run()
-			{
-				final ArrayList<View> views = new ArrayList<View>();
-				
-				int position = e621Search.offset;
-				
-				for (final E621Image img : e621Search.images)
-				{
-					final LinearLayout resultWrapper = getResultWrapper(img,layout_width,position);
-					
-					position++;
-					
-					views.add(resultWrapper);
-				}
-				
-				runOnUiThread(new Runnable()
-				{
-					public void run()
-					{
-						int image_y = 0;
-						
-						for(int i=0; i<e621Search.images.size(); i++)
-						{
-							E621Image img = e621Search.images.get(i);
-							View resultWrapper = views.get(i);
-							
-							ImageView imgView = (ImageView) resultWrapper.findViewById(R.id.imageView);
-							ProgressBar progressBar = (ProgressBar) resultWrapper.findViewById(R.id.progressBar);
-							
-							layout.addView(resultWrapper);
-							ImageViewHandler handler = new ImageViewHandler(imgView, progressBar);
-							
-							scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621,E621Image.PREVIEW)),image_y);
-							
-							imageViews.add(imgView);
-							
-							resultWrapper.measure(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-							image_y += resultWrapper.getMeasuredHeight() + dpToPx(10);
-						}
-					}
-				});
-			}
-		}).start();
+			final LinearLayout resultWrapper = getResultWrapper(img,layout_width,position);
+			
+			position++;
+			
+			views.add(resultWrapper);
+		}
+
+		int image_y = 0;
+		
+		for(int i=0; i<e621Search.images.size(); i++)
+		{
+			E621Image img = e621Search.images.get(i);
+			View resultWrapper = views.get(i);
+			
+			ImageView imgView = (ImageView) resultWrapper.findViewById(R.id.imageView);
+			ProgressBar progressBar = (ProgressBar) resultWrapper.findViewById(R.id.progressBar);
+			
+			layout.addView(resultWrapper);
+			ImageViewHandler handler = new ImageViewHandler(imgView, progressBar);
+			
+			scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621,E621Image.PREVIEW)),image_y);
+			
+			imageViews.add(imgView);
+			
+			resultWrapper.measure(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+			image_y += resultWrapper.getMeasuredHeight() + dpToPx(10);
+		}
 	}
 	
 	private LinearLayout getResultWrapper(E621Image img, int layout_width, int position)
@@ -455,7 +443,7 @@ public class SearchActivity extends BaseActivity
 
 	private ImageButton generateDownloadButton(final E621Image img)
 	{
-		ImageButton download = new ImageButton(getApplicationContext());
+		final ImageButton download = new ImageButton(getApplicationContext());
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
 			    RelativeLayout.LayoutParams.WRAP_CONTENT, 
 			    RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -463,28 +451,46 @@ public class SearchActivity extends BaseActivity
 		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 		download.setLayoutParams(params);
 		
-		if(e621.isSaved(img))
+		new Thread(new Runnable()
 		{
-			download.setImageResource(android.R.drawable.ic_menu_delete);
-			
-			download.setOnClickListener(new View.OnClickListener() {
-		        @Override
-		        public void onClick(View v) {
-		        	removeImage(img,(ImageButton)v);
-		        }
-		    });
-		}
-		else
-		{
-			download.setImageResource(android.R.drawable.ic_menu_save);
-			
-			download.setOnClickListener(new View.OnClickListener() {
-		        @Override
-		        public void onClick(View v) {
-		        	saveImage(img,(ImageButton)v);
-		        }
-		    });
-		}
+			public void run()
+			{
+				if(e621.isSaved(img))
+				{
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							download.setImageResource(android.R.drawable.ic_menu_delete);
+							
+							download.setOnClickListener(new View.OnClickListener() {
+						        @Override
+						        public void onClick(View v) {
+						        	removeImage(img,(ImageButton)v);
+						        }
+						    });
+						}
+					});
+				}
+				else
+				{
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							download.setImageResource(android.R.drawable.ic_menu_save);
+							
+							download.setOnClickListener(new View.OnClickListener() {
+						        @Override
+						        public void onClick(View v) {
+						        	saveImage(img,(ImageButton)v);
+						        }
+						    });
+						}
+					});
+				}
+			}
+		}).start();
 		
 		return download;
 	}
