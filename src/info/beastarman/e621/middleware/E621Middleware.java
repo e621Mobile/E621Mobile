@@ -2417,7 +2417,7 @@ public class E621Middleware extends E621
 			
 			SQLiteDatabase db = get_db();
 			
-			Cursor c = db.rawQuery("SELECT search_query, seen_past, seen_until, new_images FROM search ORDER BY search_query;", null);
+			Cursor c = db.rawQuery("SELECT search_query, seen_past, seen_until, new_images FROM search ORDER BY -new_images, search_query;", null);
 			
 			if(!(c != null && c.moveToFirst()))
 			{
