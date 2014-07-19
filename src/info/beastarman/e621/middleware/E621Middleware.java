@@ -7,6 +7,7 @@ import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621TagAlias;
 import info.beastarman.e621.api.E621Vote;
+import info.beastarman.e621.backend.BackupManager;
 import info.beastarman.e621.backend.ImageCacheManager;
 import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.frontend.DownloadsActivity;
@@ -58,6 +59,7 @@ import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
+import android.text.format.Time;
 import android.util.Log;
 
 public class E621Middleware extends E621
@@ -72,6 +74,7 @@ public class E621Middleware extends E621
 	File export_path = null;
 	File report_path = null;
 	File interrupted_path = null;
+	File backup_path = null;
 	FailedDownloadManager failed_download_manager = null;
 	
 	InterruptedSearchManager interrupt;
@@ -120,6 +123,7 @@ public class E621Middleware extends E621
 		export_path = new File(sd_path,"export/");
 		report_path = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"reports/");
 		interrupted_path = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"interrupt/");
+		backup_path = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"backups/");
 		
 		settings = ctx.getSharedPreferences(PREFS_NAME, 0);
 		
@@ -1013,6 +1017,16 @@ public class E621Middleware extends E621
 		{
 			update_new_image_count(interrupted.search);
 		}
+		
+		BackupManager nk = new BackupManager(backup_path,download_manager.get_cache_file(),
+				new long[]{
+					AlarmManager.INTERVAL_HOUR*3,
+					AlarmManager.INTERVAL_HOUR*24,
+					AlarmManager.INTERVAL_HOUR*24*30,
+					AlarmManager.INTERVAL_HOUR*24*365,
+				});
+		
+		nk.backup();
 	}
 	
 	public void sendReport(final String report)

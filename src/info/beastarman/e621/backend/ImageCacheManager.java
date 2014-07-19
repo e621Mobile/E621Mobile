@@ -30,6 +30,11 @@ public class ImageCacheManager
 	
 	public long max_size;
 	
+	public File get_cache_file()
+	{
+		return this.cache_file;
+	}
+	
 	public ImageCacheManager(File base_path, long max_size)
 	{
 		this.base_path = base_path;

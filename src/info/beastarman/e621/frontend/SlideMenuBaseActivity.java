@@ -133,7 +133,13 @@ public class SlideMenuBaseActivity extends BaseActivity
 			{
 				e621.sync();
 				
-				update_sidebar();
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						update_sidebar();
+					}
+				});
 			}
 		}).start();
 	}
