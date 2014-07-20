@@ -1,7 +1,5 @@
 package info.beastarman.e621.backend;
 
-import info.beastarman.e621.middleware.E621Middleware;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -11,25 +9,37 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import android.util.Log;
-
 public class BackupManager
 {
-	private class VersionManager
+	private static class VersionManager
 	{
-		private class VersionInfo
+		private static class VersionInfo
 		{
 			private ArrayList<Long> currentVersions = new ArrayList<Long>();
 			private Long baseVersion;
+			private Long limit;
 			
-			public VersionInfo(long baseVersion)
+			public String toString()
+			{
+				String currentString = "";
+				
+				for(Long l : currentVersions)
+				{
+					currentString = currentString + String.valueOf(l) + " ";
+				}
+				
+				return String.valueOf(baseVersion) + ": " + currentString + "[" + minNext() + "]";
+			}
+			
+			public VersionInfo(long baseVersion, long limit)
 			{
 				this.baseVersion = baseVersion;
+				this.limit = limit;
 			}
 			
 			public ArrayList<Long> getCurrentVersions()
@@ -42,6 +52,11 @@ public class BackupManager
 				if(canAdd(version))
 				{
 					currentVersions.add(version);
+					
+					if(currentVersions.size() > limit)
+					{
+						currentVersions.subList(0,(int)(currentVersions.size()-limit)).clear();
+					}
 					
 					return true;
 				}
@@ -62,7 +77,7 @@ public class BackupManager
 				
 				if(m == null)
 				{
-					m = -1l;
+					m = 0l;
 				}
 				
 				return m+baseVersion;
@@ -89,10 +104,14 @@ public class BackupManager
 		{
 			versions = new ArrayList<VersionInfo>();
 			
-			for(long l : bases)
+			int i=0;
+			
+			for(i=1; i<bases.length; i++)
 			{
-				versions.add(new VersionInfo(l));
+				versions.add(new VersionInfo(bases[i-1],(long)Math.ceil(((double)bases[i])/bases[i-1])-1));
 			}
+			
+			versions.add(new VersionInfo(bases[i-1],1));
 		}
 		
 		public boolean addVersion(long version)
@@ -103,10 +122,7 @@ public class BackupManager
 			{
 				if(v.canAdd(version))
 				{
-					if(current == null || current.minNext() > v.minNext())
-					{
-						current = v;
-					}
+					current = v;
 				}
 			}
 			
@@ -136,6 +152,32 @@ public class BackupManager
 			
 			return max;
 		}
+		
+		public ArrayList<Long> getAllVersions()
+		{
+			ArrayList<Long> versions = new ArrayList<Long>();
+			
+			for(VersionInfo v : this.versions)
+			{
+				versions.addAll(v.getCurrentVersions());
+			}
+			
+			Collections.sort(versions);
+			
+			return versions;
+		}
+		
+		public String toString()
+		{
+			String temp = "";
+			
+			for(VersionInfo v : versions)
+			{
+				temp = temp + v.toString() + "\n";
+			}
+			
+			return temp;
+		}
 	};
 	
 	private File backup_folder;
@@ -151,9 +193,9 @@ public class BackupManager
 	
 	private VersionManager versionManager = null;
 	
-	private VersionManager getVersionManager()
+	private ArrayList<Long> getBackups()
 	{
-		VersionManager versionManager = new VersionManager(ls);
+		ArrayList<Long> backups = new ArrayList<Long>();
 		
 		for(File f : backup_folder.listFiles())
 		{
@@ -161,20 +203,35 @@ public class BackupManager
 			{
 				Long stamp = Long.parseLong(f.getName());
 				
-				versionManager.addVersion(stamp);
+				backups.add(stamp);
 			}
 			catch (NumberFormatException e)
 			{
 			}
 		}
 		
+		return backups;
+	}
+	
+	private VersionManager getVersionManager()
+	{
+		VersionManager versionManager = new VersionManager(ls);
+		
+		for(Long l : getBackups())
+		{
+			versionManager.addVersion(l);
+		}
+		
 		return versionManager;
+	}
+	
+	public String toString()
+	{
+		return getVersionManager().toString();
 	}
 	
 	public synchronized void backup()
 	{
-		Log.d(E621Middleware.LOG_TAG,"Backup");
-		
 		versionManager = getVersionManager();
 		
 		long now = System.currentTimeMillis();
@@ -213,6 +270,17 @@ public class BackupManager
 				{
 					return;
 				}
+			}
+		}
+		
+		ArrayList<Long> versions = versionManager.getAllVersions();
+		
+		for(Long l : getBackups())
+		{
+			if(!versions.contains(l))
+			{
+				File f = new File(backup_folder,String.valueOf(l));
+				f.delete();
 			}
 		}
 	}

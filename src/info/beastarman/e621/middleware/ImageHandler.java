@@ -6,7 +6,6 @@ import java.io.InputStream;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
-import android.view.ViewGroup;
 
 public class ImageHandler extends Handler
 {

@@ -59,8 +59,6 @@ import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
-import android.text.format.Time;
-import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -1027,6 +1025,8 @@ public class E621Middleware extends E621
 				});
 		
 		nk.backup();
+		
+		android.util.Log.d(E621Middleware.LOG_TAG + "_Backup",nk.toString());
 	}
 	
 	public void sendReport(final String report)

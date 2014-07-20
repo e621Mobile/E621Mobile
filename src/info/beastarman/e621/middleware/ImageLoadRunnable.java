@@ -5,7 +5,6 @@ import info.beastarman.e621.api.E621Image;
 import java.io.InputStream;
 
 import android.os.Message;
-import android.util.Log;
 
 public class ImageLoadRunnable implements Runnable
 {
