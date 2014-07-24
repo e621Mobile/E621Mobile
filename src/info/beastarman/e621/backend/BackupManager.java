@@ -104,14 +104,10 @@ public class BackupManager
 		{
 			versions = new ArrayList<VersionInfo>();
 			
-			int i=0;
-			
-			for(i=1; i<bases.length; i++)
+			for(long l : bases)
 			{
-				versions.add(new VersionInfo(bases[i-1],(long)Math.ceil(((double)bases[i])/bases[i-1])-1));
+				versions.add(new VersionInfo(l,1));
 			}
-			
-			versions.add(new VersionInfo(bases[i-1],1));
 		}
 		
 		public boolean addVersion(long version)

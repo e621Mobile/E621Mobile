@@ -1018,10 +1018,8 @@ public class E621Middleware extends E621
 		
 		BackupManager nk = new BackupManager(backup_path,download_manager.get_cache_file(),
 				new long[]{
-					AlarmManager.INTERVAL_HOUR*3,
 					AlarmManager.INTERVAL_HOUR*24,
-					AlarmManager.INTERVAL_HOUR*24*30,
-					AlarmManager.INTERVAL_HOUR*24*365,
+					AlarmManager.INTERVAL_HOUR*24*7,
 				});
 		
 		nk.backup();
