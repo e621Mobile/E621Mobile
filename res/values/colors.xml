@@ -10,4 +10,5 @@
     <color name="blue">#00F</color>
     <color name="yellow">#FF0</color>
     <color name="magenta">#F0F</color>
+    <color name="transparent">#00000000</color>
 </resources>

@@ -1191,6 +1191,4 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 			}
 		}).start();
 	}
-
-	
 }

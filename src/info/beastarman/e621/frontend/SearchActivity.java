@@ -2,6 +2,7 @@ package info.beastarman.e621.frontend;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.Semaphore;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
@@ -20,6 +21,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
@@ -614,18 +616,41 @@ public class SearchActivity extends BaseActivity
 		},false);
 	}
 	
-	public void removeImage(final E621Image img, ImageButton v)
+	Semaphore removeImage = new Semaphore(1);
+	
+	public void removeImage(final E621Image img, final ImageButton v)
 	{
-		e621.deleteImage(img);
+		if(!removeImage.tryAcquire())
+		{
+			return;
+		}
 		
-		v.setImageResource(android.R.drawable.ic_menu_save);
+		v.setImageDrawable(getResources().getDrawable(R.drawable.progress_indicator));
 		
-		v.setOnClickListener(new View.OnClickListener() {
-	        @Override
-	        public void onClick(View v) {
-	        	saveImage(img,(ImageButton)v);
-	        }
-	    });
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				e621.deleteImage(img);
+				
+				runOnUiThread(new Runnable()
+				{
+					public void run()
+					{
+						v.setImageResource(android.R.drawable.ic_menu_save);
+						
+						v.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	saveImage(img,(ImageButton)v);
+					        }
+					    });
+					}
+				});
+				
+				removeImage.release();
+			}
+		}).start();
 	}
 
 	public void imageClick(View view) {
