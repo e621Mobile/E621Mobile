@@ -9,6 +9,7 @@ import info.beastarman.e621.api.E621TagAlias;
 import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.backend.BackupManager;
 import info.beastarman.e621.backend.ImageCacheManager;
+import info.beastarman.e621.backend.ImageCacheManagerOld;
 import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.frontend.DownloadsActivity;
 import info.beastarman.e621.frontend.MainActivity;
@@ -1419,7 +1420,7 @@ public class E621Middleware extends E621
 		}
 	}
 	
-	private class E621DownloadedImages extends ImageCacheManager
+	private class E621DownloadedImages extends ImageCacheManagerOld
 	{
 		public E621DownloadedImages(File base_path)
 		{
@@ -1433,7 +1434,7 @@ public class E621Middleware extends E621
 		}
 		
 		@Override
-		protected synchronized void update_db(int version, SQLiteDatabase db)
+		protected void update_db(int version, SQLiteDatabase db)
 		{
 			super.update_db(version, db);
 			
@@ -1457,7 +1458,7 @@ public class E621Middleware extends E621
 			}
 		}
 		
-		protected synchronized void update_0_1(SQLiteDatabase db)
+		protected void update_0_1(SQLiteDatabase db)
 		{
 			db.execSQL("CREATE TABLE tags (" +
 					"id TEXT PRIMARY KEY" +
@@ -1478,7 +1479,7 @@ public class E621Middleware extends E621
 			);
 		}
 		
-		protected synchronized void update_1_2(SQLiteDatabase db)
+		protected void update_1_2(SQLiteDatabase db)
 		{
 			db.execSQL("CREATE TABLE e621image (" +
 					"image TEXT PRIMARY KEY" +
@@ -1490,13 +1491,13 @@ public class E621Middleware extends E621
 			);
 		}
 		
-		protected synchronized void update_2_3(SQLiteDatabase db)
+		protected void update_2_3(SQLiteDatabase db)
 		{
 			db.execSQL("ALTER TABLE e621image ADD COLUMN width INTEGER DEFAULT 1;");
 			db.execSQL("ALTER TABLE e621image ADD COLUMN height INTEGER DEFAULT 1;");
 		}
 		
-		protected synchronized void update_3_4(SQLiteDatabase db)
+		protected void update_3_4(SQLiteDatabase db)
 		{
 			db.execSQL("ALTER TABLE tags ADD COLUMN name TEXT DEFAULT '';");
 			
@@ -1531,7 +1532,7 @@ public class E621Middleware extends E621
 			db.execSQL("DELETE FROM tags WHERE 1;");
 		}
 		
-		protected synchronized void update_4_5(SQLiteDatabase db)
+		protected void update_4_5(SQLiteDatabase db)
 		{
 			db.execSQL("ALTER TABLE tags ADD COLUMN type INTEGER DEFAULT " + String.valueOf(E621Tag.GENERAL) + ";");
 			
@@ -1540,29 +1541,40 @@ public class E621Middleware extends E621
 		
 		public E621Tag getTag(String name)
 		{
-			SQLiteDatabase db = getDB();
+			this.lock.readLock().lock();
 			
-			Cursor c = db.rawQuery("SELECT id, name, type FROM tags WHERE name = ? LIMIT 1;", new String[]{name});
-			
-			if(c == null || !c.moveToFirst())
+			try
 			{
-				if(c != null) c.close();
+				SQLiteDatabase db = getDB();
 				
-				return null;
+				Cursor c = db.rawQuery("SELECT id, name, type FROM tags WHERE name = ? LIMIT 1;", new String[]{name});
+				
+				if(c == null || !c.moveToFirst())
+				{
+					if(c != null) c.close();
+					
+					return null;
+				}
+				
+				E621Tag tag = new E621Tag(name,Integer.valueOf(c.getString(c.getColumnIndex("id"))),null,c.getInt(c.getColumnIndex("type")),null);
+				
+				c.close();
+				
+				db.close();
+				
+				return tag;
 			}
-			
-			E621Tag tag = new E621Tag(name,Integer.valueOf(c.getString(c.getColumnIndex("id"))),null,c.getInt(c.getColumnIndex("type")),null);
-			
-			c.close();
-			
-			db.close();
-			
-			return tag;
+			finally
+			{
+				this.lock.readLock().unlock();
+			}
 		}
 		
 		public ArrayList<E621DownloadedImage> search(int page, int limit, SearchQuery query)
 		{
 			String sqlQuery = toSql(query);
+			
+			this.lock.readLock().lock();
 			
 			SQLiteDatabase db = getDB();
 			
@@ -1600,12 +1612,16 @@ public class E621Middleware extends E621
 			finally
 			{
 				db.close();
+				
+				this.lock.readLock().unlock();
 			}
 		}
 		
 		public int totalEntries(SearchQuery query)
 		{
 			String sqlQuery = toSql(query);
+			
+			this.lock.readLock().lock();
 			
 			SQLiteDatabase db = getDB();
 			Cursor c = null;
@@ -1625,24 +1641,28 @@ public class E621Middleware extends E621
 			{
 				if(c != null) c.close();
 				db.close();
+				
+				this.lock.readLock().unlock();
 			}
 		}
 		
-		public synchronized boolean hasFile(E621Image img)
+		public boolean hasFile(E621Image img)
 		{
 			if(img == null) return false;
 			
 			return super.hasFile(img.id + "." + img.file_ext);
 		}
 		
-		public synchronized InputStream getFile(E621Image img)
+		public InputStream getFile(E621Image img)
 		{
-			if(img == null) return null;
+			return null;
 			
-			return super.getFile(img.id + "." + img.file_ext);
+			//if(img == null) return null;
+			
+			//return super.getFile(img.id + "." + img.file_ext);
 		}
 		
-		public synchronized void removeFile(E621Image img)
+		public void removeFile(E621Image img)
 		{
 			if(img == null) return;
 			
@@ -1652,18 +1672,30 @@ public class E621Middleware extends E621
 			
 			String[] query_params = new String[]{id};
 			
-			SQLiteDatabase db = getDB();
+			try
+			{
+				this.lock.writeLock().lock();
+				
+				SQLiteDatabase db = getDB();
 			
-			db.delete("image_tag", "image = ?", query_params);
-			
-			db.close();
+				db.delete("image_tag", "image = ?", query_params);
+				db.delete("e621image", "image = ?", query_params);
+				
+				db.close();
+			}
+			finally
+			{
+				this.lock.writeLock().unlock();
+			}
 		}
 		
-		public synchronized void createOrUpdate(E621Image img, InputStream in)
+		public void createOrUpdate(E621Image img, InputStream in)
 		{
 			if(img == null) return;
 			
 			super.createOrUpdate(img.id + "." + img.file_ext, in);
+			
+			this.lock.writeLock().lock();
 			
 			SQLiteDatabase db = getDB();
 			
@@ -1727,11 +1759,15 @@ public class E621Middleware extends E621
 			finally
 			{
 				db.close();
+				
+				this.lock.writeLock().unlock();
 			}
 		}
 		
-		public synchronized void updateMetadata()
+		public void updateMetadata()
 		{
+			this.lock.writeLock().lock();
+			
 			android.util.Log.i(LOG_TAG,"Starting Tag sync");
 			updateTagBase();
 			
@@ -1742,6 +1778,8 @@ public class E621Middleware extends E621
 			updateImageTags();
 			
 			android.util.Log.i(LOG_TAG,"Sync completed");
+			
+			this.lock.writeLock().unlock();
 		}
 		
 		protected void updateTagAliasBase()
@@ -2048,6 +2086,8 @@ public class E621Middleware extends E621
 		{
 			String ret = alias;
 			
+			this.lock.readLock().lock();
+			
 			SQLiteDatabase db = getDB();
 			
 			try
@@ -2079,6 +2119,8 @@ public class E621Middleware extends E621
 			finally
 			{
 				db.close();
+				
+				this.lock.readLock().unlock();
 			}
 			
 			return ret;

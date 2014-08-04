@@ -248,7 +248,8 @@ public class DownloadsActivity extends BaseActivity
 					
 					scroll.addThread(new Thread(new ImageLoadRunnable(handler, id)), image_y);
 					
-					image_y += image_height + 40;
+					if(e621.lazyLoad()) image_y += image_height + 40;
+					
 					position++;
 				}
 			}
