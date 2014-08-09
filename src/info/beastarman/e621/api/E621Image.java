@@ -27,7 +27,7 @@ public class E621Image implements Serializable
 	public String preview_url = "";
 	public String sample_url = "";
 	public String file_url = "";
-	public String id = "";
+	public Integer id = null;
 	public String file_ext = "";
 	public String parent_id = null;
 	public String rating = SAFE;
@@ -63,7 +63,7 @@ public class E621Image implements Serializable
 		
 		img.file_url = json.optString("file_url","");
 		
-		img.id = json.optString("id","666");
+		img.id = json.optInt("id",666);
 		
 		img.rating = json.optString("rating",EXPLICIT);
 		
@@ -129,7 +129,7 @@ public class E621Image implements Serializable
 		img.preview_url = xml.getAttribute("preview_url"); 
 		img.sample_url = xml.getAttribute("sample_url"); 
 		img.file_url = xml.getAttribute("file_url"); 
-		img.id = xml.getAttribute("id");  
+		img.id = Integer.parseInt(xml.getAttribute("id"));  
 		img.rating = xml.getAttribute("rating"); 
 		img.file_ext = xml.getAttribute("file_ext");
 		img.has_comments = xml.getAttribute("has_comments").equals("true");
@@ -201,6 +201,6 @@ public class E621Image implements Serializable
 	@Override
 	public String toString()
 	{
-		return id;
+		return String.valueOf(id);
 	}
 }

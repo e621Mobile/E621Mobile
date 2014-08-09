@@ -6,5 +6,5 @@ public interface ImageNavigator extends Serializable
 {
 	ImageNavigator next();
 	ImageNavigator prev();
-	String getId();
+	Integer getId();
 }

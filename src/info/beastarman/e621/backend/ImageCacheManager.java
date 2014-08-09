@@ -13,8 +13,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.io.IOUtils;
 
@@ -22,7 +20,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.util.Log;
 
 public class ImageCacheManager implements ImageCacheManagerInterface
 {
@@ -51,7 +48,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		clean();
 	}
 	
-	protected SQLiteDatabase getImageDB()
+	protected synchronized SQLiteDatabase getImageDB()
 	{
 		SQLiteDatabase db;
 		
@@ -339,6 +336,11 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	@Override
 	public void clean()
 	{
+		if(max_size < 1)
+		{
+			return;
+		}
+		
 		final long size = totalSize();
 		long local_max_size = (long) Math.floor(max_size*1.1);
 		
@@ -393,8 +395,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 				c.close();
 			}
 			
-			Log.d(E621Middleware.LOG_TAG,"Total cache size: " + l + "/" + max_size);
-			
 			return l;
 		}
 		finally
@@ -443,8 +443,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		private SQLiteDatabase getDB()
 		{
 			SQLiteDatabase db;
-			
-			Log.d(E621Middleware.LOG_TAG, database_file.getAbsolutePath());
 			
 			try
 			{

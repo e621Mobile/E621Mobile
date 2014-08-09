@@ -8,6 +8,7 @@ import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621TagAlias;
 import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.backend.BackupManager;
+
 import info.beastarman.e621.backend.ImageCacheManager;
 import info.beastarman.e621.backend.ImageCacheManagerOld;
 import info.beastarman.e621.backend.Pair;
@@ -63,7 +64,7 @@ import android.support.v4.app.NotificationCompat;
 
 public class E621Middleware extends E621
 {
-	HashMap<String,E621Image> e621ImageCache = new HashMap<String,E621Image>();
+	HashMap<Integer,E621Image> e621ImageCache = new HashMap<Integer,E621Image>();
 	HashMap<String,Integer> searchCount = new HashMap<String,Integer>();
 	
 	File cache_path = null;
@@ -118,7 +119,7 @@ public class E621Middleware extends E621
 		cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"cache/");
 		full_cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"full_cache/");
 		sd_path = new File(Environment.getExternalStorageDirectory(),"e621/");
-		download_path = new File(sd_path,"e612 Images/");
+		download_path = new File(sd_path,"e621 Images/");
 		export_path = new File(sd_path,"export/");
 		report_path = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"reports/");
 		interrupted_path = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"interrupt/");
@@ -316,7 +317,7 @@ public class E621Middleware extends E621
 	}
 	
 	@Override
-	public E621Image post__show(String id) throws IOException
+	public E621Image post__show(Integer id) throws IOException
 	{
 		if(e621ImageCache.containsKey(id))
 		{
@@ -443,7 +444,7 @@ public class E621Middleware extends E621
 	
 	public void saveImageAsync(final E621Image img, final Runnable success_callback, final Runnable error_callback, final boolean notificate)
 	{
-		failed_download_manager.addFile(img.id);
+		failed_download_manager.addFile(String.valueOf(img.id));
 		
 		if(notificate)
 		{
@@ -502,7 +503,7 @@ public class E621Middleware extends E621
 						success_callback.run();
 					}
 					
-					failed_download_manager.removeFile(img.id);
+					failed_download_manager.removeFile(String.valueOf(img.id));
 				}
 				else
 				{
@@ -549,7 +550,7 @@ public class E621Middleware extends E621
 				@Override
 				public void run()
 				{
-					download_manager.createOrUpdate(img, in);
+					download_manager.createOrUpdate(img, in, img.file_ext);
 				}
 			}).start();
 			
@@ -630,7 +631,7 @@ public class E621Middleware extends E621
 			}
 			else
 			{
-				in = full_cache.getFile(img.id);
+				in = full_cache.getFile(String.valueOf(img.id));
 				
 				if(in != null)
 				{
@@ -638,7 +639,7 @@ public class E621Middleware extends E621
 				}
 				else
 				{
-					in = thumb_cache.getFile(img.id);
+					in = thumb_cache.getFile(String.valueOf(img.id));
 					
 					if(in != null)
 					{
@@ -653,7 +654,7 @@ public class E621Middleware extends E621
 							return null; 
 						}
 				        
-				        thumb_cache.createOrUpdate(img.id, new ByteArrayInputStream(raw_file));
+				        thumb_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
 				        
 				        return new ByteArrayInputStream(raw_file);
 					}
@@ -678,7 +679,7 @@ public class E621Middleware extends E621
 			{
 				if(size == getFileDownloadSize())
 				{
-					in = full_cache.getFile(img.id);
+					in = full_cache.getFile(String.valueOf(img.id));
 				}
 				
 				if(in != null)
@@ -703,7 +704,7 @@ public class E621Middleware extends E621
 						return null; 
 					}
 			        
-					full_cache.createOrUpdate(img.id, new ByteArrayInputStream(raw_file));
+					full_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
 			        
 			        return new ByteArrayInputStream(raw_file);
 				}
@@ -713,14 +714,14 @@ public class E621Middleware extends E621
 		return null;
 	}
 	
-	public InputStream getDownloadedImage(String id)
+	public InputStream getDownloadedImage(Integer id)
 	{
 		return download_manager.getFile(id);
 	}
 	
 	public void update_tags()
 	{
-		download_manager.updateMetadata();
+		download_manager.updateMetadata(this);
 	}
 	
 	public void update_tags(Activity activity)
@@ -753,7 +754,7 @@ public class E621Middleware extends E621
 			public void run() {
 				try
 				{
-					download_manager.updateMetadata();
+					download_manager.updateMetadata(E621Middleware.this);
 					mNotificationManager.cancel(UPDATE_TAGS_NOTIFICATION_ID);
 				}
 				finally
@@ -850,10 +851,8 @@ public class E621Middleware extends E621
 		
 		ArrayList<Thread> threads = new ArrayList<Thread>();
 		
-		for(E621DownloadedImage image : ids)
+		for(final E621DownloadedImage image : ids)
 		{
-			final String s = image.filename;
-			
 			Thread t = new Thread(new Runnable()
 			{
 				@Override
@@ -861,9 +860,9 @@ public class E621Middleware extends E621
 					try {
 						sem.acquire();
 						
-						File f = new File(path,s);
+						File f = new File(path,image.filename);
 						
-						InputStream in = download_manager.getFile(s);
+						InputStream in = download_manager.getFile(image.id);
 						
 						try {
 							BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(f));
@@ -999,7 +998,7 @@ public class E621Middleware extends E621
 		{
 			E621Image img = null;
 			try {
-				img = post__show(file);
+				img = post__show(Integer.parseInt(file));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1017,6 +1016,10 @@ public class E621Middleware extends E621
 			update_new_image_count(interrupted.search);
 		}
 		
+		/*
+		 * 
+		 * TODO Reeable this later.
+		
 		BackupManager nk = new BackupManager(backup_path,download_manager.get_cache_file(),
 				new long[]{
 					AlarmManager.INTERVAL_HOUR*24,
@@ -1026,6 +1029,8 @@ public class E621Middleware extends E621
 		nk.backup();
 		
 		android.util.Log.d(E621Middleware.LOG_TAG + "_Backup",nk.toString());
+		
+		*/
 	}
 	
 	public void sendReport(final String report)
@@ -1102,13 +1107,11 @@ public class E621Middleware extends E621
 	{
 		E621Vote ret = super.post__vote(id, up, login, password_hash);
 		
-		String sid = String.valueOf(id);
-		
-		if(ret != null && ret.success && e621ImageCache.containsKey(sid))
+		if(ret != null && ret.success && e621ImageCache.containsKey(id))
 		{
-			E621Image img = e621ImageCache.get(sid);
+			E621Image img = e621ImageCache.get(id);
 			img.score = ret.score;
-			e621ImageCache.put(sid, img);
+			e621ImageCache.put(id, img);
 		}
 		
 		return ret;
@@ -1420,820 +1423,6 @@ public class E621Middleware extends E621
 		}
 	}
 	
-	private class E621DownloadedImages extends ImageCacheManagerOld
-	{
-		public E621DownloadedImages(File base_path)
-		{
-			super(base_path, 0);
-			
-			SQLiteDatabase db = getDB();
-			
-			setVersion(5,db);
-			
-			db.close();
-		}
-		
-		@Override
-		protected void update_db(int version, SQLiteDatabase db)
-		{
-			super.update_db(version, db);
-			
-			switch(version)
-			{
-				case 1:
-					update_0_1(db);
-					break;
-				case 2:
-					update_1_2(db);
-					break;
-				case 3:
-					update_2_3(db);
-					break;
-				case 4:
-					update_3_4(db);
-					break;
-				case 5:
-					update_4_5(db);
-					break;
-			}
-		}
-		
-		protected void update_0_1(SQLiteDatabase db)
-		{
-			db.execSQL("CREATE TABLE tags (" +
-					"id TEXT PRIMARY KEY" +
-				");"
-			);
-			
-			db.execSQL("CREATE TABLE image_tags (" +
-					"image TEXT" +
-					", " +
-					"tag TEXT" +
-					", " +
-					"PRIMARY KEY(image,tag)" +
-					", " +
-					"FOREIGN KEY (image) REFERENCES images(id)" +
-					", " +
-					"FOREIGN KEY (tag) REFERENCES tags(id)" +
-				");"
-			);
-		}
-		
-		protected void update_1_2(SQLiteDatabase db)
-		{
-			db.execSQL("CREATE TABLE e621image (" +
-					"image TEXT PRIMARY KEY" +
-					", " +
-					"rating VARCHAR(1)" +
-					", " +
-					"FOREIGN KEY (image) REFERENCES images(id)" +
-				");"
-			);
-		}
-		
-		protected void update_2_3(SQLiteDatabase db)
-		{
-			db.execSQL("ALTER TABLE e621image ADD COLUMN width INTEGER DEFAULT 1;");
-			db.execSQL("ALTER TABLE e621image ADD COLUMN height INTEGER DEFAULT 1;");
-		}
-		
-		protected void update_3_4(SQLiteDatabase db)
-		{
-			db.execSQL("ALTER TABLE tags ADD COLUMN name TEXT DEFAULT '';");
-			
-			db.execSQL("CREATE TABLE tag_alias (" +
-					"alias TEXT" +
-					", " +
-					"id TEXT" +
-					", " +
-					"tag TEXT" +
-					", " +
-					"PRIMARY KEY(alias)" +
-					", " +
-					"FOREIGN KEY (tag) REFERENCES tags(id)" +
-				");"
-			);
-			
-			db.execSQL("DROP TABLE image_tags;");
-			
-			db.execSQL("CREATE TABLE image_tag (" +
-					"image TEXT" +
-					", " +
-					"tag TEXT" +
-					", " +
-					"PRIMARY KEY(image,tag)" +
-					", " +
-					"FOREIGN KEY (image) REFERENCES images(id)" +
-					", " +
-					"FOREIGN KEY (tag) REFERENCES tags(id)" +
-				");"
-			);
-			
-			db.execSQL("DELETE FROM tags WHERE 1;");
-		}
-		
-		protected void update_4_5(SQLiteDatabase db)
-		{
-			db.execSQL("ALTER TABLE tags ADD COLUMN type INTEGER DEFAULT " + String.valueOf(E621Tag.GENERAL) + ";");
-			
-			db.execSQL("DELETE FROM tags WHERE 1;");
-		}
-		
-		public E621Tag getTag(String name)
-		{
-			this.lock.readLock().lock();
-			
-			try
-			{
-				SQLiteDatabase db = getDB();
-				
-				Cursor c = db.rawQuery("SELECT id, name, type FROM tags WHERE name = ? LIMIT 1;", new String[]{name});
-				
-				if(c == null || !c.moveToFirst())
-				{
-					if(c != null) c.close();
-					
-					return null;
-				}
-				
-				E621Tag tag = new E621Tag(name,Integer.valueOf(c.getString(c.getColumnIndex("id"))),null,c.getInt(c.getColumnIndex("type")),null);
-				
-				c.close();
-				
-				db.close();
-				
-				return tag;
-			}
-			finally
-			{
-				this.lock.readLock().unlock();
-			}
-		}
-		
-		public ArrayList<E621DownloadedImage> search(int page, int limit, SearchQuery query)
-		{
-			String sqlQuery = toSql(query);
-			
-			this.lock.readLock().lock();
-			
-			SQLiteDatabase db = getDB();
-			
-			try
-			{
-				Cursor c = db.rawQuery("SELECT images.id as id, e621image.width as width, e621image.height as height FROM images INNER JOIN e621image ON e621image.image = images.id WHERE " + sqlQuery + " ORDER BY id LIMIT ? OFFSET ?;", new String[]{String.valueOf(limit),String.valueOf(limit*page)});
-				
-				if(c == null || !c.moveToFirst())
-				{
-					if(c != null) c.close();
-					
-					return new ArrayList<E621DownloadedImage>();
-				}
-				
-				ArrayList<E621DownloadedImage> ins = new ArrayList<E621DownloadedImage>();
-				
-				for(;limit>0; limit--)
-				{
-					ins.add(new E621DownloadedImage(
-							c.getString(c.getColumnIndex("id")),
-							c.getInt(c.getColumnIndex("width")),
-							c.getInt(c.getColumnIndex("height"))
-						));
-					
-					if(!c.moveToNext())
-					{
-						break;
-					}
-				}
-				
-				c.close();
-				
-				return ins;
-			}
-			finally
-			{
-				db.close();
-				
-				this.lock.readLock().unlock();
-			}
-		}
-		
-		public int totalEntries(SearchQuery query)
-		{
-			String sqlQuery = toSql(query);
-			
-			this.lock.readLock().lock();
-			
-			SQLiteDatabase db = getDB();
-			Cursor c = null;
-			
-			try
-			{
-				c = db.rawQuery("SELECT COUNT(*) as c FROM images WHERE " + sqlQuery + ";", null);
-				
-				if(c == null || !c.moveToFirst())
-				{
-					return 0;
-				}
-				
-				return c.getInt(c.getColumnIndex("c"));
-			}
-			finally
-			{
-				if(c != null) c.close();
-				db.close();
-				
-				this.lock.readLock().unlock();
-			}
-		}
-		
-		public boolean hasFile(E621Image img)
-		{
-			if(img == null) return false;
-			
-			return super.hasFile(img.id + "." + img.file_ext);
-		}
-		
-		public InputStream getFile(E621Image img)
-		{
-			return null;
-			
-			//if(img == null) return null;
-			
-			//return super.getFile(img.id + "." + img.file_ext);
-		}
-		
-		public void removeFile(E621Image img)
-		{
-			if(img == null) return;
-			
-			String id = img.id + "." + img.file_ext;
-			
-			super.removeFile(id);
-			
-			String[] query_params = new String[]{id};
-			
-			try
-			{
-				this.lock.writeLock().lock();
-				
-				SQLiteDatabase db = getDB();
-			
-				db.delete("image_tag", "image = ?", query_params);
-				db.delete("e621image", "image = ?", query_params);
-				
-				db.close();
-			}
-			finally
-			{
-				this.lock.writeLock().unlock();
-			}
-		}
-		
-		public void createOrUpdate(E621Image img, InputStream in)
-		{
-			if(img == null) return;
-			
-			super.createOrUpdate(img.id + "." + img.file_ext, in);
-			
-			this.lock.writeLock().lock();
-			
-			SQLiteDatabase db = getDB();
-			
-			try
-			{
-				ContentValues e621image_values = new ContentValues();
-				e621image_values.put("image", img.id + "." + img.file_ext);
-				e621image_values.put("rating", img.rating);
-				e621image_values.put("width", img.width);
-				e621image_values.put("height", img.height);
-				
-				try
-				{
-					db.insert("e621image", null, e621image_values);
-				}
-				catch(SQLiteException e)
-				{
-				}
-				
-				int i=0;
-				
-				for(i=0; i<img.tags.size(); i++)
-				{
-					E621Tag tag = img.tags.get(i);
-					
-					Cursor c = db.rawQuery("SELECT id FROM tags WHERE name = ?;", new String[]{tag.getTag()});
-					
-					if(c == null || !c.moveToFirst())
-					{
-						ArrayList<E621Tag> loaded_tag = tag__index(1,1,null,null,null,tag.getTag(),null);
-						
-						if(loaded_tag.size() < 1)
-						{
-							continue;
-						}
-						else
-						{
-							tag = loaded_tag.get(0);
-							img.tags.set(i,tag);
-						}
-					}
-					else
-					{
-						tag.setId(c.getInt(c.getColumnIndex("id")));
-						img.tags.set(i,tag);
-					}
-					
-					ContentValues image_tag_values = new ContentValues();
-					image_tag_values.put("image", img.id + "." + img.file_ext);
-					image_tag_values.put("tag", tag.getId());
-					
-					try
-					{
-						db.insert("image_tag", null, image_tag_values);
-					}
-					catch(SQLiteException e)
-					{
-					}
-				}
-			}
-			finally
-			{
-				db.close();
-				
-				this.lock.writeLock().unlock();
-			}
-		}
-		
-		public void updateMetadata()
-		{
-			this.lock.writeLock().lock();
-			
-			android.util.Log.i(LOG_TAG,"Starting Tag sync");
-			updateTagBase();
-			
-			android.util.Log.i(LOG_TAG,"Starting Tag Alias sync");
-			updateTagAliasBase();
-			
-			android.util.Log.i(LOG_TAG,"Starting Image Tag sync");
-			updateImageTags();
-			
-			android.util.Log.i(LOG_TAG,"Sync completed");
-			
-			this.lock.writeLock().unlock();
-		}
-		
-		protected void updateTagAliasBase()
-		{
-			SQLiteDatabase db = getDB();
-			
-			try
-			{
-				Cursor c = db.rawQuery("SELECT MAX(CAST(id AS INTEGER)) as max_id FROM tag_alias;", null);
-				
-				Integer max_id = null;
-				
-				if(c != null && c.moveToFirst())
-				{
-					max_id = c.getInt(c.getColumnIndex("max_id"));
-				}
-				
-				if(c != null) c.close();
-				
-				int page = 0;
-				boolean stop = false;
-				ArrayList<E621TagAlias> tag_aliases;
-				
-				do
-				{
-					db.beginTransaction();
-					
-					try
-					{
-						stop = false;
-						
-						tag_aliases = tag_alias__index(true,"date",page);
-						
-						for(E621TagAlias tag_alias : tag_aliases)
-						{
-							if(tag_alias.alias_id > max_id)
-							{
-								ContentValues values = new ContentValues();
-								values.put("alias", tag_alias.name);
-								values.put("id", tag_alias.alias_id);
-								values.put("tag", tag_alias.id);
-								
-								db.insert("tag_alias", null, values);
-							}
-							else
-							{
-								stop = true;
-							}
-						}
-						
-						page++;
-						
-						db.setTransactionSuccessful();
-					}
-					finally
-					{
-						db.endTransaction();
-					}
-				}
-				while(!stop && (tag_aliases.size() > 0));
-			}
-			finally
-			{
-				db.close();
-			}
-		}
-		
-		private HashMap<String,String> getAllTags()
-		{
-			SQLiteDatabase db = getDB();
-			
-			db.beginTransaction();
-			try
-			{
-				Cursor c = db.rawQuery("SELECT id,name FROM tags;", null);
-				
-				HashMap<String,String> ret = new HashMap<String,String>();
-				
-				if(c == null || !c.moveToFirst())
-				{
-					if(c != null) c.close();
-					
-					return ret; 
-				}
-				
-				while(!c.isClosed())
-				{
-					ret.put(c.getString(c.getColumnIndex("name")), c.getString(c.getColumnIndex("id")));
-					
-					if(!c.moveToNext())
-					{
-						break;
-					}
-				}
-				
-				c.close();
-				
-				db.setTransactionSuccessful();
-				
-				return ret;
-			}
-			finally
-			{
-				db.endTransaction();
-			}
-		}
-		
-		protected void updateTagBase()
-		{
-			SQLiteDatabase db = getDB();
-			
-			try
-			{
-				Cursor c = db.rawQuery("SELECT MAX(CAST(id AS INTEGER)) as max_id FROM tags;", null);
-				
-				Integer max_id = null;
-				
-				if(c != null && c.moveToFirst())
-				{
-					max_id = c.getInt(c.getColumnIndex("max_id"));
-				}
-				
-				if(c != null) c.close();
-				
-				int page = 0;
-				ArrayList<E621Tag> tags;
-				
-				do
-				{
-					db.beginTransaction();
-					
-					try
-					{
-						tags = tag__index(10000,page,null,null,max_id,null,null);
-						
-						for(E621Tag tag : tags)
-						{
-							ContentValues values = new ContentValues();
-							values.put("name", tag.getTag());
-							values.put("id", tag.getId());
-							values.put("type", tag.type);
-							
-							db.insert("tags", null, values);
-						}
-						
-						page++;
-						
-						db.setTransactionSuccessful();
-					}
-					finally
-					{
-						db.endTransaction();
-					}
-				}
-				while(tags.size() == 10000);
-			}
-			finally
-			{
-				db.close();
-			}
-		}
-		
-		protected void updateImageTags()
-		{
-			final List<E621Image> images = Collections.synchronizedList(new ArrayList<E621Image>());
-			SQLiteDatabase db = getDB();
-			
-			try
-			{
-				int iteration = 0;
-				
-				while(true)
-				{
-					Cursor c = db.rawQuery("SELECT image FROM e621image LIMIT 50 OFFSET ?;", new String[]{String.valueOf(iteration*50)});
-		
-					iteration++;
-					
-					android.util.Log.d(E621Middleware.LOG_TAG,"Iteration " + iteration);
-					
-					if(!(c != null && c.moveToFirst()))
-					{
-						int count = c.getCount();
-						
-						if(c != null) c.close();
-						
-						if(count == 0) break;
-						
-						return;
-					}
-					
-					ArrayList<Thread> threads = new ArrayList<Thread>();
-					
-					final Semaphore s = new Semaphore(10, true);
-					
-					while(true)
-					{
-						final String id = c.getString(c.getColumnIndex("image")).split("\\.")[0];
-						
-						Thread t = new Thread(new Runnable()
-						{
-							@Override
-							public void run() {
-								try {
-									try {
-										s.acquire();
-									} catch (InterruptedException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-									}
-									
-									images.add(post__show(id));
-									
-									s.release();
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-							}
-						});
-						
-						t.start();
-						
-						threads.add(t);
-						
-						if(!c.moveToNext())
-						{
-							break;
-						}
-					}
-					
-					c.close();
-					
-					for(Thread t : threads)
-					{
-						try {
-							t.join();
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-			finally
-			{
-				db.close();
-			}
-			
-			updateImageTags(images);
-		}
-		
-		protected synchronized void updateImageTags(List<E621Image> images)
-		{
-			HashMap<String,String> tagMap = getAllTags();
-			
-			android.util.Log.i(LOG_TAG,"Starting to write images do db");
-			
-			SQLiteDatabase db = getDB();
-			db.beginTransaction();
-			try
-			{
-				for(E621Image img : images)
-				{
-					ContentValues e621image_values = new ContentValues();
-					e621image_values.put("image", img.id + "." + img.file_ext);
-					e621image_values.put("rating", img.rating);
-					e621image_values.put("width", img.width);
-					e621image_values.put("height", img.height);
-					
-					try
-					{
-						db.update("e621image", e621image_values, "image = ?", new String[]{img.id + "." + img.file_ext});
-					}
-					catch(SQLiteException e)
-					{
-					}
-					
-					for(E621Tag tag : img.tags)
-					{
-						ContentValues image_tag_values = new ContentValues();
-						image_tag_values.put("image", img.id + "." + img.file_ext);
-						image_tag_values.put("tag", tagMap.get(tag.getTag()));
-						
-						try
-						{
-							db.insert("image_tag", null, image_tag_values);
-						}
-						catch(SQLiteException e)
-						{
-						}
-					}
-				}
-				
-				db.setTransactionSuccessful();
-			}
-			finally
-			{
-				db.endTransaction();
-				db.close();
-			}
-		}
-		
-		public String antiAlias(String alias)
-		{
-			String ret = alias;
-			
-			this.lock.readLock().lock();
-			
-			SQLiteDatabase db = getDB();
-			
-			try
-			{
-				Cursor c = db.rawQuery("SELECT id FROM tag_alias WHERE alias = ?;", new String[]{alias});
-				
-				if(c == null || !c.moveToFirst())
-				{
-					if(c != null) c.close();
-					
-					c = db.rawQuery("SELECT id FROM tags WHERE name = ?", new String[]{alias});
-					
-					if(c == null || !c.moveToFirst())
-					{
-						if(c != null) c.close();
-						
-						return "-1";
-					}
-					
-					ret = c.getString(c.getColumnIndex("id"));
-					
-					return ret;
-				}
-				
-				ret = c.getString(c.getColumnIndex("id"));
-				
-				c.close();
-			}
-			finally
-			{
-				db.close();
-				
-				this.lock.readLock().unlock();
-			}
-			
-			return ret;
-		}
-		
-		private String toSql(SearchQuery sq)
-		{
-			String sql = " 1 ";
-			
-			for(String s : sq.ands)
-			{
-				if(s.contains(":"))
-				{
-					String meta = s.split(":")[0];
-					String value= s.split(":")[1];
-					
-					if(meta.equals("rating"))
-					{
-						value = value.substring(0, 1);
-						
-						if(value.equals(E621Image.SAFE) || value.equals(E621Image.QUESTIONABLE) || value.equals(E621Image.EXPLICIT))
-						{
-							sql = sql + " AND";
-							sql = sql + String.format(" EXISTS(SELECT 1 FROM e621image WHERE image=id AND rating=\"%1$s\") ", value);
-						}
-					}
-				}
-				else
-				{
-					s = antiAlias(s);
-					
-					if(s == null) continue;
-					
-					sql = sql + " AND";
-					sql = sql + String.format(" EXISTS(SELECT 1 FROM image_tag WHERE image=id AND tag=\"%1$s\") ", s);
-				}
-			}
-			
-			if(sq.ors.size() > 0)
-			{
-				sql = sql + " AND ( 0 ";
-				
-				for(String s : sq.ors)
-				{
-					if(s.contains(":"))
-					{
-						String meta = s.split(":")[0];
-						String value= s.split(":")[1];
-						
-						if(meta.equals("rating"))					{
-							value = value.substring(0, 1);
-							
-							if(value.equals(E621Image.SAFE) || value.equals(E621Image.QUESTIONABLE) || value.equals(E621Image.EXPLICIT))
-							{
-								sql = sql + " OR";
-								sql = sql + String.format(" EXISTS(SELECT 1 FROM e621image WHERE image=id AND rating=\"%1$s\") ", value);
-							}
-						}
-					}
-					else
-					{
-						s = antiAlias(s);
-						
-						if(s == null) continue;
-						
-						sql = sql + " OR";
-						sql = sql + String.format(" EXISTS(SELECT 1 FROM image_tag WHERE image=id AND tag=\"%1$s\") ", s);
-					}
-				}
-				
-				sql = sql + " ) ";
-			}
-			
-			if(sq.nots.size() > 0)
-			{
-				sql = sql + " AND NOT ( 0 ";
-				
-				for(String s : sq.nots)
-				{
-					if(s.contains(":"))
-					{
-						String meta = s.split(":")[0];
-						String value= s.split(":")[1];
-						
-						if(meta.equals("rating"))
-						{
-							value = value.substring(0, 1);
-							
-							if(value.equals(E621Image.SAFE) || value.equals(E621Image.QUESTIONABLE) || value.equals(E621Image.EXPLICIT))
-							{
-								sql = sql + " OR";
-								sql = sql + String.format(" EXISTS(SELECT 1 FROM e621image WHERE image=id AND rating=\"%1$s\") ", value);
-							}
-						}
-					}
-					else
-					{
-						s = antiAlias(s);
-						
-						if(s == null) continue;
-						
-						sql = sql + " OR";
-						sql = sql + String.format(" EXISTS(SELECT 1 FROM image_tag WHERE image=id AND tag=\"%1$s\") ", s);
-					}
-				}
-				
-				sql = sql + " ) ";
-			}
-			
-			return sql;
-		}
-	}
-	
 	public class InterruptedSearch
 	{
 		public String search;
@@ -2279,7 +1468,7 @@ public class E621Middleware extends E621
 			db.setVersion(0);
 		}
 		
-		private SQLiteDatabase get_db()
+		private synchronized SQLiteDatabase get_db()
 		{
 			SQLiteDatabase db;
 			

@@ -1,0 +1,683 @@
+package info.beastarman.e621.middleware;
+
+import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Tag;
+import info.beastarman.e621.api.E621TagAlias;
+import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.backend.ImageCacheManager;
+import info.beastarman.e621.backend.ReadWriteLockerWrapper;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.util.Log;
+
+public class E621DownloadedImages
+{
+	File base_path;
+	File image_tag_file;
+	ImageCacheManager images;
+	E621TagDatabase tags;
+	
+	ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
+	
+	public E621DownloadedImages(File base_path)
+	{
+		this.base_path = base_path;
+		this.image_tag_file = new File(base_path,".image_tag.sqlite3");
+		this.images = new ImageCacheManager(base_path,0);
+		this.tags = new E621TagDatabase(new File(base_path,".tags.sqlite3"));
+	}
+	
+	private synchronized SQLiteDatabase getDB()
+	{
+		SQLiteDatabase db;
+		
+		try
+		{
+			db = SQLiteDatabase.openDatabase(image_tag_file.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
+		}
+		catch(SQLiteException e)
+		{
+			e.printStackTrace();
+			db = SQLiteDatabase.openOrCreateDatabase(image_tag_file, null);
+			newDB(db);
+		}
+		
+		return db;
+	}
+	
+	private void newDB(SQLiteDatabase db)
+	{
+		db.execSQL("CREATE TABLE image_tag (" +
+				"image UNSIGNED INTEGER" +
+				", " +
+				"tag UNSIGNED INTEGER" +
+				", " +
+				"PRIMARY KEY(image,tag)" +
+				", " +
+				"FOREIGN KEY (image) REFERENCES e621image(id)" +
+			");"
+		);
+		
+		db.execSQL("CREATE TABLE e621image (" +
+				"image_file TEXT" +
+				", " +
+				"id UNSIGNED INTEGER" +
+				", " +
+				"rating VARCHAR(1)" +
+				", " +
+				"width INTEGER DEFAULT 1" +
+				", " +
+				"height INTEGER DEFAULT 1" +
+				", " +
+				"PRIMARY KEY(id)" +
+			");"
+		);
+	}
+	
+	public E621Tag getTag(String name)
+	{
+		return tags.getTag(name);
+	}
+	
+	private String toSql(SearchQuery sq)
+	{
+		String sql = " 1 ";
+		
+		for(String s : sq.ands)
+		{
+			if(s.contains(":"))
+			{
+				String meta = s.split(":")[0];
+				String value= s.split(":")[1];
+				
+				if(meta.equals("rating"))
+				{
+					value = value.substring(0, 1);
+					
+					if(value.equals(E621Image.SAFE) || value.equals(E621Image.QUESTIONABLE) || value.equals(E621Image.EXPLICIT))
+					{
+						sql = sql + " AND";
+						sql = sql + String.format(" rating=\"%1$s\" ", value);
+					}
+				}
+			}
+			else
+			{
+				E621Tag tag = tags.getTag(tags.tryResolveAlias(s));
+				
+				if(tag == null) continue;
+				
+				s = String.valueOf(tag.getId());
+				
+				sql = sql + " AND";
+				sql = sql + String.format(" EXISTS(SELECT 1 FROM image_tag WHERE image=e621image.id AND tag=\"%1$s\") ", s);
+			}
+		}
+		
+		if(sq.ors.size() > 0)
+		{
+			sql = sql + " AND ( 0 ";
+			
+			for(String s : sq.ors)
+			{
+				if(s.contains(":"))
+				{
+					String meta = s.split(":")[0];
+					String value= s.split(":")[1];
+					
+					if(meta.equals("rating"))					{
+						value = value.substring(0, 1);
+						
+						if(value.equals(E621Image.SAFE) || value.equals(E621Image.QUESTIONABLE) || value.equals(E621Image.EXPLICIT))
+						{
+							sql = sql + " OR";
+							sql = sql + String.format(" rating=\"%1$s\" ", value);
+						}
+					}
+				}
+				else
+				{
+					E621Tag tag = tags.getTag(tags.tryResolveAlias(s));
+					
+					if(tag == null) continue;
+					
+					s = String.valueOf(tag.getId());
+					
+					sql = sql + " OR";
+					sql = sql + String.format(" EXISTS(SELECT 1 FROM image_tag WHERE image=e621image.id AND tag=\"%1$s\") ", s);
+				}
+			}
+			
+			sql = sql + " ) ";
+		}
+		
+		if(sq.nots.size() > 0)
+		{
+			sql = sql + " AND NOT ( 0 ";
+			
+			for(String s : sq.nots)
+			{
+				if(s.contains(":"))
+				{
+					String meta = s.split(":")[0];
+					String value= s.split(":")[1];
+					
+					if(meta.equals("rating"))
+					{
+						value = value.substring(0, 1);
+						
+						if(value.equals(E621Image.SAFE) || value.equals(E621Image.QUESTIONABLE) || value.equals(E621Image.EXPLICIT))
+						{
+							sql = sql + " OR";
+							sql = sql + String.format(" rating=\"%1$s\" ", value);
+						}
+					}
+				}
+				else
+				{
+					E621Tag tag = tags.getTag(tags.tryResolveAlias(s));
+					
+					if(tag == null) continue;
+					
+					s = String.valueOf(tag.getId());
+					
+					sql = sql + " OR";
+					sql = sql + String.format(" EXISTS(SELECT 1 FROM image_tag WHERE image=e621image.id AND tag=\"%1$s\") ", s);
+				}
+			}
+			
+			sql = sql + " ) ";
+		}
+		
+		return sql;
+	}
+
+	public ArrayList<E621DownloadedImage> search(final int page, final int limit, SearchQuery query)
+	{
+		final String search_query = toSql(query);
+		
+		final GTFO<ArrayList<E621DownloadedImage>> ret = new GTFO<ArrayList<E621DownloadedImage>>();
+		ret.obj = new ArrayList<E621DownloadedImage>();
+		
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = getDB();
+				Cursor c = null;
+				
+				try
+				{
+					c = db.rawQuery("SELECT id, image_file, width, height FROM e621image WHERE " + search_query + " ORDER BY id LIMIT ? OFFSET ?;",new String[]{String.valueOf(limit),String.valueOf(limit*page)});
+					
+					if(c == null || !c.moveToFirst())
+					{
+						return;
+					}
+					
+					while(!c.isAfterLast())
+					{
+						ret.obj.add(new E621DownloadedImage(
+								c.getInt(c.getColumnIndex("id")),
+								c.getString(c.getColumnIndex("image_file")),
+								c.getInt(c.getColumnIndex("width")),
+								c.getInt(c.getColumnIndex("height"))
+							));
+						
+						c.moveToNext();
+					}
+				}
+				finally
+				{
+					if(c != null) c.close();
+					db.close();
+				}
+			}
+		});
+		
+		return ret.obj;
+	}
+
+	public Integer totalEntries(SearchQuery query)
+	{
+		final String search_query = toSql(query);
+		
+		final GTFO<Integer> ret = new GTFO<Integer>();
+		ret.obj = 0;
+		
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = getDB();
+				Cursor c = null;
+				
+				try
+				{
+					c = db.rawQuery("SELECT COUNT(1) AS c FROM e621image WHERE " + search_query + ";",null);
+					
+					if(c == null || !c.moveToFirst())
+					{
+						return;
+					}
+					
+					ret.obj = c.getInt(c.getColumnIndex("c"));
+				}
+				finally
+				{
+					if(c != null) c.close();
+					db.close();
+				}
+			}
+		});
+		
+		return ret.obj;
+	}
+	
+	public boolean hasFile(final E621Image img)
+	{
+		if(img == null) return false;
+		
+		final GTFO<Boolean> ret = new GTFO<Boolean>();
+		ret.obj = false;
+		
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = getDB();
+				Cursor c = null;
+				
+				try
+				{
+					
+					c = db.rawQuery("SELECT 1 FROM e621image WHERE id = ?", new String[]{String.valueOf(img.id)});
+					
+					ret.obj = (c != null && c.moveToFirst());
+				}
+				finally
+				{
+					if(c != null) c.close();
+					db.close();
+				}
+			}
+		});
+		
+		return ret.obj;
+	}
+	
+	private String getFileName(final E621Image img)
+	{
+		final GTFO<String> ret = new GTFO<String>();
+		ret.obj = null;
+		
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = getDB();
+				Cursor c = null;
+				
+				try
+				{
+					c = db.rawQuery("SELECT image_file FROM e621image WHERE id = ?", new String[]{String.valueOf(img.id)});
+					
+					if(c == null || !c.moveToFirst())
+					{
+						return;
+					}
+					
+					ret.obj = c.getString(c.getColumnIndex("image_file"));
+				}
+				finally
+				{
+					if(c != null) c.close();
+					db.close();
+				}
+			}
+		});
+		
+		return ret.obj;
+	}
+	
+	public InputStream getFile(final Integer id)
+	{
+		if(id == null)
+		{
+			return null;
+		}
+		
+		E621Image img = new E621Image();
+		img.id = id;
+		
+		return getFile(img);
+	}
+	
+	public InputStream getFile(final E621Image img)
+	{
+		if(img == null) return null;
+		
+		String file_name = getFileName(img);
+		
+		if(file_name != null)
+		{
+			return images.getFile(file_name);
+		}
+		else
+		{
+			return null;
+		}
+	}
+	
+	public void removeFile(final E621Image img)
+	{
+		if(img == null) return;
+		
+		final String file_name = getFileName(img);
+		
+		lock.writeAsync(new Runnable()
+		{
+			public void run()
+			{
+				if(file_name != null)
+				{
+					images.removeFile(file_name);
+				}
+				
+				SQLiteDatabase db = getDB();
+				
+				try
+				{
+					db.delete("image_tag", "image = ?", new String[]{String.valueOf(img.id)});
+					db.delete("e621image", "id = ?", new String[]{String.valueOf(img.id)});
+				}
+				finally
+				{
+					db.close();
+				}
+			}
+		});
+	}
+	
+	public void createOrUpdate(final E621Image img, final InputStream in, final String file_ext)
+	{
+		if(hasFile(img)) return;
+		
+		final String file_name = img.id + "." + file_ext;
+		
+		lock.writeAsync(new Runnable()
+		{
+			public void run()
+			{
+				images.createOrUpdate(file_name, in);
+				
+				SQLiteDatabase db = getDB();
+				
+				try
+				{
+					ContentValues values = new ContentValues();
+					values.put("id", img.id);
+					values.put("image_file", file_name);
+					values.put("rating", img.rating);
+					values.put("width", img.width);
+					values.put("height", img.height);
+					
+					db.insert("e621image", null, values);
+					
+					for(E621Tag tag : img.tags)
+					{
+						tag = tags.getTag(tag.getTag());
+						
+						if(tag != null)
+						{
+							values = new ContentValues();
+							values.put("image", img.id);
+							values.put("tag", tag.getId());
+							
+							db.insert("image_tag", null, values);
+						}
+					}
+				}
+				finally
+				{
+					db.close();
+				}
+			}
+		});
+	}
+	
+	public synchronized void updateMetadata(E621Middleware e621)
+	{
+		android.util.Log.i(E621Middleware.LOG_TAG,"Starting Tag sync");
+		updateTagBase(e621);
+		
+		android.util.Log.i(E621Middleware.LOG_TAG,"Starting Tag Alias sync");
+		updateTagAliasBase(e621);
+		
+		android.util.Log.i(E621Middleware.LOG_TAG,"Starting Image Tag sync");
+		updateImageTags(e621);
+		
+		android.util.Log.i(E621Middleware.LOG_TAG,"Sync completed");
+	}
+	
+	private void updateTagBase(E621Middleware e621)
+	{
+		Integer max_id = null;
+		
+		E621Tag max = tags.getMaxTag();
+		
+		if(max != null) max_id = max.getId();
+		
+		int page = 0;
+		ArrayList<E621Tag> tags;
+		
+		do
+		{
+			tags = e621.tag__index(10000,page,null,null,max_id,null,null);
+			
+			this.tags.addTag((E621Tag[])tags.toArray(new E621Tag[tags.size()]));
+			
+			page++;
+		}
+		while(tags.size() == 10000);
+	}
+	
+	private void updateTagAliasBase(final E621Middleware e621)
+	{
+		Integer max_id = null;
+		
+		E621TagAlias max = tags.getMaxTagAlias();
+		
+		if(max != null) max_id = max.alias_id;
+		
+		boolean stop = false;
+		int page = 0;
+		final int steps = 10;
+		
+		while(!stop)
+		{
+			ArrayList<Thread> threads = new ArrayList<Thread>();
+			final ArrayList<ArrayList<E621TagAlias>> rets = new ArrayList<ArrayList<E621TagAlias>>();
+			
+			final int ppage = page;
+			
+			for(int i=0; i<steps; i++)
+			{
+				final int delta = i;
+				
+				Thread t = new Thread(new Runnable()
+				{
+					public void run()
+					{
+						rets.add(e621.tag_alias__index(true, "date", ppage*steps + delta));
+					}
+				});
+				
+				t.start();
+				
+				threads.add(t);
+			}
+			
+			for(Thread t : threads)
+			{
+				try {
+					t.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					Thread.currentThread().interrupt();
+				}
+			}
+			
+			if(rets.size() == 0)
+			{
+				stop = true;
+			}
+			
+			for(ArrayList<E621TagAlias> aliases : rets)
+			{
+				if(aliases.size() == 0) stop = true;
+				
+				for(E621TagAlias alias : aliases)
+				{
+					if(alias.id <= max_id)
+					{
+						stop=true;
+					}
+				}
+				
+				tags.addTagAlias((E621TagAlias[])aliases.toArray(new E621TagAlias[aliases.size()]));
+			}
+			
+			page++;
+		}
+	}
+	
+	private void updateImageTags(final E621Middleware e621)
+	{
+		final ArrayList<Integer> cur_ids = new ArrayList<Integer>();
+		
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = getDB();
+				Cursor c = null;
+				
+				try
+				{
+					c = db.rawQuery("SELECT id FROM e621image ORDER BY id;", null);
+					
+					if(c == null || !c.moveToFirst())
+					{
+						return;
+					}
+					
+					while(!c.isAfterLast())
+					{
+						cur_ids.add(c.getInt(c.getColumnIndex("id")));
+						
+						c.moveToNext();
+					}
+				}
+				finally
+				{
+					if(c != null) c.close();
+					db.close();
+				}
+			}
+		});
+		
+		final List<E621Image> images = Collections.synchronizedList(new ArrayList<E621Image>());
+		
+		int steps = 50;
+		
+		while(cur_ids.size() > 0)
+		{
+			ArrayList<Thread> threads = new ArrayList<Thread>();
+			
+			for(int i=0; i<50 && cur_ids.size() > i; i++)
+			{
+				final int id = cur_ids.get(i);
+				
+				Thread t = new Thread(new Runnable()
+				{
+					public void run()
+					{
+						try {
+							images.add(e621.post__show(id));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				});
+				
+				t.start();
+				
+				threads.add(t);
+			}
+			
+			for(Thread t : threads)
+			{
+				try {
+					t.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					Thread.currentThread().interrupt();
+				}
+			}
+			
+			cur_ids.subList(0, Math.min(cur_ids.size(),steps)).clear();
+		}
+		
+		final HashMap<String,Integer> tag_map = tags.getAllTagsAsHashMap();
+		
+		lock.write(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = getDB();
+				db.beginTransaction();
+				
+				try
+				{
+					for(E621Image img : images)
+					{
+						Log.d(E621Middleware.LOG_TAG,"Image: " + img.id);
+						
+						for(E621Tag tag : img.tags)
+						{
+							if(!tag_map.containsKey(tag.getTag()))
+							{
+								continue;
+							}
+							
+							ContentValues values = new ContentValues();
+							values.put("image", img.id);
+							values.put("tag", tag_map.get(tag.getTag()));
+							
+							db.insert("image_tag", null, values);
+						}
+					}
+					
+					db.setTransactionSuccessful();
+				}
+				finally
+				{
+					db.endTransaction();
+					db.close();
+				}
+			}
+		});
+	}
+}

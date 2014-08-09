@@ -33,20 +33,20 @@ public class SearchContinueActivity extends SearchActivity
 		{
 			if(min_id != null)
 			{
-				min_id = (Integer.parseInt(min_id) < ids.min_id ? min_id : String.valueOf(ids.min_id));
+				min_id = Math.min(min_id, ids.min_id);
 			}
 			else
 			{
-				min_id = String.valueOf(ids.min_id);
+				min_id = ids.min_id;
 			}
 			
 			if(max_id != null)
 			{
-				max_id = (Integer.parseInt(max_id) > ids.max_id ? max_id : String.valueOf(ids.max_id));
+				max_id = Math.max(max_id,ids.max_id);
 			}
 			else
 			{
-				max_id = String.valueOf(ids.max_id);
+				max_id = ids.max_id;
 			}
 		}
 	}

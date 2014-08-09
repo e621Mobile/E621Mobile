@@ -172,7 +172,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 				
 				if(images.size() > 0)
 				{
-					InputStream in = e621.getDownloadedImage(images.get(0).filename);
+					InputStream in = e621.getDownloadedImage(images.get(0).id);
 			    	Message msg = handler.obtainMessage();
 			    	msg.obj = in;
 			    	

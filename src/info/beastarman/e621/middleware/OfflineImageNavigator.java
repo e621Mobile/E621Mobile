@@ -49,12 +49,12 @@ public class OfflineImageNavigator implements ImageNavigator
 	}
 	
 	@Override
-	public String getId() {
+	public Integer getId() {
 		return img.getId();
 	}
 	
 	public String toString()
 	{
-		return getId();
+		return String.valueOf(getId());
 	}
 }

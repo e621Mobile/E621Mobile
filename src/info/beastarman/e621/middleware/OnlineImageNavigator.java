@@ -137,12 +137,12 @@ public class OnlineImageNavigator implements ImageNavigator
 	}
 
 	@Override
-	public String getId() {
-		return img.id + "." + img.file_ext;
+	public Integer getId() {
+		return img.id;
 	}
 
 	public String toString()
 	{
-		return getId();
+		return String.valueOf(getId());
 	}
 }

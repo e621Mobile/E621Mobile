@@ -209,7 +209,7 @@ public class DownloadsActivity extends BaseActivity
 
 				for (E621DownloadedImage img : downloads)
 				{
-					String id = img.filename;
+					Integer id = img.getId();
 					
 					ImageView imgView = new ImageView(getApplicationContext());
 					RelativeLayout rel = new RelativeLayout(getApplicationContext());
@@ -302,9 +302,9 @@ public class DownloadsActivity extends BaseActivity
 	private class ImageLoadRunnable implements Runnable
 	{
 		ImageViewHandler handler;
-		String id;
+		Integer id;
 		
-		public ImageLoadRunnable(ImageViewHandler handler, String id)
+		public ImageLoadRunnable(ImageViewHandler handler, Integer id)
 		{
 			this.handler = handler;
 			this.id = id;

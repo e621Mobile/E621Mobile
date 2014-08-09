@@ -649,7 +649,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		{
 			public void run()
 			{
-				final E621Vote v = e621.post__vote(Integer.parseInt(e621Image.id), true);
+				final E621Vote v = e621.post__vote(e621Image.id, true);
 				
 				if(v != null && v.success)
 				{
@@ -692,7 +692,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		{
 			public void run()
 			{
-				final E621Vote v = e621.post__vote(Integer.parseInt(e621Image.id), false);
+				final E621Vote v = e621.post__vote(e621Image.id, false);
 				
 				if(v != null && v.success)
 				{
@@ -1154,7 +1154,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 			@Override
 			public void run()
 			{
-				final Boolean ret = e621.post_favorite(Integer.parseInt(e621Image.id), !is_faved);
+				final Boolean ret = e621.post_favorite(e621Image.id, !is_faved);
 				
 				if(ret != null)
 				{

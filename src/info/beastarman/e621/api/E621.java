@@ -53,13 +53,13 @@ public class E621
 		return instance;
 	}
 	
-	public E621Image post__show(String id) throws IOException
+	public E621Image post__show(Integer id) throws IOException
 	{
 		String base = String.format("%s/post/show.json?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
-		params.add(new BasicNameValuePair("id", id));
+		params.add(new BasicNameValuePair("id", String.valueOf(id)));
 		
 		base += URLEncodedUtils.format(params, "utf-8");
 		

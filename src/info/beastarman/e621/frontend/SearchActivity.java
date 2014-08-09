@@ -53,11 +53,11 @@ public class SearchActivity extends BaseActivity
 	public int page = 0;
 	public int limit = 20;
 
-	public String min_id = null;
-	public String max_id = null;
+	public Integer min_id = null;
+	public Integer max_id = null;
 
-	public String cur_min_id = null;
-	public String cur_max_id = null;
+	public Integer cur_min_id = null;
+	public Integer cur_max_id = null;
 	
 	public Integer previous_page = null;
 
@@ -80,8 +80,11 @@ public class SearchActivity extends BaseActivity
 		page = getIntent().getIntExtra(SearchActivity.PAGE, 0);
 		limit = getIntent().getIntExtra(SearchActivity.LIMIT, 20);
 
-		cur_min_id = min_id = getIntent().getStringExtra(SearchActivity.MIN_ID);
-		cur_max_id = max_id = getIntent().getStringExtra(SearchActivity.MAX_ID);
+		min_id = getIntent().getIntExtra(SearchActivity.MIN_ID,-1);
+		max_id = getIntent().getIntExtra(SearchActivity.MAX_ID,-1);
+		
+		cur_min_id = (min_id==-1?null:min_id);
+		cur_max_id = (max_id==-1?null:max_id);
 		
 		previous_page = getIntent().getIntExtra(SearchActivity.PREVIOUS_PAGE, -666);
 		if(previous_page<0) previous_page = null;
@@ -206,7 +209,7 @@ public class SearchActivity extends BaseActivity
 			@Override
 			public void run()
 			{
-				e621.continue_later(SearchQuery.normalize(search), min_id, max_id);
+				e621.continue_later(SearchQuery.normalize(search), String.valueOf(min_id), String.valueOf(max_id));
 			}
 		}).start();
 		
@@ -221,7 +224,7 @@ public class SearchActivity extends BaseActivity
 			@Override
 			public void run()
 			{
-				e621.continue_later(SearchQuery.normalize(search), cur_min_id, cur_max_id);
+				e621.continue_later(SearchQuery.normalize(search), String.valueOf(cur_min_id), String.valueOf(cur_max_id));
 			}
 		}).start();
 		
@@ -500,7 +503,7 @@ public class SearchActivity extends BaseActivity
 	{
 		if(cur_min_id != null)
 		{
-			cur_min_id = String.valueOf(Math.min(Integer.parseInt(cur_min_id), Integer.parseInt(img.id)));
+			cur_min_id = Math.min(cur_min_id, img.id);
 		}
 		else
 		{
@@ -509,7 +512,7 @@ public class SearchActivity extends BaseActivity
 
 		if(cur_max_id != null)
 		{
-			cur_max_id = String.valueOf(Math.max(Integer.parseInt(cur_max_id), Integer.parseInt(img.id)));
+			cur_max_id = Math.max(cur_max_id, img.id);
 		}
 		else
 		{
