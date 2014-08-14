@@ -8,6 +8,8 @@ import info.beastarman.e621.middleware.E621DownloadedImage;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
 import info.beastarman.e621.middleware.ImageViewHandler;
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -26,6 +28,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -113,9 +116,7 @@ public class SlideMenuBaseActivity extends BaseActivity
                 {
                 	public void run()
                 	{
-                		Log.d(E621Middleware.LOG_TAG,"A..");
-                		
-		                for(final InterruptedSearch search : saved_searches)
+                		for(final InterruptedSearch search : saved_searches)
 		                {
 		                	View row = getSearchItemView(search);
 		                	saved_search_container.addView(row);
@@ -125,8 +126,6 @@ public class SlideMenuBaseActivity extends BaseActivity
 		                	
 		                	row.setTag(R.id.hr, hr);
 		                }
-		                
-		                Log.d(E621Middleware.LOG_TAG,"..B");
                 	}
                 });
                 
@@ -292,6 +291,22 @@ public class SlideMenuBaseActivity extends BaseActivity
 	{
 		RelativeLayout view_container= (RelativeLayout) findViewById(R.id.view_container);
         getLayoutInflater().inflate(layoutResID, view_container, true);
+        
+        view_container.post(new Runnable()
+        {
+        	public void run()
+        	{
+        		View arrow = findViewById(R.id.sidebar_arrow);
+        		
+        		if(e621.isFirstRun() && arrow!=null)
+        		{
+        			arrow.setVisibility(View.VISIBLE);
+        			
+        			Animation animation = AnimationUtils.loadAnimation(SlideMenuBaseActivity.this, R.anim.alpha_glow);
+        			arrow.startAnimation(animation);
+        		}
+        	}
+        });
 	}
 	
 	@Override
@@ -468,6 +483,10 @@ public class SlideMenuBaseActivity extends BaseActivity
 	
 	public void open_sidemenu()
 	{
+		View arrow = findViewById(R.id.sidebar_arrow);
+		arrow.clearAnimation();
+		arrow.setVisibility(View.GONE);
+		
 		final FrameLayout wrapper = (FrameLayout) findViewById(R.id.sidemenu_wrapper);
 		final LinearLayout sidemenu = (LinearLayout) findViewById(R.id.sidemenu);
 		final FrameLayout close_sidemenu_area = (FrameLayout) findViewById(R.id.close_sidemenu_area);

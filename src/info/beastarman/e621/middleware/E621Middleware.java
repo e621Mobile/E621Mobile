@@ -106,6 +106,8 @@ public class E621Middleware extends E621
 	private String login = null;
 	private String password_hash = null;
 	
+	private Boolean firstRun = null;
+	
 	public static final String LOG_TAG = "E621MobileLogging";
 	
 	Context ctx;
@@ -284,6 +286,9 @@ public class E621Middleware extends E621
 			login = savedLogin;
 			password_hash = savedPasswordHash;
 		}
+		
+		if(firstRun == null) firstRun = settings.getBoolean("firstRun",true);
+		settings.edit().putBoolean("firstRun",false).commit();
 	}
 	
 	@Override
@@ -315,6 +320,11 @@ public class E621Middleware extends E621
 	public int getFileDownloadSize()
 	{
 		return settings.getInt("prefferedFileDownloadSize", E621Image.SAMPLE);
+	}
+	
+	public boolean isFirstRun()
+	{
+		return firstRun;
 	}
 	
 	@Override
