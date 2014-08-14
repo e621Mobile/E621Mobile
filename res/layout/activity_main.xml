@@ -18,13 +18,14 @@
             android:id="@+id/frameLayout1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/linearLayout2" >
+            android:layout_above="@+id/mascot_area" >
 
             <ImageView
                 android:id="@+id/mascot"
                 android:layout_width="match_parent"
                 android:layout_height="9001dp"
                 android:layout_gravity="center"
+                android:layout_marginTop="0dp"
                 android:src="@drawable/mascot0" />
 
             <FrameLayout
@@ -46,7 +47,7 @@
                     android:id="@+id/linearLayout1"
                     android:layout_width="fill_parent"
                     android:layout_height="140dp"
-                    android:layout_marginBottom="200dp"
+                    android:layout_marginBottom="0dp"
                     android:background="#10FFFFFF"
                     android:gravity="center"
                     android:orientation="vertical" >
@@ -97,7 +98,7 @@
         <LinearLayout
             android:id="@+id/mascot_area"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="80dp"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true"
