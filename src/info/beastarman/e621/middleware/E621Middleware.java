@@ -61,6 +61,7 @@ import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 public class E621Middleware extends E621
 {
@@ -145,7 +146,7 @@ public class E621Middleware extends E621
 		return getInstance(null);
 	}
 	
-	public static E621Middleware getInstance(Context ctx)
+	public static synchronized E621Middleware getInstance(Context ctx)
 	{
 		if(instance == null)
 		{
@@ -1312,7 +1313,7 @@ public class E621Middleware extends E621
 					continue_cache.put(new Pair<String,Integer>(search,second_page), second);
 				}
 				
-				first_images.addAll(second.images.subList(0, limit - first_images.size()));
+				first_images.addAll(second.images.subList(0, Math.min(second.images.size(),limit - first_images.size())));
 				
 				return new E621Search(
 						first_images,
@@ -1334,6 +1335,11 @@ public class E621Middleware extends E621
 	public E621Tag getTag(String name)
 	{
 		return download_manager.getTag(name);
+	}
+	
+	public ArrayList<E621Tag> getTags(String[] names)
+	{
+		return download_manager.getTags(names);
 	}
 	
 	private class FailedDownloadManager

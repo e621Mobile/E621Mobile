@@ -6,6 +6,7 @@ import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import android.content.ContentValues;
@@ -192,6 +193,55 @@ public class E621TagDatabase
 		});
 		
 		return ret.obj;
+	}
+	
+	public ArrayList<E621Tag> getTags(final String[] names)
+	{
+		final ArrayList<E621Tag> ret = new ArrayList<E621Tag>();
+		
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = getDB();
+				Cursor c = null;
+				
+				try
+				{
+					String query = "SELECT name, id, type FROM tag WHERE name = ?";
+					
+					int i = names.length - 1;
+					
+					while(i>0)
+					{
+						query += " OR name = ?";
+						
+						i--;
+					}
+					
+					c = db.rawQuery(query, names);
+					
+					if(c == null || !c.moveToFirst())
+					{
+						return;
+					}
+					
+					while(!c.isAfterLast())
+					{
+						ret.add(new E621Tag(c.getString(c.getColumnIndex("name")), c.getInt(c.getColumnIndex("id")), null, c.getInt(c.getColumnIndex("type")), null));
+						
+						c.moveToNext();
+					}
+				}
+				finally
+				{
+					if(c != null) c.close();
+					db.close();
+				}
+			}
+		});
+		
+		return ret;
 	}
 	
 	public E621Tag getTag(final Integer id)

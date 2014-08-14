@@ -67,7 +67,7 @@
                         android:id="@+id/tags"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tags ▼"
+                        android:text="@string/loading_tags"
                         android:textAppearance="?android:attr/textAppearanceMedium"
                         android:textColor="@color/white" />
                 </RelativeLayout>
@@ -75,7 +75,7 @@
                 <FrameLayout
                     android:id="@+id/tagFrame"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_below="@id/tagsToggle" >
 
                     <LinearLayout

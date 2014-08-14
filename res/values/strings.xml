@@ -33,5 +33,8 @@
     <string name="change_mascot">Change mascot</string>
     <string name="send_error_report">Send Error Report</string>
     <string name="get_full_image">Get full image</string>
+    <string name="tags_dropdown">Tags ▼</string>
+    <string name="loading">Loading</string>
+    <string name="loading_tags">Loading tags</string>
 
 </resources>

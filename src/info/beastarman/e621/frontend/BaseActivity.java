@@ -25,6 +25,20 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	    return px;
 	}
 	
+	private String safeObjToStr(Object obj)
+	{
+		if(obj == null) return "null";
+		
+		return obj.toString();
+	}
+	
+	private String safeObjToClassName(Object obj)
+	{
+		if(obj == null) return "null";
+		
+		return obj.getClass().getName();
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -42,14 +56,18 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 				for(String key : keys)
 				{
 					Object value = bundle.get(key);
-					Log.i(E621Middleware.LOG_TAG, "\t" + key + ": <" + value.toString() + "> from class <" + value.getClass().getName() + ">");
+					Log.i(E621Middleware.LOG_TAG, "\t" + key + ": <" + safeObjToStr(value) + "> from class <" + safeObjToClassName(value) + ">");
 				}
 			}
 		}
 		
 		super.onCreate(savedInstanceState);
 		
+		Log.d(E621Middleware.LOG_TAG,"Creating e621...");
+		
 		e621 = E621Middleware.getInstance(getApplicationContext());
+		
+		Log.d(E621Middleware.LOG_TAG,"...e621 created");
 		
 		Thread.setDefaultUncaughtExceptionHandler(this);
 	}

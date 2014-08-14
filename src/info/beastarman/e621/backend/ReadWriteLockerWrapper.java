@@ -45,9 +45,17 @@ public class ReadWriteLockerWrapper
 	{
 		try
 		{
-			lock.writeLock().lock();
+			while(!lock.writeLock().tryLock())
+			{
+				Thread.sleep(1000);
+			}
 			
 			run.run();
+		}
+		catch (InterruptedException e)
+		{
+			Thread.currentThread().interrupt();
+			e.printStackTrace();
 		}
 		finally
 		{
@@ -63,9 +71,17 @@ public class ReadWriteLockerWrapper
 			{
 				try
 				{
-					lock.writeLock().lock();
+					while(!lock.writeLock().tryLock())
+					{
+						Thread.sleep(1000);
+					}
 					
 					run.run();
+				}
+				catch (InterruptedException e)
+				{
+					Thread.currentThread().interrupt();
+					e.printStackTrace();
 				}
 				finally
 				{

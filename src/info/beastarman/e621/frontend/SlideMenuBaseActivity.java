@@ -100,27 +100,46 @@ public class SlideMenuBaseActivity extends BaseActivity
         drawerParams.width = 0;
         wrapper.setLayoutParams(drawerParams);
         
-        saved_searches = e621.getAllSearches();
-        LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
+        final LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
         saved_search_container.removeAllViews();
         
-        for(final InterruptedSearch search : saved_searches)
+        new Thread(new Runnable()
         {
-        	View row = getSearchItemView(search);
-        	saved_search_container.addView(row);
-        	
-        	View hr = getLayoutInflater().inflate(R.layout.hr, saved_search_container, false);
-        	saved_search_container.addView(hr);
-        	
-        	row.setTag(R.id.hr, hr);
-        }
-        
-        if(saved_searches.size() == 0)
-        {
-        	TextView continue_search_label = (TextView) findViewById(R.id.continue_search_label);
-        	
-        	continue_search_label.setTextColor(getResources().getColor(R.color.gray));
-        }
+        	public void run()
+        	{
+        		saved_searches = e621.getAllSearches();
+        		
+        		runOnUiThread(new Runnable()
+                {
+                	public void run()
+                	{
+		                for(final InterruptedSearch search : saved_searches)
+		                {
+		                	View row = getSearchItemView(search);
+		                	saved_search_container.addView(row);
+		                	
+		                	View hr = getLayoutInflater().inflate(R.layout.hr, saved_search_container, false);
+		                	saved_search_container.addView(hr);
+		                	
+		                	row.setTag(R.id.hr, hr);
+		                }
+                	}
+                });
+                
+                if(saved_searches.size() == 0)
+                {
+                	final TextView continue_search_label = (TextView) findViewById(R.id.continue_search_label);
+                	
+                	runOnUiThread(new Runnable()
+                	{
+                		public void run()
+                		{
+                			continue_search_label.setTextColor(getResources().getColor(R.color.gray));
+                		}
+                	});
+                }
+        	}
+        }).start();
         
         loginout_front();
 	}

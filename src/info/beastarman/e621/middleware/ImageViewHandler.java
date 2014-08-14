@@ -3,6 +3,7 @@ package info.beastarman.e621.middleware;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.Semaphore;
 
 import org.apache.commons.io.IOUtils;
 
@@ -17,6 +18,8 @@ public class ImageViewHandler extends ImageHandler
 {
 	public ImageView imgView;
 	public DisplayMetrics dm;
+	
+	private static Semaphore s = new Semaphore(3);
 	
 	public ImageViewHandler(ImageView imgView, View loader)
 	{
@@ -46,6 +49,12 @@ public class ImageViewHandler extends ImageHandler
         	scale*=2;
         }
         
+        try {
+			s.acquire();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+        
         //Decode with inSampleSize
         BitmapFactory.Options o2 = new BitmapFactory.Options();
         o2.inSampleSize=scale;
@@ -54,6 +63,8 @@ public class ImageViewHandler extends ImageHandler
         Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
         
         bitmap_temp.recycle();
+        
+        s.release();
         
         return ret;
 	}

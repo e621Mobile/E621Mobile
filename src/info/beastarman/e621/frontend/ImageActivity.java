@@ -112,20 +112,6 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	}
 	
 	@Override
-	protected void onPause()
-	{
-		//overridePendingTransition(R.anim.hold, R.anim.pull_out_to_left);
-        super.onPause();
-    }
-	
-	@Override
-	public void onResume()
-	{
-		//this.overridePendingTransition(R.anim.pull_in_from_left, R.anim.hold);
-		super.onResume();
-	}
-	
-	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
@@ -183,15 +169,21 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        @Override
 	        public void run() 
 	        {
+	        	Log.d(E621Middleware.LOG_TAG,"A..");
+	        	
 	        	retrieveVote();
 	        	retrieveFav();
 	        	retrieveComments();
+	        	
+	        	Log.d(E621Middleware.LOG_TAG,"..B..");
 	        	
 	        	if(e621.isSaved(e621Image))
 	        	{
 	        		ImageButton button = (ImageButton)findViewById(R.id.downloadButton);
 	        		button.setImageResource(android.R.drawable.ic_menu_delete);
 	        	}
+	        	
+	        	Log.d(E621Middleware.LOG_TAG,"..C..");
 	        	
 	        	ImageView imgView = (ImageView)findViewById(R.id.imageWrapper);
 	        	
@@ -283,60 +275,79 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        		findViewById(R.id.progressBarLoader).setVisibility(View.GONE);
 	        	}
 	        	
-	        	int i=0;
-	        	
-	        	for(i=0; i<e621Image.tags.size(); i++)
+	        	new Thread(new Runnable()
 	        	{
-	        		E621Tag temp = e621.getTag(e621Image.tags.get(i).getTag());
-	        		
-	        		if(temp != null)
+	        		public void run()
 	        		{
-	        			e621Image.tags.set(i, temp);
-	        		}
-	        	}
-	        	
-	        	fillTags(e621Image.tags);
-	        	
-	        	final FrameLayout tagFrame = (FrameLayout) findViewById(R.id.tagFrame);
-	        	ViewGroup.LayoutParams params = tagFrame.getLayoutParams();
-	        	params.height=0;
-	        	tagFrame.setLayoutParams(params);
-	        	
-	        	tagFrame.post(new Runnable()
-	        	{
-	        		@Override
-					public void run()
-	        		{
-	        			View tagsToggle = findViewById(R.id.tagsToggle);
-	        			tagsToggle.setOnClickListener(new OnClickListener()
+	        			int i=0;
+	        			
+	        			String[] tag_names = new String[e621Image.tags.size()];
+	        			
+	        			for(i=0; i<e621Image.tags.size(); i++)
+	        			{
+	        				tag_names[i] = e621Image.tags.get(i).getTag();
+	        			}
+	        			
+	        			e621Image.tags = e621.getTags(tag_names);
+	    	        	
+	    	        	runOnUiThread(new Runnable()
 	    	        	{
-	    	        		@Override
-	    					public void onClick(View arg0)
+	    	        		public void run()
 	    	        		{
-	    	        			toogleTags();
-	    					}
+	    	        			fillTags(e621Image.tags);
+	    	        		}
 	    	        	});
-					}
-	        	});
-	        	
-	        	String artists = "";
-	    		
-	    		for(E621Tag t : e621Image.tags)
-	    		{
-	    			if(t.type == E621Tag.ARTIST)
-	    			{
-	    				if(artists.length() == 0)
-	    				{
-	    					artists += ": " + t.getTag();
-	    				}
-	    				else
-	    				{
-	    					artists += ", " + t.getTag();
-	    				}
-	    			}
-	    		}
-	    		
-	    		setTitle("#" + e621Image.id + artists);
+	    	        	
+	    	        	String artists = "";
+	    	    		
+	    	    		for(E621Tag t : e621Image.tags)
+	    	    		{
+	    	    			if(t.type == E621Tag.ARTIST)
+	    	    			{
+	    	    				if(artists.length() == 0)
+	    	    				{
+	    	    					artists += ": " + t.getTag();
+	    	    				}
+	    	    				else
+	    	    				{
+	    	    					artists += ", " + t.getTag();
+	    	    				}
+	    	    			}
+	    	    		}
+	    	    		
+	    	    		final String new_title = "#" + e621Image.id + artists;
+	    	    		
+	    	    		runOnUiThread(new Runnable()
+	    	        	{
+	    	        		public void run()
+	    	        		{
+	    	        			setTitle(new_title);
+	    	        			
+	    	        			final FrameLayout tagFrame = (FrameLayout) findViewById(R.id.tagFrame);
+	    	    	        	
+	    	    	        	tagFrame.post(new Runnable()
+	    	    	        	{
+	    	    	        		@Override
+	    	    					public void run()
+	    	    	        		{
+	    	    	        			View tagsToggle = findViewById(R.id.tagsToggle);
+	    	    	        			tagsToggle.setOnClickListener(new OnClickListener()
+	    	    	    	        	{
+	    	    	    	        		@Override
+	    	    	    					public void onClick(View arg0)
+	    	    	    	        		{
+	    	    	    	        			toogleTags();
+	    	    	    					}
+	    	    	    	        	});
+	    	    					}
+	    	    	        	});
+	    	    	        	
+	    	    	        	TextView tags_label = (TextView) findViewById(R.id.tags);
+	    	    	        	tags_label.setText(R.string.tags_dropdown);
+	    	        		}
+	    	        	});
+	        		}
+	        	}).start();
 	        }
 	    });
 		

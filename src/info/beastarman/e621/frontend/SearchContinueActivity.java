@@ -72,10 +72,13 @@ public class SearchContinueActivity extends SearchActivity
 	{
 		if (page > 0)
 		{
+			if(e621Search == null) return;
+			
 			if(e621Search != null && !e621Search.has_prev_page())
 			{
 				return;
 			}
+			
 			Intent intent = new Intent(this, SearchContinueActivity.class);
 			intent.putExtra(SearchActivity.SEARCH, search);
 			intent.putExtra(SearchActivity.PAGE, page - 1);
@@ -89,6 +92,8 @@ public class SearchContinueActivity extends SearchActivity
 	@Override
 	public void next(View view)
 	{
+		if(e621Search == null) return;
+		
 		if(e621Search != null && !e621Search.has_next_page())
 		{
 			return;

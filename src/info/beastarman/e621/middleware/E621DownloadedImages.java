@@ -90,6 +90,11 @@ public class E621DownloadedImages
 		return tags.getTag(name);
 	}
 	
+	public ArrayList<E621Tag> getTags(String[] names)
+	{
+		return tags.getTags(names);
+	}
+	
 	private String toSql(SearchQuery sq)
 	{
 		String sql = " 1 ";

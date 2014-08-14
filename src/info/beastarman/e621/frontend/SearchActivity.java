@@ -83,8 +83,8 @@ public class SearchActivity extends BaseActivity
 		min_id = getIntent().getIntExtra(SearchActivity.MIN_ID,-1);
 		max_id = getIntent().getIntExtra(SearchActivity.MAX_ID,-1);
 		
-		cur_min_id = (min_id==-1?null:min_id);
-		cur_max_id = (max_id==-1?null:max_id);
+		cur_min_id = min_id = (min_id==-1?null:min_id);
+		cur_max_id = max_id = (max_id==-1?null:max_id);
 		
 		previous_page = getIntent().getIntExtra(SearchActivity.PREVIOUS_PAGE, -666);
 		if(previous_page<0) previous_page = null;
@@ -686,6 +686,8 @@ public class SearchActivity extends BaseActivity
 	{
 		if (page > 0)
 		{
+			if(e621Search == null) return;
+			
 			if(e621Search != null && !e621Search.has_prev_page())
 			{
 				return;
@@ -711,6 +713,8 @@ public class SearchActivity extends BaseActivity
 
 	public void next(View view)
 	{
+		if(e621Search == null) return;
+		
 		if(e621Search != null && !e621Search.has_next_page())
 		{
 			return;
