@@ -1,11 +1,9 @@
 package info.beastarman.e621.frontend;
 
 import info.beastarman.e621.R;
-import info.beastarman.e621.middleware.E621Middleware;
 import android.net.Uri;
 import android.os.Bundle;
 import android.content.Intent;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,25 +29,15 @@ public class MainActivity extends SlideMenuBaseActivity
 	@Override
     protected void onCreate(Bundle savedInstanceState)
 	{
-		Log.d(E621Middleware.LOG_TAG,"Creating...");
-		
-        super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
-        Log.d(E621Middleware.LOG_TAG,"...Created");
     }
 	
 	protected void onStart()
 	{
-		Log.d(E621Middleware.LOG_TAG,"Starting...");
-		
 		super.onStart();
 		
-		Log.d(E621Middleware.LOG_TAG,"...");
-		
 		change_mascot();
-		
-		Log.d(E621Middleware.LOG_TAG,"...Started");
 	}
 
     @Override

@@ -2,7 +2,9 @@ package info.beastarman.e621.frontend;
 
 import info.beastarman.e621.middleware.E621Middleware;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Set;
 
@@ -10,9 +12,14 @@ import org.apache.commons.io.IOUtils;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.widget.ImageView;
 
 public class BaseActivity extends Activity implements UncaughtExceptionHandler
 {
@@ -63,11 +70,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		
 		super.onCreate(savedInstanceState);
 		
-		Log.d(E621Middleware.LOG_TAG,"Creating e621...");
-		
 		e621 = E621Middleware.getInstance(getApplicationContext());
-		
-		Log.d(E621Middleware.LOG_TAG,"...e621 created");
 		
 		Thread.setDefaultUncaughtExceptionHandler(this);
 	}
@@ -160,5 +163,71 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		Log.e(E621Middleware.LOG_TAG,Log.getStackTraceString(e));
 		
 		uncaughtException();
+	}
+	
+	private Bitmap decodeFile(InputStream in, int width, int height)
+	{
+		byte[] data;
+		
+		try {
+			data = IOUtils.toByteArray(in);
+		} catch (IOException e) {
+			return null;
+		}
+		
+        //Decode image size
+        BitmapFactory.Options o = new BitmapFactory.Options();
+        o.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(new ByteArrayInputStream(data),null,o);
+
+        //Find the correct scale value. It should be the power of 2.
+        int scale=1;
+        while(o.outWidth/scale/2>=width && o.outHeight/scale/2>=height)
+        {
+        	scale*=2;
+        }
+        
+        //Decode with inSampleSize
+        BitmapFactory.Options o2 = new BitmapFactory.Options();
+        o2.inSampleSize=scale;
+        Bitmap bitmap_temp = BitmapFactory.decodeStream(new ByteArrayInputStream(data), null, o2);
+        
+        Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+        
+        bitmap_temp.recycle();
+        
+        return ret;
+	}
+	
+	public void drawInputStreamToImageView(final InputStream in, final ImageView imgView)
+	{
+		final ImageViewHandler handler = new ImageViewHandler(imgView);
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				Bitmap bitmap = decodeFile(in, imgView.getLayoutParams().width, imgView.getLayoutParams().height);
+				
+				Message msg = handler.obtainMessage();
+		    	msg.obj = bitmap;
+		    	handler.sendMessage(msg);
+			}
+		}).start();
+	}
+	
+	private static class ImageViewHandler extends Handler
+	{
+		private ImageView imgView;
+		
+		public ImageViewHandler(ImageView imgView)
+		{
+			this.imgView = imgView;
+		}
+		
+		public void handleMessage(Message msg)
+		{
+			this.imgView.setImageBitmap((Bitmap)msg.obj);
+		}
 	}
 }

@@ -27,7 +27,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -133,8 +132,6 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	
 	public void force_full_size()
 	{
-		Log.d(E621Middleware.LOG_TAG,"force_full_size");
-		
 		ImageView imageWrapper = (ImageView) findViewById(R.id.imageWrapper);
 		View progressBarLoader = findViewById(R.id.progressBarLoader);
 		
@@ -169,21 +166,15 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        @Override
 	        public void run() 
 	        {
-	        	Log.d(E621Middleware.LOG_TAG,"A..");
-	        	
 	        	retrieveVote();
 	        	retrieveFav();
 	        	retrieveComments();
-	        	
-	        	Log.d(E621Middleware.LOG_TAG,"..B..");
 	        	
 	        	if(e621.isSaved(e621Image))
 	        	{
 	        		ImageButton button = (ImageButton)findViewById(R.id.downloadButton);
 	        		button.setImageResource(android.R.drawable.ic_menu_delete);
 	        	}
-	        	
-	        	Log.d(E621Middleware.LOG_TAG,"..C..");
 	        	
 	        	ImageView imgView = (ImageView)findViewById(R.id.imageWrapper);
 	        	

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621DownloadedImage;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import android.app.AlertDialog;
@@ -13,6 +14,7 @@ import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Message;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -65,8 +67,13 @@ public class SlideMenuBaseActivity extends BaseActivity
         };
         
         fullLayout.setOnTouchListener(gestureListener);
-        
-        fullLayout.post(new Runnable()
+    }
+	
+	protected void onStart()
+	{
+		super.onStart();
+		
+		getWindow().getDecorView().post(new Runnable()
         {
         	@Override
 			public void run()
@@ -74,13 +81,6 @@ public class SlideMenuBaseActivity extends BaseActivity
         		update_sidebar();
 			}
         });
-    }
-	
-	protected void onStart()
-	{
-		super.onStart();
-		
-		update_sidebar();
 	}
 	
 	protected void onStop()
@@ -113,6 +113,8 @@ public class SlideMenuBaseActivity extends BaseActivity
                 {
                 	public void run()
                 	{
+                		Log.d(E621Middleware.LOG_TAG,"A..");
+                		
 		                for(final InterruptedSearch search : saved_searches)
 		                {
 		                	View row = getSearchItemView(search);
@@ -123,6 +125,8 @@ public class SlideMenuBaseActivity extends BaseActivity
 		                	
 		                	row.setTag(R.id.hr, hr);
 		                }
+		                
+		                Log.d(E621Middleware.LOG_TAG,"..B");
                 	}
                 });
                 
@@ -172,15 +176,13 @@ public class SlideMenuBaseActivity extends BaseActivity
 				dpToPx(36));
 		row.setLayoutParams(params);
 		
-		ImageView img = new ImageView(getApplicationContext());
+		final ImageView img = new ImageView(getApplicationContext());
 		img.setBackgroundResource(android.R.drawable.ic_menu_gallery);
 		params = new RelativeLayout.LayoutParams(
 				dpToPx(36),
 				dpToPx(36));
 		img.setPadding(dpToPx(2), dpToPx(2), dpToPx(2), dpToPx(2));
 		img.setLayoutParams(params);
-		
-		final ImageViewHandler handler = new ImageViewHandler(img, null);
 		
 		new Thread(new Runnable()
 		{
@@ -191,11 +193,15 @@ public class SlideMenuBaseActivity extends BaseActivity
 				
 				if(images.size() > 0)
 				{
-					InputStream in = e621.getDownloadedImage(images.get(0).id);
-			    	Message msg = handler.obtainMessage();
-			    	msg.obj = in;
+					final InputStream in = e621.getDownloadedImage(images.get(0).id);
 			    	
-			    	handler.sendMessage(msg);
+			    	runOnUiThread(new Runnable()
+			    	{
+			    		public void run()
+			    		{
+			    			drawInputStreamToImageView(in,img);
+			    		}
+			    	});
 				}
 			}
 		}).start();
