@@ -1,5 +1,7 @@
 package info.beastarman.e621.api;
 
+import info.beastarman.e621.middleware.E621Middleware;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,20 +37,25 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import android.net.Uri;
+import android.util.Log;
+
 public class E621
 {
 	String DOMAIN_NAME = "https://e621.net";
+	String client = "";
 	private static E621 instance = null;
 	
-	protected E621()
+	protected E621(String client)
 	{
+		this.client = client;
 	}
 	
-	public static E621 getInstance()
+	public static E621 getInstance(String client)
 	{
 		if(instance == null)
 		{
-			instance = new E621();
+			instance = new E621(client);
 		}
 		return instance;
 	}
@@ -532,6 +539,8 @@ public class E621
 	
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
+		url = Uri.parse(url).buildUpon().appendQueryParameter("client", client).build().toString();
+		
 		final HttpParams httpParams = new BasicHttpParams();
 	    HttpConnectionParams.setConnectionTimeout(httpParams, 30000);
 		HttpClient httpclient = new DefaultHttpClient(httpParams);
@@ -552,6 +561,8 @@ public class E621
 	
 	protected HttpResponse tryHttpPost(String url, List<NameValuePair> pairs, Integer tries) throws ClientProtocolException, IOException
 	{
+		pairs.add(new BasicNameValuePair("client", client));
+		
 		final HttpParams httpParams = new BasicHttpParams();
 	    HttpConnectionParams.setConnectionTimeout(httpParams, 30000);
 		HttpClient httpclient = new DefaultHttpClient(httpParams);

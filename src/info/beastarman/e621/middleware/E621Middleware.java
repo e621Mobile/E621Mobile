@@ -112,8 +112,12 @@ public class E621Middleware extends E621
 	
 	Context ctx;
 	
+	private static String CLIENT = "E621AndroidAppBstrm";
+	
 	protected E621Middleware(Context new_ctx)
 	{
+		super(CLIENT);
+		
 		if(new_ctx != null)
 		{
 			this.ctx = new_ctx;
@@ -145,7 +149,7 @@ public class E621Middleware extends E621
 	
 	public static E621Middleware getInstance()
 	{
-		return getInstance(null);
+		return getInstance((Context)null);
 	}
 	
 	public static synchronized E621Middleware getInstance(Context ctx)
@@ -154,6 +158,7 @@ public class E621Middleware extends E621
 		{
 			instance = new E621Middleware(ctx);
 		}
+		
 		return instance;
 	}
 	

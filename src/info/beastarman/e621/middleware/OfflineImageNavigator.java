@@ -20,7 +20,7 @@ public class OfflineImageNavigator implements ImageNavigator
 	@Override
 	public ImageNavigator next()
 	{
-		ArrayList<E621DownloadedImage> ret = E621Middleware.getInstance(null).localSearch(position+1, 1, query);
+		ArrayList<E621DownloadedImage> ret = E621Middleware.getInstance().localSearch(position+1, 1, query);
 		
 		if(ret.size() > 0)
 		{
@@ -38,7 +38,7 @@ public class OfflineImageNavigator implements ImageNavigator
 			return null;
 		}
 		
-		ArrayList<E621DownloadedImage> ret = E621Middleware.getInstance(null).localSearch(position-1, 1, query);
+		ArrayList<E621DownloadedImage> ret = E621Middleware.getInstance().localSearch(position-1, 1, query);
 		
 		if(ret.size() > 0)
 		{
