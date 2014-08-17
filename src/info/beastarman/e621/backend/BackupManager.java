@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.apache.commons.io.FileUtils;
@@ -177,13 +178,11 @@ public class BackupManager
 	};
 	
 	private File backup_folder;
-	private File origin_file;
 	private long[] ls;
 	
-	public BackupManager(File backup_folder, File origin_file, long[] ls)
+	public BackupManager(File backup_folder, long[] ls)
 	{
 		this.backup_folder = backup_folder.getAbsoluteFile();
-		this.origin_file = origin_file.getAbsoluteFile();
 		this.ls = ls;
 	}
 	
@@ -192,6 +191,8 @@ public class BackupManager
 	private ArrayList<Long> getBackups()
 	{
 		ArrayList<Long> backups = new ArrayList<Long>();
+		
+		if(backup_folder.listFiles() == null) return backups;
 		
 		for(File f : backup_folder.listFiles())
 		{
@@ -226,49 +227,62 @@ public class BackupManager
 		return getVersionManager().toString();
 	}
 	
-	public synchronized void backup()
+	public synchronized void backup(final InputStream in)
 	{
 		versionManager = getVersionManager();
 		
 		long now = System.currentTimeMillis();
 		
-		if(origin_file.exists() && origin_file.canRead())
-		{
-			try {
-				if(FileUtils.contentEquals(origin_file,new File(backup_folder,String.valueOf(versionManager.getMostRecentVersion()))))
-				{
-					return;
-				}
-			}
-			catch (IOException e1)
-			{
-				return;
-			}
+		byte[] data = null;
+		byte[] backup = null;
+		
+		try {
+			data = IOUtils.toByteArray(in);
 			
-			if(versionManager.addVersion(now))
+			File mostRecentBackupFile = new File(backup_folder,String.valueOf(versionManager.getMostRecentVersion()));
+			
+			try
 			{
-				try {
-					File target_file = new File(backup_folder,String.valueOf(now));
-					
-					if(!target_file.createNewFile()) return;
-					
-					InputStream in = new BufferedInputStream(new FileInputStream(origin_file));
-					
-					OutputStream out = new BufferedOutputStream(new FileOutputStream(target_file));
-					
-					IOUtils.copy(in, out);
-					
-					in.close();
-					
-					out.close();
-				}
-				catch (IOException e)
-				{
-					return;
-				}
+				InputStream fin = new BufferedInputStream(new FileInputStream(mostRecentBackupFile));
+				backup = IOUtils.toByteArray(fin);
+				fin.close();
+			}
+			catch (IOException e3)
+			{
+				e3.printStackTrace();
 			}
 		}
+		catch (IOException e2)
+		{
+			e2.printStackTrace();
+			return;
+		}
+	
+		if(backup != null && Arrays.equals(data,backup))
+		{
+			return;
+		}
 		
+		if(versionManager.addVersion(now))
+		{
+			try {
+				File target_file = new File(backup_folder,String.valueOf(now));
+				
+				if(!target_file.createNewFile()) return;
+				
+				OutputStream out = new BufferedOutputStream(new FileOutputStream(target_file));
+				
+				out.write(data);
+				
+				out.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+				return;
+			}
+		}
+	
 		ArrayList<Long> versions = versionManager.getAllVersions();
 		
 		for(Long l : getBackups())

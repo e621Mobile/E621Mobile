@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,6 +47,9 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -193,10 +197,15 @@ public class E621Middleware extends E621
 		{
 			report_path.mkdirs();
 		}
-		
+
 		if(!interrupted_path.exists())
 		{
 			interrupted_path.mkdirs();
+		}
+
+		if(!backup_path.exists())
+		{
+			backup_path.mkdirs();
 		}
 		
 		if(settings.getBoolean("hideDownloadFolder", true))
@@ -1032,21 +1041,68 @@ public class E621Middleware extends E621
 			update_new_image_count(interrupted.search);
 		}
 		
-		/*
-		 * 
-		 * TODO Reeable this later.
+		backup();
+	}
+	
+	public void backup()
+	{
+		ArrayList<E621DownloadedImage> downloads = download_manager.search(0, -1, new SearchQuery(""));
+		ArrayList<InterruptedSearch> interrupts = interrupt.getAllSearches();
 		
-		BackupManager nk = new BackupManager(backup_path,download_manager.get_cache_file(),
+		JSONObject backup = new JSONObject();
+		JSONArray downloadIDs = new JSONArray();
+		
+		for(E621DownloadedImage img : downloads)
+		{
+			downloadIDs.put(img.id);
+		}
+		
+		JSONArray interruptsArray = new JSONArray();
+		
+		for(InterruptedSearch search : interrupts)
+		{
+			JSONObject jsonSearch = new JSONObject();
+			
+			try
+			{
+				jsonSearch.put("search",search.search);
+				jsonSearch.put("min_id",search.min_id);
+				jsonSearch.put("max_id",search.max_id);
+			}
+			catch (JSONException e)
+			{
+				return;
+			}
+			
+			interruptsArray.put(jsonSearch);
+		}
+		
+		try {
+			backup.put("downloads",downloadIDs);
+			backup.put("interrupts",interruptsArray);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return;
+		}
+		
+		BackupManager nk = new BackupManager(backup_path,
 				new long[]{
 					AlarmManager.INTERVAL_HOUR*24,
 					AlarmManager.INTERVAL_HOUR*24*7,
 				});
 		
-		nk.backup();
+		InputStream in = null;
+		try {
+			in = new ByteArrayInputStream(backup.toString().getBytes("UTF-8"));
+			nk.backup(in);
+			in.close();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		android.util.Log.d(E621Middleware.LOG_TAG + "_Backup",nk.toString());
-		
-		*/
 	}
 	
 	public void sendReport(final String report)
