@@ -415,8 +415,8 @@ public class SlideMenuBaseActivity extends BaseActivity
 		        arrow.setRotation(270f + (90f*interpolatedTime));
 		    }
 		};
-
-		a.setDuration(300);
+		
+		a.setDuration(300 + (int)Math.floor(targetHeight/1000)*100);
 		wrapper.startAnimation(a);
 		((View)wrapper.getParent()).invalidate();
 	}
@@ -442,7 +442,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 		    }
 		};
 
-		a.setDuration(300);
+		a.setDuration(300 + (int)Math.floor(targetHeight/1000)*100);
 		wrapper.startAnimation(a);
 		((View)wrapper.getParent()).invalidate();
 	}
