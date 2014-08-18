@@ -51,7 +51,7 @@ public class SearchActivity extends BaseActivity
 
 	public String search = "";
 	public int page = 0;
-	public int limit = 20;
+	public int limit;
 
 	public Integer min_id = null;
 	public Integer max_id = null;
@@ -78,7 +78,7 @@ public class SearchActivity extends BaseActivity
 			search = "";
 		}
 		page = getIntent().getIntExtra(SearchActivity.PAGE, 0);
-		limit = getIntent().getIntExtra(SearchActivity.LIMIT, 20);
+		limit = getIntent().getIntExtra(SearchActivity.LIMIT, e621.resultsPerPage());
 
 		min_id = getIntent().getIntExtra(SearchActivity.MIN_ID,-1);
 		max_id = getIntent().getIntExtra(SearchActivity.MAX_ID,-1);
@@ -669,6 +669,7 @@ public class SearchActivity extends BaseActivity
 				(E621Image) view.getTag(R.id.imageObject),
 				(Integer) view.getTag(R.id.imagePosition),
 				search,
+				limit,
 				e621Search));
 		intent.putExtra(ImageActivity.INTENT,getIntent());
 		startActivity(intent);

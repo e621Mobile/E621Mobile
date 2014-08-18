@@ -347,6 +347,11 @@ public class E621Middleware extends E621
 		return firstRun;
 	}
 	
+	public int resultsPerPage()
+	{
+		return settings.getInt("resultsPerPage", 2)*10;
+	}
+	
 	@Override
 	public E621Image post__show(Integer id) throws IOException
 	{

@@ -114,6 +114,7 @@ public class SearchContinueActivity extends SearchActivity
 				(E621Image) view.getTag(R.id.imageObject),
 				(Integer) view.getTag(R.id.imagePosition),
 				search,
+				limit,
 				e621Search));
 		intent.putExtra(ImageActivity.INTENT,getIntent());
 		startActivity(intent);

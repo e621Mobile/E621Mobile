@@ -16,8 +16,9 @@ public class OnlineImageNavigator implements ImageNavigator
 	ArrayList<E621Image> cache;
 	int cache_offset;
 	int total;
+	int results_per_page;
 	
-	public OnlineImageNavigator(E621Image img, int position, String query, ArrayList<E621Image> cache, int cache_offset, int total)
+	public OnlineImageNavigator(E621Image img, int position, String query, int results_per_page, ArrayList<E621Image> cache, int cache_offset, int total)
 	{
 		this.img = img;
 		this.position = position;
@@ -25,9 +26,10 @@ public class OnlineImageNavigator implements ImageNavigator
 		this.cache = cache;
 		this.cache_offset = cache_offset;
 		this.total = total;
+		this.results_per_page = results_per_page;
 	}
 	
-	public OnlineImageNavigator(E621Image img, int position, String query, E621Search search)
+	public OnlineImageNavigator(E621Image img, int position, String query, int results_per_page, E621Search search)
 	{
 		this.img = img;
 		this.position = position;
@@ -35,6 +37,7 @@ public class OnlineImageNavigator implements ImageNavigator
 		this.cache = new ArrayList<E621Image>(search.images);
 		this.cache_offset = search.offset;
 		this.total = search.count;
+		this.results_per_page = results_per_page;
 	}
 	
 	public E621Search search(String query, int page, int limit) throws IOException
@@ -54,13 +57,13 @@ public class OnlineImageNavigator implements ImageNavigator
 
 		while(!(new_position < cache_offset + cache.size()))
 		{
-			int page_append = (int) Math.floor(((double)cache_offset + cache.size())/20);
-			int slice_from = (cache_offset + cache.size()) % 20;
+			int page_append = (int) Math.floor(((double)cache_offset + cache.size())/results_per_page);
+			int slice_from = (cache_offset + cache.size()) % results_per_page;
 			
 			ArrayList<E621Image> results;
 			
 			try {
-				results = search(query, page_append, 20).images;
+				results = search(query, page_append, results_per_page).images;
 			} catch (IOException e) {
 				return null;
 			}
@@ -82,7 +85,7 @@ public class OnlineImageNavigator implements ImageNavigator
 		
 		if(new_position < cache_offset + cache.size())
 		{
-			return new OnlineImageNavigator(cache.get(new_position - cache_offset),new_position,query,cache,cache_offset,total);
+			return new OnlineImageNavigator(cache.get(new_position - cache_offset),new_position,query,results_per_page, cache,cache_offset,total);
 		}
 		
 		return null;
@@ -100,13 +103,13 @@ public class OnlineImageNavigator implements ImageNavigator
 		
 		while(!(new_position >= cache_offset))
 		{
-			int page_append = (int) Math.floor(((double)cache_offset -1)/20);
-			int slice_to = ((cache_offset - 1) % 20) + 1;
+			int page_append = (int) Math.floor(((double)cache_offset -1)/results_per_page);
+			int slice_to = ((cache_offset - 1) % results_per_page) + 1;
 			
 			ArrayList<E621Image> results;
 			
 			try {
-				results = search(query, page_append, 20).images;
+				results = search(query, page_append, results_per_page).images;
 			} catch (IOException e) {
 				return null;
 			}
@@ -130,7 +133,7 @@ public class OnlineImageNavigator implements ImageNavigator
 		
 		if(new_position >= cache_offset)
 		{
-			return new OnlineImageNavigator(cache.get(new_position - cache_offset),new_position,query,cache,cache_offset,total);
+			return new OnlineImageNavigator(cache.get(new_position - cache_offset),new_position,query,results_per_page, cache,cache_offset,total);
 		}
 		
 		return null;

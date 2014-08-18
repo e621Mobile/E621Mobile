@@ -36,7 +36,7 @@ public class DownloadsActivity extends BaseActivity
 
 	public String search = "";
 	public int page = 0;
-	public int limit = 20;
+	public int limit;
 	
 	public int total_pages;
 
@@ -57,7 +57,7 @@ public class DownloadsActivity extends BaseActivity
 			search = "";
 		}
 		page = getIntent().getIntExtra(SearchActivity.PAGE, 0);
-		limit = getIntent().getIntExtra(SearchActivity.LIMIT, 20);
+		limit = getIntent().getIntExtra(SearchActivity.LIMIT, e621.resultsPerPage());
 
 		((EditText) findViewById(R.id.searchInput)).setText(search);
 	}
@@ -205,7 +205,7 @@ public class DownloadsActivity extends BaseActivity
 				LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
 				
 				int image_y = 0;
-				int position = page*20;
+				int position = page*e621.resultsPerPage();
 
 				for (E621DownloadedImage img : downloads)
 				{

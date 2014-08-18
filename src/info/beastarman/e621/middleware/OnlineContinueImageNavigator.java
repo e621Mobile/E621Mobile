@@ -9,9 +9,9 @@ public class OnlineContinueImageNavigator extends OnlineImageNavigator
 {
 	private static final long serialVersionUID = -4181810174074433903L;
 
-	public OnlineContinueImageNavigator(E621Image img, int position, String query, E621Search search)
+	public OnlineContinueImageNavigator(E621Image img, int position, String query, int results_per_page, E621Search search)
 	{
-		super(img, position, query, search);
+		super(img, position, query, results_per_page, search);
 	}
 	
 	@Override
