@@ -325,6 +325,12 @@ public class E621Middleware extends E621
 	{
 		return settings.getBoolean("playGifs", true);
 	}
+
+	
+	public boolean downloadInSearch()
+	{
+		return settings.getBoolean("downloadInSearch", true);
+	}
 	
 	public boolean lazyLoad()
 	{

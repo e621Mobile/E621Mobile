@@ -1,11 +1,16 @@
 package info.beastarman.e621.frontend;
 
+import java.io.IOException;
 import java.util.HashSet;
+
+import org.apache.commons.io.IOUtils;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.SeekBarDialogPreference;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
@@ -80,6 +85,9 @@ public class SettingsActivity extends PreferenceActivity
             CheckBoxPreference playGifs = (CheckBoxPreference)findPreference("playGifs");
             playGifs.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("playGifs", true));
             
+            CheckBoxPreference downloadInSearch = (CheckBoxPreference)findPreference("downloadInSearch");
+            downloadInSearch.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("downloadInSearch", true));
+            
             ListPreference downloadSize = (ListPreference)findPreference("prefferedFileDownloadSize");
             downloadSize.setValue(String.valueOf(getPreferenceManager().getSharedPreferences().getInt("prefferedFileDownloadSize", 2)));
             
@@ -107,6 +115,54 @@ public class SettingsActivity extends PreferenceActivity
                 public boolean onPreferenceClick(Preference arg0) {
                 	activity.updateTags();
                     return true;
+                }
+            });
+            
+            Preference aboutE621 = (Preference)getPreferenceManager().findPreference("aboutE621");
+            aboutE621.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0)
+                {
+                	Intent i = new Intent(Intent.ACTION_VIEW);
+                	i.setData(Uri.parse("https://e621.net/wiki/show?title=e621%3Aabout"));
+                	startActivity(i);
+                    return true;
+                }
+            });
+            
+            Preference sendErrorReport = (Preference)getPreferenceManager().findPreference("sendErrorReport");
+            sendErrorReport.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0)
+                {
+                	try {
+            			String[] get_pid = {
+            				"sh",
+            				"-c",
+            				"ps | grep info.beastarman.e621 | cut -c10-15"
+            			};
+            			
+            			Process process = Runtime.getRuntime().exec(get_pid);
+            			String pid = IOUtils.toString(process.getInputStream());
+            			
+            			String[] get_log = {
+            				"sh",
+            				"-c",
+            				"logcat -d -v time | grep -e " + pid + " -e " + E621Middleware.LOG_TAG + " 2> /dev/null"
+            			};
+            			
+            			process = Runtime.getRuntime().exec(get_log);
+            			String log = IOUtils.toString(process.getInputStream());
+            			
+            			Intent intent = new Intent(activity.getApplicationContext(), ErrorReportActivity.class);
+            			intent.putExtra(ErrorReportActivity.LOG, log);
+            			startActivity(intent);
+            		} catch (IOException e1)
+            		{
+            			e1.printStackTrace();
+            		}
+                	
+                	return true;
                 }
             });
             

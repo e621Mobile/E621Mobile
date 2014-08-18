@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" xmlns:custom="http://schemas.android.com/apk/res-auto">
-    <PreferenceCategory android:title="Settings">
+    <PreferenceCategory android:title="Images">
         <CheckBoxPreference
             android:key="hideDownloadFolder"
             android:summary="Hides downloaded images from apps such as Galery"
             android:title="Hide downloads" >
-        </CheckBoxPreference>
-        <CheckBoxPreference
-            android:key="playGifs"
-            android:summary="Play animated gifs outside of searches"
-            android:title="Play animated GIFs" >
         </CheckBoxPreference>
         <info.beastarman.e621.views.IntListPreference
             android:key="prefferedFileDownloadSize"
@@ -43,6 +38,37 @@
 	        custom:progressTextSuffix=" Mb"
 	        custom:min="1" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="Interface">
+        <CheckBoxPreference
+            android:key="lazyLoad"
+            android:summary="Wait for images to show on screen before loading them"
+            android:title="Lazy image load" >
+        </CheckBoxPreference>
+        <CheckBoxPreference
+            android:key="playGifs"
+            android:summary="Play animated gifs outside of searches"
+            android:title="Play animated GIFs" >
+        </CheckBoxPreference>
+        <CheckBoxPreference
+            android:key="downloadInSearch"
+            android:summary="Shows small download button for each image in search results"
+            android:title="Download button in search" >
+        </CheckBoxPreference>
+        <Preference
+            android:key="allowedMascots"
+            android:summary="Select which mascots can appear in home screen"
+            android:title="Allowed Mascots" >
+        </Preference>
+        <info.beastarman.e621.views.SeekBarDialogPreference
+            android:key="resultsPerPage"
+	        android:defaultValue="2"
+	        android:dialogMessage="Please select how much images should appear on each search page. Higher values require more memory."
+	        android:summary="How much images should appear on each search page."
+	        android:max="10"
+	        android:title="Results per search page"
+	        custom:progressTextSuffix="0 images"
+	        custom:min="1" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="Actions">
         <Preference
             android:title="Clear cache"
@@ -50,14 +76,45 @@
             android:key="clearCache"/>
         <Preference
             android:title="Update metadata"
-            android:summary="Update downloaded images metadata"
+            android:summary="Update tags and aliases database."
             android:key="updateTags"/>
+        <Preference
+            android:title="Force full metadata update"
+            android:summary="Throws everything away and updates tags and aliases database."
+            android:key="updateTagsForce"/>
+        <Preference
+            android:title="Restore backup"
+            android:summary="Restore automatic backup"
+            android:key="restoreBackup"/>
     </PreferenceCategory>
-    <PreferenceCategory android:title="Interface">
-        <CheckBoxPreference
-            android:key="lazyLoad"
-            android:summary="Wait for images to show on screen before loading them"
-            android:title="Lazy image load" >
-        </CheckBoxPreference>
+    <PreferenceCategory android:title="Feedback">
+        <Preference
+            android:title="Send feedback"
+            android:summary="Tell us how you think this app could be improved"
+            android:key="sendFeedback"/>
+        <Preference
+            android:title="Send error report"
+            android:summary="Send us usage info and a description of whatever problems you are facing"
+            android:key="sendErrorReport"/>
+        <Preference
+            android:title="Change Log"
+            android:summary="See what is new on this and previous versions"
+            android:key="changeLog"/>
+        <Preference
+            android:title="Update"
+            android:summary="Look for newer versions and update"
+            android:key="update"/>
+        <Preference
+            android:title="About this app"
+            android:summary="Read about this app"
+            android:key="about"/>
+        <Preference
+            android:title="About e621"
+            android:summary="Read about e621.net"
+            android:key="aboutE621"/>
+        <Preference
+            android:title="Donate"
+            android:summary="Send us some money"
+            android:key="donate"/>
     </PreferenceCategory>
 </PreferenceScreen>

@@ -448,6 +448,13 @@ public class SearchActivity extends BaseActivity
 	private ImageButton generateDownloadButton(final E621Image img)
 	{
 		final ImageButton download = new ImageButton(getApplicationContext());
+		
+		if(!e621.downloadInSearch())
+		{
+			download.setVisibility(View.GONE);
+			return download;
+		}
+
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
 			    RelativeLayout.LayoutParams.WRAP_CONTENT, 
 			    RelativeLayout.LayoutParams.WRAP_CONTENT);
