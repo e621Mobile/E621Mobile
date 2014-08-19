@@ -88,6 +88,21 @@ public class MainActivity extends SlideMenuBaseActivity
     	ImageView mascot_blur = (ImageView)findViewById(R.id.mascot_blur);
     	TextView mascot_by = (TextView)findViewById(R.id.mascotBy);
     	
+    	if(mascots.length == 0)
+    	{
+    		mascot.setVisibility(View.INVISIBLE);
+    		mascot_blur.setVisibility(View.INVISIBLE);
+    		mascot_by.setVisibility(View.INVISIBLE);
+    		
+    		return;
+    	}
+    	else
+    	{
+    		mascot.setVisibility(View.VISIBLE);
+    		mascot_blur.setVisibility(View.VISIBLE);
+    		mascot_by.setVisibility(View.VISIBLE);
+    	}
+    	
     	int random_mascot = (int) (Math.random()*(mascots.length-1));
     	if(random_mascot >= previous_mascot)
     	{
