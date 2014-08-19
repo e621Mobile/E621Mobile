@@ -1,6 +1,7 @@
 package info.beastarman.e621.frontend;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621Middleware.Mascot;
 import android.net.Uri;
 import android.os.Bundle;
 import android.content.Intent;
@@ -13,16 +14,7 @@ import android.widget.TextView;
 
 public class MainActivity extends SlideMenuBaseActivity
 {
-	Mascot[] mascots = new Mascot[]{
-			new Mascot(R.drawable.mascot1,R.drawable.mascot1_blur,"Keishinkae","http://www.furaffinity.net/user/keishinkae"),
-			new Mascot(R.drawable.mascot2,R.drawable.mascot2_blur,"Keishinkae","http://www.furaffinity.net/user/keishinkae"),
-			new Mascot(R.drawable.mascot3,R.drawable.mascot3_blur,"darkdoomer","http://nowhereincoming.net/"),
-			new Mascot(R.drawable.mascot4,R.drawable.mascot4_blur,"Narse","http://www.furaffinity.net/user/narse"),
-			new Mascot(R.drawable.mascot0,R.drawable.mascot0_blur,"chizi","http://www.furaffinity.net/user/chizi"),
-			new Mascot(R.drawable.mascot5,R.drawable.mascot5_blur,"wiredhooves","http://www.furaffinity.net/user/wiredhooves"),
-			new Mascot(R.drawable.mascot6,R.drawable.mascot6_blur,"ECMajor","http://www.horsecore.org/"),
-			new Mascot(R.drawable.mascot7,R.drawable.mascot7_blur,"evalion","http://www.furaffinity.net/user/evalion"),
-	};
+	Mascot[] mascots;
 	
 	int previous_mascot = -1;
 	
@@ -30,12 +22,15 @@ public class MainActivity extends SlideMenuBaseActivity
     protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+		
+		setContentView(R.layout.activity_main);
     }
 	
 	protected void onStart()
 	{
 		super.onStart();
+		
+		mascots = e621.getMascots();
 		
 		change_mascot();
 	}
@@ -133,21 +128,5 @@ public class MainActivity extends SlideMenuBaseActivity
 		Intent intent = new Intent(this, DownloadsActivity.class);
 		intent.putExtra(DownloadsActivity.SEARCH,search);
 		startActivity(intent);
-    }
-    
-    private class Mascot
-    {
-    	public int image;
-    	public int blur;
-    	public String artistName;
-    	public String artistUrl;
-    	
-    	public Mascot(int image, int blur, String artistName, String artistUrl)
-    	{
-    		this.image = image;
-    		this.blur = blur;
-    		this.artistName = artistName;
-    		this.artistUrl = artistUrl;
-    	}
     }
 }

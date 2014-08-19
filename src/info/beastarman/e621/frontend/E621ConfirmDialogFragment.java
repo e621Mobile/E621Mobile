@@ -13,11 +13,11 @@ import android.widget.TextView;
 
 public class E621ConfirmDialogFragment extends DialogFragment
 {
-	private String title = "";
-	private String confirmLabel = "Confirm";
-	private String cancelLabel = "Cancel";
-	private Runnable confirmRunnable = null;
-	private Runnable cancelRunnable = null;
+	protected String title = "";
+	protected String confirmLabel = "Confirm";
+	protected String cancelLabel = "Cancel";
+	protected Runnable confirmRunnable = null;
+	protected Runnable cancelRunnable = null;
 	
 	public void setTitle(String title)
 	{

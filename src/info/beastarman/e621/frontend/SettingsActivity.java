@@ -18,6 +18,7 @@ import android.preference.MultiSelectListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.util.Log;
 
 public class SettingsActivity extends PreferenceActivity
 {
@@ -109,6 +110,26 @@ public class SettingsActivity extends PreferenceActivity
                 public boolean onPreferenceClick(Preference arg0) {
                 	activity.clearCache();
                     return true;
+                }
+            });
+            
+            Preference allowedMascots = (Preference)getPreferenceManager().findPreference("allowedMascots");
+            allowedMascots.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0) {
+                	E621MascotSelect fragment = new E621MascotSelect();
+            		
+                	fragment.setConfirmRunnable(new Runnable()
+            		{
+            			public void run()
+            			{
+            				Log.d(E621Middleware.LOG_TAG,"Well... ok then.");
+            			}
+            		});
+            		
+            		fragment.show(getFragmentManager(), "MascotSelect");
+            		
+            		return true;
                 }
             });
             
