@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -188,7 +189,7 @@ public class BackupManager
 	
 	private VersionManager versionManager = null;
 	
-	private ArrayList<Long> getBackups()
+	public ArrayList<Long> getBackups()
 	{
 		ArrayList<Long> backups = new ArrayList<Long>();
 		
@@ -293,5 +294,25 @@ public class BackupManager
 				f.delete();
 			}
 		}
+	}
+	
+	public InputStream getBackup(Long l)
+	{
+		File f = new File(backup_folder,String.valueOf(l));
+		
+		if(f.exists() && f.isFile())
+		{
+			try
+			{
+				return new BufferedInputStream(new FileInputStream(f));
+			}
+			catch (FileNotFoundException e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+		}
+		
+		return null;
 	}
 }

@@ -9,9 +9,12 @@ import info.beastarman.e621.api.E621TagAlias;
 import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.backend.BackupManager;
 
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.backend.ImageCacheManager;
 import info.beastarman.e621.backend.ImageCacheManagerOld;
 import info.beastarman.e621.backend.Pair;
+import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 import info.beastarman.e621.frontend.DownloadsActivity;
 import info.beastarman.e621.frontend.MainActivity;
 
@@ -24,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -81,6 +85,7 @@ public class E621Middleware extends E621
 	File report_path = null;
 	File interrupted_path = null;
 	File backup_path = null;
+	File emergency_backup = null;
 	FailedDownloadManager failed_download_manager = null;
 	
 	InterruptedSearchManager interrupt;
@@ -95,6 +100,8 @@ public class E621Middleware extends E621
 	ImageCacheManager thumb_cache;
 	ImageCacheManager full_cache;
 	E621DownloadedImages download_manager;
+	
+	BackupManager backupManager;
 	
 	private static int UPDATE_TAGS_NOTIFICATION_ID = 1;
 	private static int SAVE_IMAGES_NOTIFICATION_ID = 2;
@@ -136,6 +143,13 @@ public class E621Middleware extends E621
 		report_path = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"reports/");
 		interrupted_path = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"interrupt/");
 		backup_path = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"backups/");
+		emergency_backup = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"emergency.json");
+		
+		backupManager = new BackupManager(backup_path,
+				new long[]{
+					AlarmManager.INTERVAL_HOUR*24,
+					AlarmManager.INTERVAL_HOUR*24*7,
+				});
 		
 		settings = ctx.getSharedPreferences(PREFS_NAME, 0);
 		
@@ -1048,15 +1062,73 @@ public class E621Middleware extends E621
 			}
 		}
 		
-		for(InterruptedSearch interrupted : getAllSearches())
-		{
-			update_new_image_count(interrupted.search);
-		}
+		syncSearchCounts();
 		
 		backup();
 	}
 	
+	Semaphore searchCountSemaphore = new Semaphore(10);
+	
+	public void syncSearchCounts()
+	{
+		ArrayList<Thread> threads = new ArrayList<Thread>();
+		
+		for(final InterruptedSearch interrupted : getAllSearches())
+		{
+			Thread t = new Thread(new Runnable()
+			{
+				public void run()
+				{
+					try {
+						searchCountSemaphore.acquire();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						Thread.currentThread().interrupt();
+					}
+					
+					update_new_image_count(interrupted.search);
+					
+					searchCountSemaphore.release();
+				}
+			});
+			
+			t.start();
+			
+			threads.add(t);
+		}
+		
+		for(Thread t : threads)
+		{
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				Thread.currentThread().interrupt();
+			}
+		}
+	}
+	
 	public void backup()
+	{
+		JSONObject backup = getJSONBackup();
+		
+		if(backup == null) return;
+		
+		InputStream in = null;
+		try {
+			in = new ByteArrayInputStream(backup.toString().getBytes("UTF-8"));
+			backupManager.backup(in);
+			in.close();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		android.util.Log.d(E621Middleware.LOG_TAG + "_Backup",backupManager.toString());
+	}
+	
+	public JSONObject getJSONBackup()
 	{
 		ArrayList<E621DownloadedImage> downloads = download_manager.search(0, -1, new SearchQuery(""));
 		ArrayList<InterruptedSearch> interrupts = interrupt.getAllSearches();
@@ -1083,7 +1155,7 @@ public class E621Middleware extends E621
 			}
 			catch (JSONException e)
 			{
-				return;
+				return null;
 			}
 			
 			interruptsArray.put(jsonSearch);
@@ -1094,27 +1166,143 @@ public class E621Middleware extends E621
 			backup.put("interrupts",interruptsArray);
 		} catch (JSONException e) {
 			e.printStackTrace();
-			return;
+			return null;
 		}
 		
-		BackupManager nk = new BackupManager(backup_path,
-				new long[]{
-					AlarmManager.INTERVAL_HOUR*24,
-					AlarmManager.INTERVAL_HOUR*24*7,
-				});
+		return backup;
+	}
+	
+	public ArrayList<Date> getBackups()
+	{
+		ArrayList<Long> backups = backupManager.getBackups();
 		
-		InputStream in = null;
-		try {
-			in = new ByteArrayInputStream(backup.toString().getBytes("UTF-8"));
-			nk.backup(in);
-			in.close();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		ArrayList<Date> ret = new ArrayList<Date>();
+		
+		for(Long l : backups)
+		{
+			ret.add(new Date(l));
 		}
 		
-		android.util.Log.d(E621Middleware.LOG_TAG + "_Backup",nk.toString());
+		return ret;
+	}
+	
+	public static enum BackupStates
+	{
+		READING,
+		CURRENT,
+		SEARCHES,
+		SEARCHES_COUNT,
+		REMOVE_EMERGENCY,
+		SUCCESS,
+		FAILURE,
+	}
+	
+	public boolean restoreBackup(Date date, EventManager event)
+	{
+		event.trigger(BackupStates.READING);
+		
+		InputStream in = backupManager.getBackup(date.getTime());
+		
+		if(in == null)
+		{
+			event.trigger(BackupStates.FAILURE);
+			
+			return false;
+		}
+		
+		JSONObject json;
+		
+		try
+		{
+			byte[] data = IOUtils.toByteArray(in);
+			
+			json = new JSONObject(new String(data, "UTF-8"));
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			event.trigger(BackupStates.FAILURE);
+			return false;
+		}
+		catch (JSONException e)
+		{
+			e.printStackTrace();
+			event.trigger(BackupStates.FAILURE);
+			return false;
+		}
+		
+		event.trigger(BackupStates.CURRENT);
+		
+		JSONObject current = getJSONBackup();
+		
+		try
+		{
+			emergency_backup.createNewFile();
+			OutputStream out = new BufferedOutputStream(new FileOutputStream(emergency_backup));
+			
+			out.write(current.toString().getBytes("UTF-8"));
+			
+			out.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+			event.trigger(BackupStates.FAILURE);
+			return false;
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
+			event.trigger(BackupStates.FAILURE);
+			return false;
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			event.trigger(BackupStates.FAILURE);
+			return false;
+		}
+		
+		event.trigger(BackupStates.SEARCHES);
+		
+		int i=0;
+		
+		JSONArray searches = json.optJSONArray("interrupts");
+		if(searches == null)
+		{
+			event.trigger(BackupStates.FAILURE);
+			return false;
+		}
+		
+		ArrayList<InterruptedSearch> interruptedSearches = new ArrayList<InterruptedSearch>();
+		for(i=0; i<searches.length(); i++)
+		{
+			JSONObject obj;
+			
+			try
+			{
+				obj = searches.getJSONObject(i);
+				
+				interruptedSearches.add(new InterruptedSearch(obj.getString("search"),obj.optInt("min_id"),obj.optInt("max_id"),0));
+			}
+			catch (JSONException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		
+		event.trigger(BackupStates.SEARCHES_COUNT);
+		
+		interrupt.setSearches(interruptedSearches);
+		
+		syncSearchCounts();
+		
+		event.trigger(BackupStates.REMOVE_EMERGENCY);
+		
+		emergency_backup.delete();
+		
+		event.trigger(BackupStates.SUCCESS);
+		return true;
 	}
 	
 	public void sendReport(final String report)
@@ -1538,6 +1726,8 @@ public class E621Middleware extends E621
 		protected int version = 1;
 		protected File path;
 		
+		ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
+		
 		public InterruptedSearchManager(File path)
 		{
 			this.path = path;
@@ -1600,40 +1790,52 @@ public class E621Middleware extends E621
 			db.execSQL("ALTER TABLE search ADD COLUMN new_images INTEGER DEFAULT 0;");
 		}
 		
-		public void addOrUpdateSearch(String search, String seen_past, String seen_until)
+		public void addOrUpdateSearch(final String search, final String seen_past, final String seen_until)
 		{
-			SQLiteDatabase db = get_db();
-			
-			Cursor c = db.rawQuery("SELECT * FROM search WHERE search_query = ? LIMIT 1;", new String[]{search});
-			
-			if(!(c != null && c.moveToFirst()))
+			lock.write(new Runnable()
 			{
-				add(search,seen_past,seen_until,db);
-			}
-			else
-			{
-				if(c.getCount() == 0)
+				public void run()
 				{
-					add(search,seen_past,seen_until,db);
+					SQLiteDatabase db = get_db();
+					
+					Cursor c = db.rawQuery("SELECT * FROM search WHERE search_query = ? LIMIT 1;", new String[]{search});
+					
+					if(!(c != null && c.moveToFirst()))
+					{
+						add(search,seen_past,seen_until,db);
+					}
+					else
+					{
+						if(c.getCount() == 0)
+						{
+							add(search,seen_past,seen_until,db);
+						}
+						else
+						{
+							update(search,seen_past,seen_until,db);
+						}
+						
+						c.close();
+					}
+					
+					db.close();
 				}
-				else
-				{
-					update(search,seen_past,seen_until,db);
-				}
-				
-				c.close();
-			}
-			
-			db.close();
+			});
 		}
 		
-		public void update_new_image_count(String search, int new_image_count)
+		public void update_new_image_count(final String search, final int new_image_count)
 		{
-			SQLiteDatabase db = get_db();
-			
-			update_new_image_count(search,new_image_count,db);
-			
-			db.close();
+			lock.write(new Runnable()
+			{
+				public void run()
+				{
+					SQLiteDatabase db = get_db();
+					
+					update_new_image_count(search,new_image_count,db);
+					
+					db.close();
+				}
+			});
 		}
 		
 		private void update_new_image_count(String search, int new_image_count, SQLiteDatabase db)
@@ -1644,13 +1846,19 @@ public class E621Middleware extends E621
 			db.update("search", values, "search_query = ?", new String[]{search});
 		}
 		
-		public void remove(String search)
+		public void remove(final String search)
 		{
-			SQLiteDatabase db = get_db();
-			
-			remove(search,db);
-			
-			db.close();
+			lock.write(new Runnable()
+			{
+				public void run()
+				{
+					SQLiteDatabase db = get_db();
+					
+					remove(search,db);
+					
+					db.close();
+				}
+			});
 		}
 		
 		private void remove(String search, SQLiteDatabase db)
@@ -1704,15 +1912,23 @@ public class E621Middleware extends E621
 			db.update("search", values, "search_query = ?", new String[]{search});
 		}
 		
-		public InterruptedSearch getSearch(String search)
+		public InterruptedSearch getSearch(final String search)
 		{
-			SQLiteDatabase db = get_db();
+			final GTFO<InterruptedSearch> ret = new GTFO<InterruptedSearch>();
 			
-			InterruptedSearch ret = getSearch(search,db);
+			lock.read(new Runnable()
+			{
+				public void run()
+				{
+					SQLiteDatabase db = get_db();
+					
+					ret.obj = getSearch(search,db);
+					
+					db.close();
+				}
+			});
 			
-			db.close();
-			
-			return ret;
+			return ret.obj;
 		}
 		
 		private InterruptedSearch getSearch(String search, SQLiteDatabase db)
@@ -1745,38 +1961,73 @@ public class E621Middleware extends E621
 	
 		public ArrayList<InterruptedSearch> getAllSearches()
 		{
-			ArrayList<InterruptedSearch> searches = new ArrayList<InterruptedSearch>();
+			final ArrayList<InterruptedSearch> searches = new ArrayList<InterruptedSearch>();
 			
-			SQLiteDatabase db = get_db();
-			
-			Cursor c = db.rawQuery("SELECT search_query, seen_past, seen_until, new_images FROM search ORDER BY -new_images, search_query;", null);
-			
-			if(!(c != null && c.moveToFirst()))
+			lock.read(new Runnable()
 			{
-				return searches;
-			}
-			else
-			{
-				while(!c.isAfterLast())
+				public void run()
 				{
-					String seen_past = c.getString(c.getColumnIndex("seen_past"));
-					String seen_until = c.getString(c.getColumnIndex("seen_until"));
+					SQLiteDatabase db = get_db();
 					
-					searches.add(new InterruptedSearch(
-							c.getString(c.getColumnIndex("search_query")),
-							(seen_past==null||seen_past.equals("null"))?null:Integer.parseInt(seen_past),
-							(seen_until==null||seen_until.equals("null"))?null:Integer.parseInt(seen_until),
-							c.getInt(c.getColumnIndex("new_images"))));
+					Cursor c = db.rawQuery("SELECT search_query, seen_past, seen_until, new_images FROM search ORDER BY -new_images, search_query;", null);
 					
-					c.moveToNext();
+					if(!(c != null && c.moveToFirst()))
+					{
+						return;
+					}
+					else
+					{
+						while(!c.isAfterLast())
+						{
+							String seen_past = c.getString(c.getColumnIndex("seen_past"));
+							String seen_until = c.getString(c.getColumnIndex("seen_until"));
+							
+							searches.add(new InterruptedSearch(
+									c.getString(c.getColumnIndex("search_query")),
+									(seen_past==null||seen_past.equals("null"))?null:Integer.parseInt(seen_past),
+									(seen_until==null||seen_until.equals("null"))?null:Integer.parseInt(seen_until),
+									c.getInt(c.getColumnIndex("new_images"))));
+							
+							c.moveToNext();
+						}
+						
+						c.close();
+					}
+					
+					db.close();
 				}
-				
-				c.close();
-			}
-			
-			db.close();
+			});
 			
 			return searches;
+		}
+	
+		public void setSearches(final ArrayList<InterruptedSearch> searches)
+		{
+			lock.write(new Runnable()
+			{
+				public void run()
+				{
+					SQLiteDatabase db = get_db();
+					db.beginTransaction();
+					
+					try
+					{
+						db.delete("search", "1", null);
+						
+						for(InterruptedSearch s : searches)
+						{
+							add(s.search,String.valueOf(s.min_id),String.valueOf(s.max_id),db);
+						}
+						
+						db.setTransactionSuccessful();
+					}
+					finally
+					{
+						db.endTransaction();
+						db.close();
+					}
+				}
+			});
 		}
 	}
 	

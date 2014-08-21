@@ -1,14 +1,21 @@
 package info.beastarman.e621.frontend;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 
 import org.apache.commons.io.IOUtils;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.SeekBarDialogPreference;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -68,6 +75,209 @@ public class SettingsActivity extends PreferenceActivity
 			}
 		}).start();
 	}
+	
+	protected void restoreBackup(final Date date)
+	{
+		final GTFO<ProgressDialog> dialogWrapper = new GTFO<ProgressDialog>();
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				final GTFO<String> message = new GTFO<String>();
+				message.obj = "";
+				
+				e621.restoreBackup(date,new EventManager()
+		    	{
+		    		@Override
+					public void onTrigger(Object obj)
+		    		{
+		    			if(obj == E621Middleware.BackupStates.READING)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						String localMessage = "Reading current backup";
+		    						localMessage = "• " + localMessage;
+		    						
+		    						if(dialogWrapper.obj == null)
+		    		    			{
+		    							final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "",localMessage + "...", true);
+					    				dialog.setIndeterminate(true);
+					    				dialog.show();
+					    				
+					    				dialogWrapper.obj = dialog;
+					    				message.obj = localMessage+"...";
+		    		    			}
+		    						else
+		    						{
+		    							message.obj += " Done\n" + localMessage + "...";
+			    						
+			    						dialogWrapper.obj.setMessage(message.obj);
+		    						}
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.CURRENT)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						String localMessage = "Creating emergency backup";
+		    						localMessage = "• " + localMessage;
+		    						
+		    						if(dialogWrapper.obj == null)
+		    		    			{
+		    							final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "",localMessage + "...", true);
+					    				dialog.setIndeterminate(true);
+					    				dialog.show();
+					    				
+					    				dialogWrapper.obj = dialog;
+					    				message.obj = localMessage+"...";
+		    		    			}
+		    						else
+		    						{
+			    						message.obj += " Done\n" + localMessage + "...";
+			    						
+			    						dialogWrapper.obj.setMessage(message.obj);
+		    						}
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.SEARCHES)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						String localMessage = "Overriding saved searches";
+		    						localMessage = "• " + localMessage;
+		    						
+		    						if(dialogWrapper.obj == null)
+		    		    			{
+		    							final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "",localMessage + "...", true);
+					    				dialog.setIndeterminate(true);
+					    				dialog.show();
+					    				
+					    				dialogWrapper.obj = dialog;
+					    				message.obj = localMessage+"...";
+		    		    			}
+		    						else
+		    						{
+			    						message.obj += " Done\n" + localMessage + "...";
+			    						
+			    						dialogWrapper.obj.setMessage(message.obj);
+		    						}
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.SEARCHES_COUNT)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						String localMessage = "Updating saved searches remaining images";
+		    						localMessage = "• " + localMessage;
+		    						
+		    						if(dialogWrapper.obj == null)
+		    		    			{
+		    							final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "",localMessage + "...", true);
+					    				dialog.setIndeterminate(true);
+					    				dialog.show();
+					    				
+					    				dialogWrapper.obj = dialog;
+					    				message.obj = localMessage+"...";
+		    		    			}
+		    						else
+		    						{
+			    						message.obj += " Done\n" + localMessage + "...";
+			    						
+			    						dialogWrapper.obj.setMessage(message.obj);
+		    						}
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.REMOVE_EMERGENCY)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						String localMessage = "Removing emergency backup";
+		    						localMessage = "• " + localMessage;
+		    						
+		    						if(dialogWrapper.obj == null)
+		    		    			{
+		    							final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "",localMessage + "...", true);
+					    				dialog.setIndeterminate(true);
+					    				dialog.show();
+					    				
+					    				dialogWrapper.obj = dialog;
+					    				message.obj = localMessage+"...";
+		    		    			}
+		    						else
+		    						{
+			    						message.obj += " Done\n" + localMessage + "...";
+			    						
+			    						dialogWrapper.obj.setMessage(message.obj);
+		    						}
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.SUCCESS)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						if(dialogWrapper.obj != null)
+		    		    			{
+		    		    				dialogWrapper.obj.dismiss();
+		    		    				dialogWrapper.obj=null;
+		    		    			}
+		    						
+		    						AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
+		    				        builder.setMessage("Backup restored!")
+		    				               .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+		    				                   public void onClick(DialogInterface dialog, int id) {}
+		    				               });
+		    				        
+		    				        Dialog dialog = builder.create();
+		    				        dialog.show();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.FAILURE)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						if(dialogWrapper.obj != null)
+		    		    			{
+		    		    				dialogWrapper.obj.dismiss();
+		    		    				dialogWrapper.obj=null;
+		    		    			}
+		    						
+		    						AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
+		    				        builder.setMessage("Backup could not be restored.")
+		    				               .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+		    				                   public void onClick(DialogInterface dialog, int id) {}
+		    				               });
+		    				        
+		    				        Dialog dialog = builder.create();
+		    				        dialog.show();
+		    					}
+		    				});
+		    			}
+					}
+		    	});
+			}
+		}).start();
+	}
 
     public static class MyPreferenceFragment extends PreferenceFragment
     {
@@ -113,20 +323,37 @@ public class SettingsActivity extends PreferenceActivity
                 }
             });
             
+            ArrayList<Date> backups = activity.e621.getBackups();
+            CharSequence[] entries = new CharSequence[backups.size()];
+            CharSequence[] entriesValues = new CharSequence[backups.size()];
+            
+            for(int i=0; i<backups.size(); i++)
+            {
+            	entries[i] = backups.get(i).toString();
+            	entriesValues[i] = String.valueOf(backups.get(i).getTime());
+            }
+            
+            ListPreference restoreBackup = (ListPreference)getPreferenceManager().findPreference("restoreBackup");
+            restoreBackup.setDefaultValue(null);
+            restoreBackup.setEntries(entries);
+            restoreBackup.setEntryValues(entriesValues);
+            restoreBackup.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue)
+                {
+                	Log.d(E621Middleware.LOG_TAG,newValue.toString());
+                	
+                	activity.restoreBackup(new Date(Long.parseLong(newValue.toString())));
+                	
+                    return false;
+                }
+            });
+            
             Preference allowedMascots = (Preference)getPreferenceManager().findPreference("allowedMascots");
             allowedMascots.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference arg0) {
                 	E621MascotSelect fragment = new E621MascotSelect();
-            		
-                	fragment.setConfirmRunnable(new Runnable()
-            		{
-            			public void run()
-            			{
-            				Log.d(E621Middleware.LOG_TAG,"Well... ok then.");
-            			}
-            		});
-            		
             		fragment.show(getFragmentManager(), "MascotSelect");
             		
             		return true;

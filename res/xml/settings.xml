@@ -82,7 +82,7 @@
             android:title="Force full metadata update"
             android:summary="Throws everything away and updates tags and aliases database."
             android:key="updateTagsForce"/>
-        <Preference
+        <ListPreference
             android:title="Restore backup"
             android:summary="Restore automatic backup"
             android:key="restoreBackup"/>
