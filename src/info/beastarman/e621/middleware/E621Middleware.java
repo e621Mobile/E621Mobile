@@ -149,6 +149,7 @@ public class E621Middleware extends E621
 				new long[]{
 					AlarmManager.INTERVAL_HOUR*24,
 					AlarmManager.INTERVAL_HOUR*24*7,
+					AlarmManager.INTERVAL_HOUR*24*30,
 				});
 		
 		settings = ctx.getSharedPreferences(PREFS_NAME, 0);
@@ -1283,7 +1284,7 @@ public class E621Middleware extends E621
 			{
 				obj = searches.getJSONObject(i);
 				
-				interruptedSearches.add(new InterruptedSearch(obj.getString("search"),obj.optInt("min_id"),obj.optInt("max_id"),0));
+				interruptedSearches.add(new InterruptedSearch(obj.getString("search"),obj.optInt("min_id",-1),obj.optInt("max_id",-1),0));
 			}
 			catch (JSONException e)
 			{
@@ -1710,8 +1711,8 @@ public class E621Middleware extends E621
 		public InterruptedSearch(String search, Integer min_id, Integer max_id, int new_images)
 		{
 			this.search = search;
-			this.min_id = min_id;
-			this.max_id = max_id;
+			this.min_id = (min_id != null && min_id >= 0? min_id : null);
+			this.max_id = (max_id != null && max_id >= 0? max_id : null);
 			this.new_images = new_images;
 		}
 		
@@ -1874,6 +1875,7 @@ public class E621Middleware extends E621
 			values.put("search_query", search);
 			values.put("seen_past", seen_past);
 			values.put("seen_until", seen_until);
+			values.put("new_images", 0);
 			
 			db.insert("search", null, values);
 		}
@@ -2016,7 +2018,14 @@ public class E621Middleware extends E621
 						
 						for(InterruptedSearch s : searches)
 						{
-							add(s.search,String.valueOf(s.min_id),String.valueOf(s.max_id),db);
+							if(s.is_valid())
+							{
+								add(s.search,String.valueOf(s.min_id),String.valueOf(s.max_id),db);
+							}
+							else
+							{
+								add(s.search,null,null,db);
+							}
 						}
 						
 						db.setTransactionSuccessful();
