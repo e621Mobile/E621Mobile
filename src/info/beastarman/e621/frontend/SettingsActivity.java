@@ -12,6 +12,7 @@ import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.SeekBarDialogPreference;
+import info.beastarman.e621.views.StepsProgressDialog;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -78,7 +79,9 @@ public class SettingsActivity extends PreferenceActivity
 	
 	protected void restoreBackup(final Date date)
 	{
-		final GTFO<ProgressDialog> dialogWrapper = new GTFO<ProgressDialog>();
+		final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
+		dialogWrapper.obj = new StepsProgressDialog(this);
+		dialogWrapper.obj.show();
 		
 		new Thread(new Runnable()
 		{
@@ -98,24 +101,7 @@ public class SettingsActivity extends PreferenceActivity
 		    				{
 		    					public void run()
 		    					{
-		    						String localMessage = "Reading current backup";
-		    						localMessage = "• " + localMessage;
-		    						
-		    						if(dialogWrapper.obj == null)
-		    		    			{
-		    							final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "",localMessage + "...", true);
-					    				dialog.setIndeterminate(true);
-					    				dialog.show();
-					    				
-					    				dialogWrapper.obj = dialog;
-					    				message.obj = localMessage+"...";
-		    		    			}
-		    						else
-		    						{
-		    							message.obj += " Done\n" + localMessage + "...";
-			    						
-			    						dialogWrapper.obj.setMessage(message.obj);
-		    						}
+		    						dialogWrapper.obj.addStep("Reading current backup").showStepsMessage();
 		    					}
 		    				});
 		    			}
@@ -125,24 +111,7 @@ public class SettingsActivity extends PreferenceActivity
 		    				{
 		    					public void run()
 		    					{
-		    						String localMessage = "Creating emergency backup";
-		    						localMessage = "• " + localMessage;
-		    						
-		    						if(dialogWrapper.obj == null)
-		    		    			{
-		    							final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "",localMessage + "...", true);
-					    				dialog.setIndeterminate(true);
-					    				dialog.show();
-					    				
-					    				dialogWrapper.obj = dialog;
-					    				message.obj = localMessage+"...";
-		    		    			}
-		    						else
-		    						{
-			    						message.obj += " Done\n" + localMessage + "...";
-			    						
-			    						dialogWrapper.obj.setMessage(message.obj);
-		    						}
+		    						dialogWrapper.obj.addStep("Creating emergency backup").showStepsMessage();
 		    					}
 		    				});
 		    			}
@@ -152,24 +121,7 @@ public class SettingsActivity extends PreferenceActivity
 		    				{
 		    					public void run()
 		    					{
-		    						String localMessage = "Overriding saved searches";
-		    						localMessage = "• " + localMessage;
-		    						
-		    						if(dialogWrapper.obj == null)
-		    		    			{
-		    							final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "",localMessage + "...", true);
-					    				dialog.setIndeterminate(true);
-					    				dialog.show();
-					    				
-					    				dialogWrapper.obj = dialog;
-					    				message.obj = localMessage+"...";
-		    		    			}
-		    						else
-		    						{
-			    						message.obj += " Done\n" + localMessage + "...";
-			    						
-			    						dialogWrapper.obj.setMessage(message.obj);
-		    						}
+		    						dialogWrapper.obj.addStep("Overriding saved searches").showStepsMessage();
 		    					}
 		    				});
 		    			}
@@ -179,24 +131,7 @@ public class SettingsActivity extends PreferenceActivity
 		    				{
 		    					public void run()
 		    					{
-		    						String localMessage = "Updating saved searches remaining images";
-		    						localMessage = "• " + localMessage;
-		    						
-		    						if(dialogWrapper.obj == null)
-		    		    			{
-		    							final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "",localMessage + "...", true);
-					    				dialog.setIndeterminate(true);
-					    				dialog.show();
-					    				
-					    				dialogWrapper.obj = dialog;
-					    				message.obj = localMessage+"...";
-		    		    			}
-		    						else
-		    						{
-			    						message.obj += " Done\n" + localMessage + "...";
-			    						
-			    						dialogWrapper.obj.setMessage(message.obj);
-		    						}
+		    						dialogWrapper.obj.addStep("Updating saved searches remaining images").showStepsMessage();
 		    					}
 		    				});
 		    			}
@@ -206,24 +141,7 @@ public class SettingsActivity extends PreferenceActivity
 		    				{
 		    					public void run()
 		    					{
-		    						String localMessage = "Removing emergency backup";
-		    						localMessage = "• " + localMessage;
-		    						
-		    						if(dialogWrapper.obj == null)
-		    		    			{
-		    							final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "",localMessage + "...", true);
-					    				dialog.setIndeterminate(true);
-					    				dialog.show();
-					    				
-					    				dialogWrapper.obj = dialog;
-					    				message.obj = localMessage+"...";
-		    		    			}
-		    						else
-		    						{
-			    						message.obj += " Done\n" + localMessage + "...";
-			    						
-			    						dialogWrapper.obj.setMessage(message.obj);
-		    						}
+		    						dialogWrapper.obj.addStep("Removing emergency backup").showStepsMessage();
 		    					}
 		    				});
 		    			}
@@ -233,20 +151,7 @@ public class SettingsActivity extends PreferenceActivity
 		    				{
 		    					public void run()
 		    					{
-		    						if(dialogWrapper.obj != null)
-		    		    			{
-		    		    				dialogWrapper.obj.dismiss();
-		    		    				dialogWrapper.obj=null;
-		    		    			}
-		    						
-		    						AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
-		    				        builder.setMessage("Backup restored!")
-		    				               .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-		    				                   public void onClick(DialogInterface dialog, int id) {}
-		    				               });
-		    				        
-		    				        Dialog dialog = builder.create();
-		    				        dialog.show();
+		    						dialogWrapper.obj.setDone("Backup finished!");
 		    					}
 		    				});
 		    			}
@@ -256,20 +161,7 @@ public class SettingsActivity extends PreferenceActivity
 		    				{
 		    					public void run()
 		    					{
-		    						if(dialogWrapper.obj != null)
-		    		    			{
-		    		    				dialogWrapper.obj.dismiss();
-		    		    				dialogWrapper.obj=null;
-		    		    			}
-		    						
-		    						AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
-		    				        builder.setMessage("Backup could not be restored.")
-		    				               .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-		    				                   public void onClick(DialogInterface dialog, int id) {}
-		    				               });
-		    				        
-		    				        Dialog dialog = builder.create();
-		    				        dialog.show();
+		    						dialogWrapper.obj.setDone("Backup could not be restored!");
 		    					}
 		    				});
 		    			}
