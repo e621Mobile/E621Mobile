@@ -404,18 +404,8 @@ public class SearchActivity extends BaseActivity
 		RelativeLayout imageWrapper = new RelativeLayout(getApplicationContext());
 		
 		boolean has_border = false;
-		
-		if(img.has_children())
-		{
-			imageWrapper.setBackgroundResource(R.drawable.has_children_mark);
-			has_border = true;
-		}
-		else if(img.parent_id != null)
-		{
-			imageWrapper.setBackgroundResource(R.drawable.has_parent_mark);
-			has_border = true;
-		}
-		else if(img.status == E621Image.FLAGGED)
+
+		if(img.status == E621Image.FLAGGED)
 		{
 			imageWrapper.setBackgroundResource(R.drawable.delete_mark);
 			has_border = true;
@@ -423,6 +413,16 @@ public class SearchActivity extends BaseActivity
 		else if(img.status == E621Image.PENDING)
 		{
 			imageWrapper.setBackgroundResource(R.drawable.pending_mark);
+			has_border = true;
+		}
+		else if(img.has_children())
+		{
+			imageWrapper.setBackgroundResource(R.drawable.has_children_mark);
+			has_border = true;
+		}
+		else if(img.parent_id != null)
+		{
+			imageWrapper.setBackgroundResource(R.drawable.has_parent_mark);
 			has_border = true;
 		}
 		
