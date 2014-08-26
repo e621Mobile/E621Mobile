@@ -591,8 +591,22 @@ public class E621Middleware extends E621
 		}).start();
 	}
 	
+	public boolean saveImage(final Integer img)
+	{
+		try {
+			return(saveImage(post__show(img)));
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
 	public boolean saveImage(final E621Image img)
 	{
+		if(img == null) return false;
+		
+		failed_download_manager.addFile(String.valueOf(img.id));
+		
 		final InputStream in = getImage(img,getFileDownloadSize());
 		
 		if(in != null)
@@ -603,6 +617,8 @@ public class E621Middleware extends E621
 				public void run()
 				{
 					download_manager.createOrUpdate(img, in, img.file_ext);
+					
+					failed_download_manager.removeFile(String.valueOf(img.id));
 				}
 			}).start();
 			
@@ -610,13 +626,22 @@ public class E621Middleware extends E621
 		}
 		else
 		{
+			failed_download_manager.removeFile(String.valueOf(img.id));
+			
 			return false;
 		}
 	}
-	
+
 	public void deleteImage(E621Image img)
 	{
-		download_manager.removeFile(img);
+		deleteImage(img.id);
+	}
+
+	public void deleteImage(Integer id)
+	{
+		download_manager.removeFile(id);
+		
+		failed_download_manager.removeFile(String.valueOf(id));
 	}
 	
 	Semaphore getImageSemaphore = new Semaphore(10);
@@ -767,6 +792,11 @@ public class E621Middleware extends E621
 	}
 	
 	public InputStream getDownloadedImage(Integer id)
+	{
+		return download_manager.getFile(id);
+	}
+	
+	public InputStream getDownloadedImage(E621DownloadedImage id)
 	{
 		return download_manager.getFile(id);
 	}
@@ -1193,12 +1223,16 @@ public class E621Middleware extends E621
 		CURRENT,
 		SEARCHES,
 		SEARCHES_COUNT,
+		GETTING_IMAGES,
+		DELETING_IMAGES,
+		INSERTING_IMAGES,
+		DOWNLOADING_IMAGES,
 		REMOVE_EMERGENCY,
 		SUCCESS,
 		FAILURE,
 	}
 	
-	public boolean restoreBackup(Date date, EventManager event)
+	public boolean restoreBackup(Date date, boolean keep, EventManager event)
 	{
 		event.trigger(BackupStates.READING);
 		
@@ -1292,15 +1326,120 @@ public class E621Middleware extends E621
 			}
 		}
 		
+		event.trigger(BackupStates.GETTING_IMAGES);
+		
+		JSONArray downloads = json.optJSONArray("downloads");
+		if(downloads == null)
+		{
+			event.trigger(BackupStates.FAILURE);
+			return false;
+		}
+		
+		ArrayList<E621DownloadedImage> currentDownloads = download_manager.search(0,-1,new SearchQuery(""));
+		
+		HashSet<Integer> backupDownloads = new HashSet<Integer>();
+		for(i=0; i<downloads.length(); i++)
+		{
+			try
+			{
+				backupDownloads.add(downloads.getInt(i));
+			}
+			catch (JSONException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		
+		for(i=currentDownloads.size()-1; i>=0; i--)
+		{
+			Integer id = currentDownloads.get(i).getId();
+			
+			if(backupDownloads.contains(id))
+			{
+				currentDownloads.remove(i);
+				backupDownloads.remove(id);
+			}
+		}
+		
+		Log.d(LOG_TAG,currentDownloads.toString());
+		Log.d(LOG_TAG,backupDownloads.toString());
+		
+		if(!keep)
+		{
+			event.trigger(BackupStates.DELETING_IMAGES);
+			
+			for(E621DownloadedImage img : currentDownloads)
+			{
+				deleteImage(img.getId());
+			}
+		}
+		
+		event.trigger(BackupStates.INSERTING_IMAGES);
+		
+		for(Integer id : backupDownloads)
+		{
+			failed_download_manager.addFile(String.valueOf(id));
+		}
+		
+		event.trigger(BackupStates.REMOVE_EMERGENCY);
+		
+		emergency_backup.delete();
+
 		event.trigger(BackupStates.SEARCHES_COUNT);
 		
 		interrupt.setSearches(interruptedSearches);
 		
 		syncSearchCounts();
 		
-		event.trigger(BackupStates.REMOVE_EMERGENCY);
+		event.trigger(BackupStates.DOWNLOADING_IMAGES);
 		
-		emergency_backup.delete();
+		final Semaphore s = new Semaphore(10);
+		ArrayList<Thread> threads = new ArrayList<Thread>();
+		
+		for(final Integer id : backupDownloads)
+		{
+			failed_download_manager.addFile(String.valueOf(id));
+			
+			Thread t = new Thread(new Runnable()
+			{
+				public void run()
+				{
+					try
+					{
+						s.acquire();
+					}
+					catch (InterruptedException e)
+					{
+						e.printStackTrace();
+						Thread.currentThread().interrupt();
+					}
+					
+					try
+					{
+						saveImage(id);
+					}
+					finally
+					{
+						s.release();
+					}
+				}
+			});
+			
+			t.start();
+			
+			threads.add(t);
+		}
+		
+		for(Thread t : threads)
+		{
+			try {
+				t.join();
+			}
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		}
 		
 		event.trigger(BackupStates.SUCCESS);
 		return true;

@@ -209,8 +209,6 @@ public class DownloadsActivity extends BaseActivity
 
 				for (E621DownloadedImage img : downloads)
 				{
-					Integer id = img.getId();
-					
 					ImageView imgView = new ImageView(getApplicationContext());
 					RelativeLayout rel = new RelativeLayout(getApplicationContext());
 					ProgressBar bar = new ProgressBar(getApplicationContext());
@@ -246,7 +244,7 @@ public class DownloadsActivity extends BaseActivity
 
 					ImageViewHandler handler = new ImageViewHandler(imgView, bar);
 					
-					scroll.addThread(new Thread(new ImageLoadRunnable(handler, id)), image_y);
+					scroll.addThread(new Thread(new ImageLoadRunnable(handler, img)), image_y);
 					
 					if(e621.lazyLoad()) image_y += image_height + 40;
 					
@@ -302,9 +300,9 @@ public class DownloadsActivity extends BaseActivity
 	private class ImageLoadRunnable implements Runnable
 	{
 		ImageViewHandler handler;
-		Integer id;
+		E621DownloadedImage id;
 		
-		public ImageLoadRunnable(ImageViewHandler handler, Integer id)
+		public ImageLoadRunnable(ImageViewHandler handler, E621DownloadedImage id)
 		{
 			this.handler = handler;
 			this.id = id;

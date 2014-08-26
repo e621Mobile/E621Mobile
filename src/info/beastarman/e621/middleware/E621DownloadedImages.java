@@ -322,7 +322,7 @@ public class E621DownloadedImages
 		return ret.obj;
 	}
 	
-	private String getFileName(final E621Image img)
+	private String getFileName(final Integer id)
 	{
 		final GTFO<String> ret = new GTFO<String>();
 		ret.obj = null;
@@ -336,7 +336,7 @@ public class E621DownloadedImages
 				
 				try
 				{
-					c = db.rawQuery("SELECT image_file FROM e621image WHERE id = ?", new String[]{String.valueOf(img.id)});
+					c = db.rawQuery("SELECT image_file FROM e621image WHERE id = ?", new String[]{String.valueOf(id)});
 					
 					if(c == null || !c.moveToFirst())
 					{
@@ -354,6 +354,11 @@ public class E621DownloadedImages
 		});
 		
 		return ret.obj;
+	}
+	
+	private String getFileName(final E621Image img)
+	{
+		return getFileName(img.id);
 	}
 	
 	public InputStream getFile(final Integer id)
@@ -385,11 +390,27 @@ public class E621DownloadedImages
 		}
 	}
 	
-	public void removeFile(final E621Image img)
+	public InputStream getFile(final E621DownloadedImage img)
 	{
-		if(img == null) return;
+		if(img == null) return null;
 		
-		final String file_name = getFileName(img);
+		String file_name = img.filename;
+		
+		if(file_name != null)
+		{
+			return images.getFile(file_name);
+		}
+		else
+		{
+			return null;
+		}
+	}
+	
+	public void removeFile(final Integer id)
+	{
+		if(id == null) return;
+		
+		final String file_name = getFileName(id);
 		
 		lock.writeAsync(new Runnable()
 		{
@@ -404,8 +425,8 @@ public class E621DownloadedImages
 				
 				try
 				{
-					db.delete("image_tag", "image = ?", new String[]{String.valueOf(img.id)});
-					db.delete("e621image", "id = ?", new String[]{String.valueOf(img.id)});
+					db.delete("image_tag", "image = ?", new String[]{String.valueOf(id)});
+					db.delete("e621image", "id = ?", new String[]{String.valueOf(id)});
 				}
 				finally
 				{
@@ -413,6 +434,13 @@ public class E621DownloadedImages
 				}
 			}
 		});
+	}
+	
+	public void removeFile(final E621Image img)
+	{
+		if(img == null) return;
+		
+		removeFile(img.id);
 	}
 	
 	public void createOrUpdate(final E621Image img, final InputStream in, final String file_ext)

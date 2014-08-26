@@ -192,7 +192,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 				
 				if(images.size() > 0)
 				{
-					final InputStream in = e621.getDownloadedImage(images.get(0).id);
+					final InputStream in = e621.getDownloadedImage(images.get(0));
 			    	
 			    	runOnUiThread(new Runnable()
 			    	{

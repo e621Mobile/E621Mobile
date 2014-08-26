@@ -17,6 +17,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -79,6 +80,30 @@ public class SettingsActivity extends PreferenceActivity
 	
 	protected void restoreBackup(final Date date)
 	{
+		AlertDialog.Builder removeNewBuilder = new AlertDialog.Builder(this);
+		removeNewBuilder.setMessage("Keep images not present on backup?");
+		removeNewBuilder.setPositiveButton("Keep", new OnClickListener()
+		{
+			@Override
+			public void onClick(DialogInterface dialog, int which)
+			{
+				restoreBackup(date,true);
+			}
+		});
+		removeNewBuilder.setNegativeButton("Delete", new OnClickListener()
+		{
+			@Override
+			public void onClick(DialogInterface dialog, int which)
+			{
+				restoreBackup(date,false);
+			}
+		});
+		
+		removeNewBuilder.create().show();
+	}
+	
+	private void restoreBackup(final Date date, final boolean keep)
+	{
 		final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
 		dialogWrapper.obj = new StepsProgressDialog(this);
 		dialogWrapper.obj.show();
@@ -90,7 +115,7 @@ public class SettingsActivity extends PreferenceActivity
 				final GTFO<String> message = new GTFO<String>();
 				message.obj = "";
 				
-				e621.restoreBackup(date,new EventManager()
+				e621.restoreBackup(date,keep,new EventManager()
 		    	{
 		    		@Override
 					public void onTrigger(Object obj)
@@ -142,6 +167,46 @@ public class SettingsActivity extends PreferenceActivity
 		    					public void run()
 		    					{
 		    						dialogWrapper.obj.addStep("Removing emergency backup").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.GETTING_IMAGES)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Getting current images").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.DELETING_IMAGES)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Removing unnecessary images").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.INSERTING_IMAGES)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Inserting images").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.DOWNLOADING_IMAGES)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Downloading images").showStepsMessage();
 		    					}
 		    				});
 		    			}

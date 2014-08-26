@@ -23,4 +23,9 @@ public class E621DownloadedImage implements Serializable
 	{
 		return id;
 	}
+	
+	public String toString()
+	{
+		return String.valueOf(id);
+	}
 }
