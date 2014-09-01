@@ -14,6 +14,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
@@ -183,27 +184,8 @@ public class SlideMenuBaseActivity extends BaseActivity
 		img.setPadding(dpToPx(2), dpToPx(2), dpToPx(2), dpToPx(2));
 		img.setLayoutParams(params);
 		
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				ArrayList<E621DownloadedImage> images = e621.localSearch(0, 1, search.search);
-				
-				if(images.size() > 0)
-				{
-					final InputStream in = e621.getDownloadedImage(images.get(0));
-			    	
-			    	runOnUiThread(new Runnable()
-			    	{
-			    		public void run()
-			    		{
-			    			drawInputStreamToImageView(in,img);
-			    		}
-			    	});
-				}
-			}
-		}).start();
+		Bitmap bmp = e621.getContinueSearchThumbnail(search.search);
+		drawInputStreamToImageView(bmp,img);
 		
 		TextView text = new TextView(getApplicationContext());
 		text.setText(search.search);

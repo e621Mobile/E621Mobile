@@ -120,7 +120,17 @@ public class SettingsActivity extends PreferenceActivity
 		    		@Override
 					public void onTrigger(Object obj)
 		    		{
-		    			if(obj == E621Middleware.BackupStates.READING)
+		    			if(obj == E621Middleware.BackupStates.OPENING)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Opening current backup").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.CURRENT)
 		    			{
 		    				runOnUiThread(new Runnable()
 		    				{
@@ -167,6 +177,7 @@ public class SettingsActivity extends PreferenceActivity
 		    					public void run()
 		    					{
 		    						dialogWrapper.obj.addStep("Removing emergency backup").showStepsMessage();
+		    						dialogWrapper.obj.allowDismiss();
 		    					}
 		    				});
 		    			}
@@ -207,6 +218,16 @@ public class SettingsActivity extends PreferenceActivity
 		    					public void run()
 		    					{
 		    						dialogWrapper.obj.addStep("Downloading images").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.UPDATE_TAGS)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Updating tags").showStepsMessage();
 		    					}
 		    				});
 		    			}
@@ -298,8 +319,6 @@ public class SettingsActivity extends PreferenceActivity
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue)
                 {
-                	Log.d(E621Middleware.LOG_TAG,newValue.toString());
-                	
                 	activity.restoreBackup(new Date(Long.parseLong(newValue.toString())));
                 	
                     return false;

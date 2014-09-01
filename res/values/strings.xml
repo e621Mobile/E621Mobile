@@ -36,5 +36,7 @@
     <string name="tags_dropdown">Tags ▼</string>
     <string name="loading">Loading</string>
     <string name="loading_tags">Loading tags</string>
+    <string name="restore_previous_backup">Restore previous backup</string>
+    <string name="restore_last_backup">Restore last backup</string>
 
 </resources>

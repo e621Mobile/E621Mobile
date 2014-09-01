@@ -70,7 +70,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		
 		super.onCreate(savedInstanceState);
 		
-		e621 = E621Middleware.getInstance(getApplicationContext());
+		e621 = E621Middleware.getInstance(this);
 		
 		Thread.setDefaultUncaughtExceptionHandler(this);
 	}
@@ -199,6 +199,13 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
         return ret;
 	}
 	
+	private Bitmap decodeFile(Bitmap bmp, int width, int height)
+	{
+		Bitmap ret = Bitmap.createScaledBitmap(bmp,width,height,false);
+        
+        return ret;
+	}
+	
 	public void drawInputStreamToImageView(final InputStream in, final ImageView imgView)
 	{
 		final ImageViewHandler handler = new ImageViewHandler(imgView);
@@ -208,6 +215,24 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 			public void run()
 			{
 				Bitmap bitmap = decodeFile(in, imgView.getLayoutParams().width, imgView.getLayoutParams().height);
+				
+				Message msg = handler.obtainMessage();
+		    	msg.obj = bitmap;
+		    	handler.sendMessage(msg);
+			}
+		}).start();
+	}
+	
+	public void drawInputStreamToImageView(final Bitmap bmp, final ImageView imgView)
+	{
+		final ImageViewHandler handler = new ImageViewHandler(imgView);
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				Bitmap bitmap = decodeFile(bmp, imgView.getLayoutParams().width, imgView.getLayoutParams().height);
+				bmp.recycle();
 				
 				Message msg = handler.obtainMessage();
 		    	msg.obj = bitmap;

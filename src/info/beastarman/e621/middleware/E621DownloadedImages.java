@@ -290,6 +290,11 @@ public class E621DownloadedImages
 		return ret.obj;
 	}
 	
+	public boolean hasFile(final E621DownloadedImage img)
+	{
+		return images.hasFile(img.filename);
+	}
+	
 	public boolean hasFile(final E621Image img)
 	{
 		if(img == null) return false;
@@ -306,10 +311,14 @@ public class E621DownloadedImages
 				
 				try
 				{
-					
-					c = db.rawQuery("SELECT 1 FROM e621image WHERE id = ?", new String[]{String.valueOf(img.id)});
+					c = db.rawQuery("SELECT image_file FROM e621image WHERE id = ?", new String[]{String.valueOf(img.id)});
 					
 					ret.obj = (c != null && c.moveToFirst());
+					
+					if(ret.obj)
+					{
+						ret.obj = images.hasFile(c.getString(c.getColumnIndex("image_file")));
+					}
 				}
 				finally
 				{

@@ -10,6 +10,7 @@ import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.backend.BackupManager;
 
 import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.FileName;
 import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.backend.ImageCacheManager;
 import info.beastarman.e621.backend.ImageCacheManagerOld;
@@ -17,7 +18,9 @@ import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 import info.beastarman.e621.frontend.DownloadsActivity;
 import info.beastarman.e621.frontend.MainActivity;
+import info.beastarman.e621.views.StepsProgressDialog;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -67,10 +70,15 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.view.View;
 
 public class E621Middleware extends E621
 {
@@ -315,6 +323,11 @@ public class E621Middleware extends E621
 		{
 			login = savedLogin;
 			password_hash = savedPasswordHash;
+		}
+		
+		if(emergency_backup.exists())
+		{
+			restoreEmergencyBackup();
 		}
 		
 		if(firstRun == null) firstRun = settings.getBoolean("firstRun",true);
@@ -605,6 +618,13 @@ public class E621Middleware extends E621
 	{
 		if(img == null) return false;
 		
+		if(img.status == E621Image.DELETED)
+		{
+			failed_download_manager.removeFile(String.valueOf(img.id));
+			
+			return false;
+		}
+		
 		failed_download_manager.addFile(String.valueOf(img.id));
 		
 		final InputStream in = getImage(img,getFileDownloadSize());
@@ -626,8 +646,6 @@ public class E621Middleware extends E621
 		}
 		else
 		{
-			failed_download_manager.removeFile(String.valueOf(img.id));
-			
 			return false;
 		}
 	}
@@ -1093,14 +1111,14 @@ public class E621Middleware extends E621
 			}
 		}
 		
-		syncSearchCounts();
+		syncSearch();
 		
 		backup();
 	}
 	
 	Semaphore searchCountSemaphore = new Semaphore(10);
 	
-	public void syncSearchCounts()
+	public void syncSearch()
 	{
 		ArrayList<Thread> threads = new ArrayList<Thread>();
 		
@@ -1120,6 +1138,50 @@ public class E621Middleware extends E621
 					update_new_image_count(interrupted.search);
 					
 					searchCountSemaphore.release();
+					
+					InputStream in = null;
+					
+					ArrayList<E621DownloadedImage> images = localSearch(0, 1, interrupted.search);
+					int width = 64;
+					int height = 64;
+					
+					if(images.size() > 0)
+					{
+						in = getDownloadedImage(images.get(0));
+						
+						if(in == null) return;
+						
+						byte[] data;
+						
+						try {
+							data = IOUtils.toByteArray(in);
+						} catch (IOException e) {
+							return;
+						}
+						
+				        //Decode image size
+				        BitmapFactory.Options o = new BitmapFactory.Options();
+				        o.inJustDecodeBounds = true;
+				        BitmapFactory.decodeStream(new ByteArrayInputStream(data),null,o);
+
+				        //Find the correct scale value. It should be the power of 2.
+				        int scale=1;
+				        while(o.outWidth/scale/2>=width && o.outHeight/scale/2>=height)
+				        {
+				        	scale*=2;
+				        }
+				        
+				        //Decode with inSampleSize
+				        BitmapFactory.Options o2 = new BitmapFactory.Options();
+				        o2.inSampleSize=scale;
+				        Bitmap bitmap_temp = BitmapFactory.decodeStream(new ByteArrayInputStream(data), null, o2);
+				        
+				        Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+				        
+				        bitmap_temp.recycle();
+						
+						interrupt.addThumbnail(interrupted.search, ret);
+					}
 				}
 			});
 			
@@ -1219,6 +1281,7 @@ public class E621Middleware extends E621
 	
 	public static enum BackupStates
 	{
+		OPENING,
 		READING,
 		CURRENT,
 		SEARCHES,
@@ -1228,13 +1291,77 @@ public class E621Middleware extends E621
 		INSERTING_IMAGES,
 		DOWNLOADING_IMAGES,
 		REMOVE_EMERGENCY,
+		UPDATE_TAGS,
 		SUCCESS,
 		FAILURE,
 	}
 	
+	private void restoreEmergencyBackup()
+	{
+		final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
+		dialogWrapper.obj = new StepsProgressDialog(ctx);
+		dialogWrapper.obj.addStep("Emergency Backup found. Restoring it").showStepsMessage();
+		dialogWrapper.obj.show();
+		
+		final BackupHandler handler = new BackupHandler(dialogWrapper.obj);
+		
+		try
+		{
+			final InputStream in = new BufferedInputStream(new FileInputStream(emergency_backup));
+			
+			new Thread(new Runnable()
+			{
+				public void run()
+				{
+					restoreBackup(in,true,new EventManager()
+			    	{
+			    		@Override
+						public void onTrigger(Object obj)
+			    		{
+			    			Log.d(LOG_TAG+"_Backup",String.valueOf(obj));
+			    			
+			    			if(obj == E621Middleware.BackupStates.SUCCESS || obj == E621Middleware.BackupStates.FAILURE)
+			    			{
+			    				Message msg = handler.obtainMessage();
+			    				handler.sendMessage(msg);
+			    			}
+						}
+			    	});
+					
+					try {
+						in.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					emergency_backup.delete();
+				}
+			}).start();
+		}
+		catch(FileNotFoundException e)
+		{
+			return;
+		}
+	}
+	
+	private static class BackupHandler extends Handler
+	{
+		StepsProgressDialog dialog;
+		
+		public BackupHandler(StepsProgressDialog dialog)
+		{
+			this.dialog = dialog;
+		}
+		
+		@Override
+		public void handleMessage(Message msg)
+		{
+			dialog.dismiss();
+		}
+	}
+	
 	public boolean restoreBackup(Date date, boolean keep, EventManager event)
 	{
-		event.trigger(BackupStates.READING);
+		event.trigger(BackupStates.OPENING);
 		
 		InputStream in = backupManager.getBackup(date.getTime());
 		
@@ -1244,6 +1371,13 @@ public class E621Middleware extends E621
 			
 			return false;
 		}
+		
+		return restoreBackup(in,keep,event);
+	}
+		
+	public boolean restoreBackup(InputStream in, boolean keep, EventManager event)
+	{
+		event.trigger(BackupStates.READING);
 		
 		JSONObject json;
 		
@@ -1354,15 +1488,20 @@ public class E621Middleware extends E621
 		{
 			Integer id = currentDownloads.get(i).getId();
 			
+			if(!download_manager.hasFile(currentDownloads.get(i)))
+			{
+				download_manager.removeFile(id);
+				currentDownloads.remove(i);
+				
+				continue;
+			}
+			
 			if(backupDownloads.contains(id))
 			{
 				currentDownloads.remove(i);
 				backupDownloads.remove(id);
 			}
 		}
-		
-		Log.d(LOG_TAG,currentDownloads.toString());
-		Log.d(LOG_TAG,backupDownloads.toString());
 		
 		if(!keep)
 		{
@@ -1389,7 +1528,7 @@ public class E621Middleware extends E621
 		
 		interrupt.setSearches(interruptedSearches);
 		
-		syncSearchCounts();
+		syncSearch();
 		
 		event.trigger(BackupStates.DOWNLOADING_IMAGES);
 		
@@ -1440,6 +1579,9 @@ public class E621Middleware extends E621
 				e.printStackTrace();
 			}
 		}
+		
+		event.trigger(BackupStates.UPDATE_TAGS);
+		update_tags();
 		
 		event.trigger(BackupStates.SUCCESS);
 		return true;
@@ -1743,6 +1885,11 @@ public class E621Middleware extends E621
 		}
 	}
 	
+	public Bitmap getContinueSearchThumbnail(String search)
+	{
+		return interrupt.getThumbnail(search);
+	}
+	
 	public E621Tag getTag(String name)
 	{
 		return download_manager.getTag(name);
@@ -1865,12 +2012,24 @@ public class E621Middleware extends E621
 	{
 		protected int version = 1;
 		protected File path;
+		protected File thumbnails_path;
 		
 		ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
 		
 		public InterruptedSearchManager(File path)
 		{
 			this.path = path;
+			this.thumbnails_path = new File(path,"thumbnails/");
+			
+			if(this.thumbnails_path.exists() && this.thumbnails_path.isFile())
+			{
+				this.thumbnails_path.delete();
+			}
+			
+			if(!this.thumbnails_path.exists())
+			{
+				this.thumbnails_path.mkdirs();
+			}
 		}
 		
 		private void new_db(SQLiteDatabase db)
@@ -2176,6 +2335,71 @@ public class E621Middleware extends E621
 					}
 				}
 			});
+		}
+		
+		public void addThumbnail(String search, Bitmap bmp)
+		{
+			if(bmp == null) return;
+			
+			search = FileName.encodeFileName(search);
+			
+			try
+			{
+				File file = new File(thumbnails_path,search);
+				
+				if(file.exists() && file.isDirectory())
+				{
+					file.delete();
+				}
+				
+				file.createNewFile();
+				
+				OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
+				
+				bmp.compress(Bitmap.CompressFormat.PNG, 0, out);
+				
+				out.close();
+			}
+			catch (FileNotFoundException e)
+			{
+				e.printStackTrace();
+				return;
+			} catch (IOException e) {
+				e.printStackTrace();
+				return;
+			}
+		}
+		
+		public Bitmap getThumbnail(String search)
+		{
+			search = FileName.encodeFileName(search);
+			
+			File file = new File(thumbnails_path,search);
+			
+			InputStream in = null;
+			
+			try
+			{
+				in = new BufferedInputStream(new FileInputStream(file));
+				
+				return BitmapFactory.decodeStream(in);
+			}
+			catch (FileNotFoundException e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+			finally
+			{
+				if(in != null)
+				{
+					try {
+						in.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 	

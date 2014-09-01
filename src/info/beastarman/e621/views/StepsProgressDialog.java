@@ -67,6 +67,11 @@ public class StepsProgressDialog extends ProgressDialog
 			return "";
 		}
 		
+		if(steps.size() == 1)
+		{
+			return "• " + steps.get(0) + "...";
+		}
+		
 		String message = "";
 		
 		for(String step : steps.subList(0, steps.size()-1))
@@ -89,6 +94,12 @@ public class StepsProgressDialog extends ProgressDialog
 		setMessage(getStepsMessage());
 	}
 	
+	public void allowDismiss()
+	{
+		getButton(BUTTON_POSITIVE).setText("Continue at background.");
+		getButton(BUTTON_POSITIVE).setVisibility(View.VISIBLE);
+	}
+	
 	public void setDone(String doneMessage)
 	{
 		String message = getStepsMessage();
@@ -106,6 +117,7 @@ public class StepsProgressDialog extends ProgressDialog
 		
 		setIndeterminateDrawable(new ColorDrawable(Color.TRANSPARENT));
 		
+		getButton(BUTTON_POSITIVE).setText("Ok!");
 		getButton(BUTTON_POSITIVE).setVisibility(View.VISIBLE);
 	}
 }

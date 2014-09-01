@@ -2,6 +2,7 @@ package info.beastarman.e621.middleware;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Locale;
 
 public class SearchQuery
 {
@@ -61,6 +62,6 @@ public class SearchQuery
 			ret = ret + " -" + s;
 		}
 		
-		return ret.trim();
+		return ret.trim().toLowerCase(new Locale("en_US"));
 	}
 }

@@ -1,14 +1,25 @@
 package info.beastarman.e621.frontend;
 
+import java.util.Collections;
+import java.util.Date;
+
 import info.beastarman.e621.R;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.views.StepsProgressDialog;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
@@ -131,5 +142,202 @@ public class ErrorReportActivity extends Activity
 		startActivity(i);
 		
 		finish();
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.error, menu);
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		switch (item.getItemId()) {
+		case R.id.restore_backup:
+			restoreBackup(Collections.max(e621.getBackups()));
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+	
+	protected void restoreBackup(final Date date)
+	{
+		AlertDialog.Builder removeNewBuilder = new AlertDialog.Builder(this);
+		removeNewBuilder.setMessage("Keep images not present on backup?");
+		removeNewBuilder.setPositiveButton("Keep", new OnClickListener()
+		{
+			@Override
+			public void onClick(DialogInterface dialog, int which)
+			{
+				restoreBackup(date,true);
+			}
+		});
+		removeNewBuilder.setNegativeButton("Delete", new OnClickListener()
+		{
+			@Override
+			public void onClick(DialogInterface dialog, int which)
+			{
+				restoreBackup(date,false);
+			}
+		});
+		
+		removeNewBuilder.create().show();
+	}
+	
+	private void restoreBackup(final Date date, final boolean keep)
+	{
+		final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
+		dialogWrapper.obj = new StepsProgressDialog(this);
+		dialogWrapper.obj.show();
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				final GTFO<String> message = new GTFO<String>();
+				message.obj = "";
+				
+				e621.restoreBackup(date,keep,new EventManager()
+		    	{
+		    		@Override
+					public void onTrigger(Object obj)
+		    		{
+		    			if(obj == E621Middleware.BackupStates.OPENING)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Opening current backup").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.READING)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Reading current backup").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.CURRENT)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Creating emergency backup").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.SEARCHES)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Overriding saved searches").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.SEARCHES_COUNT)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Updating saved searches remaining images").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.REMOVE_EMERGENCY)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Removing emergency backup").showStepsMessage();
+		    						dialogWrapper.obj.allowDismiss();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.GETTING_IMAGES)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Getting current images").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.DELETING_IMAGES)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Removing unnecessary images").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.INSERTING_IMAGES)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Inserting images").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.DOWNLOADING_IMAGES)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Downloading images").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.UPDATE_TAGS)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.addStep("Updating tags").showStepsMessage();
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.SUCCESS)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.setDone("Backup finished!");
+		    					}
+		    				});
+		    			}
+		    			else if(obj == E621Middleware.BackupStates.FAILURE)
+		    			{
+		    				runOnUiThread(new Runnable()
+		    				{
+		    					public void run()
+		    					{
+		    						dialogWrapper.obj.setDone("Backup could not be restored!");
+		    					}
+		    				});
+		    			}
+					}
+		    	});
+			}
+		}).start();
 	}
 }

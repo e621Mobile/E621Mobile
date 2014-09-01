@@ -139,7 +139,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		
 		if(ret.obj)
 		{
-			accessWatcher.insert(id);
+			if(max_size > 0) accessWatcher.insert(id);
 		}
 		
 		return ret.obj;
@@ -227,7 +227,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 			}
 		});
 		
-		accessWatcher.insert(id);
+		if(max_size > 0) accessWatcher.insert(id);
 	}
 
 	@Override
@@ -255,7 +255,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 			}
 		});
 		
-		accessWatcher.remove(new String[]{id});
+		if(max_size > 0) accessWatcher.remove(new String[]{id});
 	}
 
 	public void removeFiles(final String[] ids)
@@ -287,7 +287,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 			}
 		});
 		
-		accessWatcher.remove(ids);
+		if(max_size > 0) accessWatcher.remove(ids);
 	}
 	
 	private HashMap<String,Long> getAllFiles()
