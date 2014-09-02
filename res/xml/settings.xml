@@ -89,17 +89,17 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="Feedback">
         <Preference
-            android:title="Send feedback"
-            android:summary="Tell us how you think this app could be improved"
-            android:key="sendFeedback"/>
-        <Preference
-            android:title="Send error report"
-            android:summary="Send us usage info and a description of whatever problems you are facing"
+            android:title="Send feedback/error report"
+            android:summary="Send me usage info and a description of whatever problems you are facing"
             android:key="sendErrorReport"/>
         <Preference
             android:title="Change Log"
             android:summary="See what is new on this and previous versions"
             android:key="changeLog"/>
+        <Preference
+            android:title="Synchronize"
+            android:summary="Update saved searches, pending downloads and everything else"
+            android:key="sync"/>
         <Preference
             android:title="Update"
             android:summary="Look for newer versions and update"
@@ -114,7 +114,7 @@
             android:key="aboutE621"/>
         <Preference
             android:title="Donate"
-            android:summary="Send us some money"
+            android:summary="Send me some money"
             android:key="donate"/>
     </PreferenceCategory>
 </PreferenceScreen>

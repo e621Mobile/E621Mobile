@@ -38,5 +38,12 @@
     <string name="loading_tags">Loading tags</string>
     <string name="restore_previous_backup">Restore previous backup</string>
     <string name="restore_last_backup">Restore last backup</string>
-
+    <string name="about">
+        Thank you very much for using this app!
+        \n\n
+		This unofficial app has no warranty whatsoever and has no official relationship with e621 staff.
+		\n\n
+		Developed by Douglas Vanny Bento (me@beastarman.info)
+    </string>
+    <string name="changelog">Version 0.1: Everything.</string>
 </resources>

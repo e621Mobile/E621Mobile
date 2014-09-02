@@ -55,8 +55,10 @@ public class SettingsActivity extends PreferenceActivity
 		new Thread(new Runnable()
 		{
 			@Override
-			public void run() {
+			public void run()
+			{
 				e621.update_tags();
+				
 				dialog.dismiss();
 			}
 		}).start();
@@ -71,8 +73,10 @@ public class SettingsActivity extends PreferenceActivity
 		new Thread(new Runnable()
 		{
 			@Override
-			public void run() {
+			public void run()
+			{
 				e621.clearCache();
+				
 				dialog.dismiss();
 			}
 		}).start();
@@ -291,12 +295,46 @@ public class SettingsActivity extends PreferenceActivity
             
             MultiSelectListPreference ratings = (MultiSelectListPreference)findPreference("allowedRatings");
             ratings.setValues(getPreferenceManager().getSharedPreferences().getStringSet("allowedRatings",new HashSet<String>()));
-            
+
             Preference clearCache = (Preference)getPreferenceManager().findPreference("clearCache");
             clearCache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference arg0) {
                 	activity.clearCache();
+                    return true;
+                }
+            });
+
+            Preference about = (Preference)getPreferenceManager().findPreference("about");
+            about.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0) {
+                	AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("About").setMessage(R.string.about).
+                			setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									dialog.dismiss();
+								}
+							}).create();
+                	dialog.show();
+                	
+                    return true;
+                }
+            });
+
+            Preference changelog = (Preference)getPreferenceManager().findPreference("changeLog");
+            changelog.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0) {
+                	AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Change Log").setMessage(R.string.changelog).
+                			setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									dialog.dismiss();
+								}
+							}).create();
+                	dialog.show();
+                	
                     return true;
                 }
             });
@@ -344,7 +382,7 @@ public class SettingsActivity extends PreferenceActivity
                     return true;
                 }
             });
-            
+
             Preference aboutE621 = (Preference)getPreferenceManager().findPreference("aboutE621");
             aboutE621.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
@@ -353,6 +391,28 @@ public class SettingsActivity extends PreferenceActivity
                 	Intent i = new Intent(Intent.ACTION_VIEW);
                 	i.setData(Uri.parse("https://e621.net/wiki/show?title=e621%3Aabout"));
                 	startActivity(i);
+                    return true;
+                }
+            });
+
+            Preference sync = (Preference)getPreferenceManager().findPreference("sync");
+            sync.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0)
+                {
+                	final ProgressDialog dialog = ProgressDialog.show(activity,
+                			"Synchronizing", "Please wait while sync is in progress",true,false);
+                	
+                	new Thread(new Runnable()
+                	{
+                		public void run()
+                		{
+                			activity.e621.sync();
+                			
+                			dialog.dismiss();
+                		}
+                	}).start();
+                	
                     return true;
                 }
             });
