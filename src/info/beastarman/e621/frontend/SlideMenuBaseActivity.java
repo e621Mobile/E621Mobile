@@ -184,7 +184,10 @@ public class SlideMenuBaseActivity extends BaseActivity
 		img.setLayoutParams(rparams);
 		
 		Bitmap bmp = e621.getContinueSearchThumbnail(search.search);
-		drawInputStreamToImageView(bmp,img);
+		if(bmp != null)
+		{
+			drawInputStreamToImageView(bmp,img);
+		}
 		
 		TextView text = new TextView(getApplicationContext());
 		text.setText(search.search);
