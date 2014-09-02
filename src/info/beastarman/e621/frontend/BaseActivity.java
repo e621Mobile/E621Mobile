@@ -1,5 +1,6 @@
 package info.beastarman.e621.frontend;
 
+import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 
 import java.io.ByteArrayInputStream;
@@ -252,6 +253,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		
 		public void handleMessage(Message msg)
 		{
+			this.imgView.setBackgroundResource(0);
 			this.imgView.setImageBitmap((Bitmap)msg.obj);
 		}
 	}

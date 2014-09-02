@@ -87,11 +87,14 @@ public class SlideMenuBaseActivity extends BaseActivity
         });
 	}
 	
-	protected void onStop()
+	protected void onPause()
 	{
-		super.onStop();
+		super.onPause();
 		
-		close_sidemenu();
+		if(sidemenu_is_open)
+		{
+			close_sidemenu(0);
+		}
 	}
 	
 	private void update_sidebar()
@@ -100,10 +103,6 @@ public class SlideMenuBaseActivity extends BaseActivity
 		
 		if(wrapper == null) return;
 		
-		RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
-        drawerParams.width = 0;
-        wrapper.setLayoutParams(drawerParams);
-        
         final LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
         saved_search_container.removeAllViews();
         
@@ -170,32 +169,32 @@ public class SlideMenuBaseActivity extends BaseActivity
 	private View getSearchItemView(final InterruptedSearch search)
 	{
 		RelativeLayout row = new RelativeLayout(getApplicationContext());
-		row.setPadding(dpToPx(20), 0, 0, 0);
-		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+		row.setPadding(dpToPx(10), 0, 0, 0);
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT,
-				dpToPx(36));
+				dpToPx(36+16));
 		row.setLayoutParams(params);
 		
 		final ImageView img = new ImageView(getApplicationContext());
 		img.setBackgroundResource(android.R.drawable.ic_menu_gallery);
-		params = new RelativeLayout.LayoutParams(
-				dpToPx(36),
-				dpToPx(36));
-		img.setPadding(dpToPx(2), dpToPx(2), dpToPx(2), dpToPx(2));
-		img.setLayoutParams(params);
+		RelativeLayout.LayoutParams rparams = new RelativeLayout.LayoutParams(
+				dpToPx(36+16),
+				dpToPx(36+16));
+		img.setPadding(0, dpToPx(8), 0, dpToPx(8));
+		img.setLayoutParams(rparams);
 		
 		Bitmap bmp = e621.getContinueSearchThumbnail(search.search);
 		drawInputStreamToImageView(bmp,img);
 		
 		TextView text = new TextView(getApplicationContext());
 		text.setText(search.search);
-		text.setPadding(dpToPx(36+12), 0, 0, 0);
+		text.setPadding(dpToPx(36+12+10), 0, 0, 0);
 		text.setTextAppearance(getApplicationContext(), android.R.attr.textAppearanceSmall);
 		text.setTextColor(getResources().getColor(R.color.white));
-		params = new RelativeLayout.LayoutParams(
+		rparams = new RelativeLayout.LayoutParams(
 				ViewGroup.LayoutParams.WRAP_CONTENT,
 				ViewGroup.LayoutParams.MATCH_PARENT);
-		text.setLayoutParams(params);
+		text.setLayoutParams(rparams);
 		text.setGravity(Gravity.CENTER_VERTICAL);
 		
 		if(search.new_images > 0)
@@ -208,12 +207,12 @@ public class SlideMenuBaseActivity extends BaseActivity
 			new_count.setTextAppearance(getApplicationContext(), android.R.attr.textAppearanceSmall);
 			new_count.setTextSize(getResources().getDimension(R.dimen.new_images_text_size));
 			new_count.setTextColor(getResources().getColor(R.color.white));
-			params = new RelativeLayout.LayoutParams(
+			rparams = new RelativeLayout.LayoutParams(
 					ViewGroup.LayoutParams.WRAP_CONTENT,
 					ViewGroup.LayoutParams.WRAP_CONTENT);
-			params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-			params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-			new_count.setLayoutParams(params);
+			rparams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+			rparams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+			new_count.setLayoutParams(rparams);
 			row.addView(new_count);
 		}
 		
@@ -398,7 +397,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 		    }
 		};
 		
-		a.setDuration(300 + (int)Math.floor(targetHeight/1000)*100);
+		a.setDuration(300);
 		wrapper.startAnimation(a);
 		((View)wrapper.getParent()).invalidate();
 	}
@@ -424,7 +423,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 		    }
 		};
 
-		a.setDuration(300 + (int)Math.floor(targetHeight/1000)*100);
+		a.setDuration(300);
 		wrapper.startAnimation(a);
 		((View)wrapper.getParent()).invalidate();
 	}
@@ -465,6 +464,11 @@ public class SlideMenuBaseActivity extends BaseActivity
 	
 	public void open_sidemenu()
 	{
+		open_sidemenu(300);
+	}
+	
+	public void open_sidemenu(int delta)
+	{
 		View arrow = findViewById(R.id.sidebar_arrow);
 		arrow.clearAnimation();
 		arrow.setVisibility(View.GONE);
@@ -498,7 +502,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 		    }
 		};
 
-		a.setDuration(300);
+		a.setDuration(delta);
 		wrapper.startAnimation(a);
 		
 		sidemenu_is_open = true;
@@ -510,6 +514,11 @@ public class SlideMenuBaseActivity extends BaseActivity
 	}
 	
 	public void close_sidemenu()
+	{
+		close_sidemenu(300);
+	}
+	
+	public void close_sidemenu(int delta)
 	{
 		final FrameLayout wrapper = (FrameLayout) findViewById(R.id.sidemenu_wrapper);
 		final LinearLayout sidemenu = (LinearLayout) findViewById(R.id.sidemenu);
@@ -542,7 +551,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 		    }
 		};
 
-		a.setDuration(300);
+		a.setDuration(delta);
 		wrapper.startAnimation(a);
 		
 		sidemenu_is_open = false;
