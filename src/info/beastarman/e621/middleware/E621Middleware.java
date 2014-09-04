@@ -15,9 +15,11 @@ import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.backend.ImageCacheManager;
 import info.beastarman.e621.backend.ImageCacheManagerOld;
 import info.beastarman.e621.backend.Pair;
+import info.beastarman.e621.backend.PersistentHttpClient;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 import info.beastarman.e621.frontend.DownloadsActivity;
 import info.beastarman.e621.frontend.MainActivity;
+import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.views.StepsProgressDialog;
 
 import java.io.BufferedInputStream;
@@ -32,6 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,9 +56,13 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,6 +80,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -2472,4 +2481,79 @@ public class E621Middleware extends E621
     		return false;
     	}
     }
+	
+	public AndroidAppUpdater getAndroidAppUpdater()
+	{
+		try
+		{
+			return new AndroidAppUpdater(new URL("http://beastarman.info/android/last_json/e621Mobile/"));
+		}
+		catch (MalformedURLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public static enum UpdateState
+	{
+		START,
+		DOWNLOADED,
+		SUCCESS,
+		FAILURE,
+	}
+
+	public void updateApp(final AndroidAppVersion version, final EventManager event)
+	{
+		event.trigger(UpdateState.START);
+		
+		final GTFO<File> temp = new GTFO<File>();
+		
+		temp.obj = new File(sd_path, "e621Mobile_" + version.versionName + ".apk");
+		Log.d(LOG_TAG,temp.obj.getAbsolutePath());
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				try
+				{
+					final HttpParams httpParams = new BasicHttpParams();
+				    HttpConnectionParams.setConnectionTimeout(httpParams, 30000);
+					HttpClient client = new PersistentHttpClient(new DefaultHttpClient(),5);
+					
+					HttpResponse response = null;
+					
+					response = client.execute(new HttpGet(version.getFullApkURL()));
+					
+					StatusLine statusLine = response.getStatusLine();
+					
+				    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+				    {
+				    	OutputStream out = new BufferedOutputStream(new FileOutputStream(temp.obj));
+				    	
+				    	response.getEntity().writeTo(out);
+				    	
+				    	out.close();
+				    	
+				    	event.trigger(UpdateState.DOWNLOADED);
+				    	
+				    	Intent i = new Intent();
+				        i.setAction(Intent.ACTION_VIEW);
+				        i.setDataAndType(Uri.fromFile(temp.obj),"application/vnd.android.package-archive");
+				        ctx.startActivity(i);
+				        
+				        event.trigger(UpdateState.SUCCESS);
+				    }
+				    else
+				    {
+				    	event.trigger(UpdateState.FAILURE);
+				    }
+				}
+				catch (IOException e)
+				{
+					event.trigger(UpdateState.FAILURE);
+				}
+			}
+		}).start();
+	}
 }

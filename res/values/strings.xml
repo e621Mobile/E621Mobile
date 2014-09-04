@@ -46,4 +46,5 @@
 		Developed by Douglas Vanny Bento (me@beastarman.info)
     </string>
     <string name="changelog">Version 0.1: Everything.</string>
+    <string name="new_version_found">Version %1$s is out! Would you like to upgrade?</string>
 </resources>

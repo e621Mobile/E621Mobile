@@ -10,6 +10,8 @@ import org.apache.commons.io.IOUtils;
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.middleware.AndroidAppUpdater;
+import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.SeekBarDialogPreference;
 import info.beastarman.e621.views.StepsProgressDialog;
@@ -19,6 +21,8 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
@@ -260,6 +264,176 @@ public class SettingsActivity extends PreferenceActivity
 			}
 		}).start();
 	}
+	
+	private static class FailException extends Exception
+	{
+		private static final long serialVersionUID = 1615513842090522333L;
+		
+		public int code;
+		
+		public FailException(int code)
+		{
+			this.code = code;
+		}
+	};
+	
+	protected void update()
+	{
+		final AndroidAppUpdater appUpdater = e621.getAndroidAppUpdater();
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				PackageInfo pInfo = null;
+				
+				try
+				{
+					try {
+						pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+					} catch (NameNotFoundException e) {
+						e.printStackTrace();
+						throw new FailException(0);
+					}
+					
+					int currentVersion = pInfo.versionCode;
+					final AndroidAppVersion version = appUpdater.getLatestVersionInfo();
+					
+					if(version == null)
+					{
+						throw new FailException(1);
+					}
+					
+					if(version.versionCode > currentVersion)
+					{
+						final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(SettingsActivity.this).setTitle("New Version Found").setCancelable(true).
+								setMessage(String.format(getResources().getString(R.string.new_version_found),version.versionName));
+						
+						runOnUiThread(new Runnable()
+						{
+							public void run()
+							{
+								final AlertDialog dialog = dialogBuilder.create();
+								
+								dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Update", new OnClickListener()
+								{
+									@Override
+									public void onClick(DialogInterface arg0,int arg1)
+									{
+										dialog.dismiss();
+										
+										final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
+										dialogWrapper.obj = new StepsProgressDialog(SettingsActivity.this);
+										dialogWrapper.obj.show();
+										
+										e621.updateApp(version, new EventManager()
+										{
+											@Override
+											public void onTrigger(Object obj)
+											{
+												if(obj == E621Middleware.UpdateState.START)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.addStep("Retrieving package file").showStepsMessage();
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.DOWNLOADED)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.addStep("Package downloaded").showStepsMessage();
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.SUCCESS)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.setDone("Starting package install");
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.FAILURE)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.setDone("Package could not be retrieved");
+								    					}
+								    				});
+								    			}
+											}
+										});
+									}
+								});
+								
+								dialog.setButton(AlertDialog.BUTTON_NEGATIVE,"Maybe later", new OnClickListener()
+								{
+									@Override
+									public void onClick(DialogInterface arg0,int arg1)
+									{
+										dialog.dismiss();
+									}
+								});
+								
+								dialog.show();
+							}
+						});
+					}
+					else
+					{
+						throw new FailException(2);
+					}
+				}
+				catch(FailException e)
+				{
+					final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(SettingsActivity.this).setTitle("Update").
+							setCancelable(true);
+					
+					switch(e.code)
+					{
+						case 1:
+							dialogBuilder.setMessage("Could not retrieve latest version");
+							break;
+						case 2:
+							dialogBuilder.setMessage("No newer version found");
+							break;
+						default:
+							dialogBuilder.setMessage("Unknown error happened");
+							break;
+					}
+					
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							final AlertDialog dialog = dialogBuilder.create();
+							
+							dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Ok", new OnClickListener()
+							{
+								@Override
+								public void onClick(DialogInterface arg0,int arg1)
+								{
+									dialog.dismiss();
+								}
+							});
+							
+							dialog.show();
+						}
+					});
+				}
+			}
+		}).start();
+	}
 
     public static class MyPreferenceFragment extends PreferenceFragment
     {
@@ -308,8 +482,17 @@ public class SettingsActivity extends PreferenceActivity
             Preference about = (Preference)getPreferenceManager().findPreference("about");
             about.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
-                public boolean onPreferenceClick(Preference arg0) {
-                	AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("About").setMessage(R.string.about).
+                public boolean onPreferenceClick(Preference arg0)
+                {
+                	String title;
+					try {
+						title = "About E621Mobile " + activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
+					} catch (NameNotFoundException e) {
+						e.printStackTrace();
+						return true;
+					}
+                	
+                	AlertDialog dialog = new AlertDialog.Builder(activity).setTitle(title).setMessage(R.string.about).
                 			setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
 								@Override
 								public void onClick(DialogInterface dialog, int which) {
@@ -391,6 +574,16 @@ public class SettingsActivity extends PreferenceActivity
                 	Intent i = new Intent(Intent.ACTION_VIEW);
                 	i.setData(Uri.parse("https://e621.net/wiki/show?title=e621%3Aabout"));
                 	startActivity(i);
+                    return true;
+                }
+            });
+
+            Preference update = (Preference)getPreferenceManager().findPreference("update");
+            update.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0)
+                {
+                	activity.update();
                     return true;
                 }
             });
