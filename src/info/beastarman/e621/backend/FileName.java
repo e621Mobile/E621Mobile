@@ -16,8 +16,6 @@ public class FileName
 		"\"",
 		"<",
 		">",
-		".",
-		" ",
 	});
 	
 	private static String safeCharacter = "$";

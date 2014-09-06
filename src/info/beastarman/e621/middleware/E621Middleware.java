@@ -934,7 +934,7 @@ public class E621Middleware extends E621
 		return download_manager.search(page, limit, new SearchQuery(tags));
 	}
 	
-	public void export(String search)
+	public File export(String search)
 	{
 		search = prepareQuery(search);
 		
@@ -946,7 +946,7 @@ public class E621Middleware extends E621
 		final File path;
 		if(sq.normalize().length() > 0)
 		{
-			path = new File(export_path,sq.normalize().replace(":", ".."));
+			path = new File(export_path,FileName.encodeFileName(sq.normalize().replace(":", "..")));
 		}
 		else
 		{
@@ -1017,6 +1017,8 @@ public class E621Middleware extends E621
 				e.printStackTrace();
 			}
 		}
+		
+		return path;
 	}
 	
 	public void removeExported(String search)
@@ -1027,7 +1029,7 @@ public class E621Middleware extends E621
 		final File f;
 		if(sq.normalize().length() > 0)
 		{
-			f = new File(export_path,sq.normalize().replace(":", ".."));
+			f = new File(export_path,FileName.encodeFileName(sq.normalize().replace(":", "..")));
 		}
 		else
 		{
@@ -1053,7 +1055,7 @@ public class E621Middleware extends E621
 		final File path;
 		if(sq.normalize().length() > 0)
 		{
-			path = new File(export_path,sq.normalize().replace(":", ".."));
+			path = new File(export_path,FileName.encodeFileName(sq.normalize().replace(":", "..")));
 		}
 		else
 		{
