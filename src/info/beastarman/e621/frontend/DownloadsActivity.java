@@ -1,13 +1,19 @@
 package info.beastarman.e621.frontend;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.middleware.E621DownloadedImage;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.OfflineImageNavigator;
 import info.beastarman.e621.views.LazyRunScrollView;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
 import android.app.ActionBar;
@@ -17,6 +23,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,6 +50,19 @@ public class DownloadsActivity extends BaseActivity
 	private ArrayList<E621DownloadedImage> downloads = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
 	
+	private boolean exported = false;
+	
+	EventManager event = new EventManager()
+	{
+		@Override
+		public void onTrigger(Object obj)
+		{
+			exported = obj == E621Middleware.ExportState.CREATED;
+			
+			invalidateOptionsMenu();
+		}
+	};
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -61,6 +81,20 @@ public class DownloadsActivity extends BaseActivity
 
 		((EditText) findViewById(R.id.searchInput)).setText(search);
 	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		if(exported)
+		{
+			getMenuInflater().inflate(R.menu.downloads_exported, menu);
+		}
+		else
+		{
+			getMenuInflater().inflate(R.menu.downloads, menu);
+		}
+		return true;
+	}
 	
 	@Override
 	public void onStart() {
@@ -78,6 +112,8 @@ public class DownloadsActivity extends BaseActivity
 		downloads = e621.localSearch(page, limit, search);
 
 		update_results();
+		
+		e621.bindExportSearchState(search, event);
 	}
 	
 	@Override
@@ -97,22 +133,10 @@ public class DownloadsActivity extends BaseActivity
 
 		LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
+		
+		e621.unbindExportSearchState(search, event);
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		if(e621.wasExported(search))
-		{
-			getMenuInflater().inflate(R.menu.downloads_exported, menu);
-		}
-		else
-		{
-			getMenuInflater().inflate(R.menu.downloads, menu);
-		}
-		return true;
-	}
-	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
@@ -151,8 +175,34 @@ public class DownloadsActivity extends BaseActivity
 		new Thread(new Runnable()
 		{
 			@Override
-			public void run() {
-				e621.export(search);
+			public void run()
+			{
+				final File dir = e621.export(search);
+				
+				final GTFO<MediaScannerConnection> connection = new GTFO<MediaScannerConnection>();
+				connection.obj = new MediaScannerConnection(DownloadsActivity.this, new MediaScannerConnection.MediaScannerConnectionClient()
+				{
+					@Override
+					public void onMediaScannerConnected()
+					{
+						connection.obj.scanFile(dir.getAbsolutePath(),"image/*");
+					}
+
+					@Override
+					public void onScanCompleted(String path, Uri uri)
+					{
+						if(uri != null)
+						{
+							Intent intent = new Intent(Intent.ACTION_VIEW);
+					        intent.setData(uri);
+					        startActivity(intent);
+						}
+						
+						connection.obj.disconnect();
+					}
+				});
+				connection.obj.connect();
+				
 				dialog.dismiss();
 			}
 		}).start();

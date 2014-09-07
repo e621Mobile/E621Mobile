@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 
@@ -82,6 +83,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.FileObserver;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
@@ -333,6 +335,8 @@ public class E621Middleware extends E621
 			login = savedLogin;
 			password_hash = savedPasswordHash;
 		}
+		
+		createExportFileObserver(export_path.getAbsolutePath());
 		
 		if(emergency_backup.exists())
 		{
@@ -934,24 +938,31 @@ public class E621Middleware extends E621
 		return download_manager.search(page, limit, new SearchQuery(tags));
 	}
 	
-	public File export(String search)
+	private File getExportFileFromQuery(String search)
 	{
 		search = prepareQuery(search);
 		
 		SearchQuery sq = new SearchQuery(search);
 		
-		ArrayList<E621DownloadedImage> ids = download_manager.search(0, Integer.MAX_VALUE, sq);
-		
-		final Semaphore sem = new Semaphore(10);
-		final File path;
 		if(sq.normalize().length() > 0)
 		{
-			path = new File(export_path,FileName.encodeFileName(sq.normalize().replace(":", "..")));
+			return new File(export_path,FileName.encodeFileName(sq.normalize().replace(":", "..")));
 		}
 		else
 		{
-			path = new File(export_path,"all_images_");
+			return new File(export_path,"all_images_");
 		}
+	}
+	
+	public File export(String search)
+	{
+		SearchQuery sq = new SearchQuery(search);
+		
+		ArrayList<E621DownloadedImage> ids = download_manager.search(0, Integer.MAX_VALUE, sq);
+		
+		final Semaphore sem = new Semaphore(10);
+		
+		final File path = getExportFileFromQuery(search);
 		
 		if(!path.exists())
 		{
@@ -1023,18 +1034,7 @@ public class E621Middleware extends E621
 	
 	public void removeExported(String search)
 	{
-		search = prepareQuery(search);
-		
-		SearchQuery sq = new SearchQuery(search);
-		final File f;
-		if(sq.normalize().length() > 0)
-		{
-			f = new File(export_path,FileName.encodeFileName(sq.normalize().replace(":", "..")));
-		}
-		else
-		{
-			f = new File(export_path,"all_images_");
-		}
+		final File f = getExportFileFromQuery(search);
 		
 		if(f.exists())
 		{
@@ -1047,28 +1047,99 @@ public class E621Middleware extends E621
 		}
 	}
 	
-	public boolean wasExported(String search)
+	public static enum ExportState
 	{
-		search = prepareQuery(search);
-		
-		SearchQuery sq = new SearchQuery(search);
-		final File path;
-		if(sq.normalize().length() > 0)
+		CREATED,
+		REMOVED,
+	}
+	
+	private FileObserver exportObserver;
+	
+	private void createExportFileObserver(String path)
+	{
+		exportObserver = new FileObserver(export_path.getAbsolutePath())
 		{
-			path = new File(export_path,FileName.encodeFileName(sq.normalize().replace(":", "..")));
+			@Override
+			public void onEvent(int state, String file)
+			{
+				if((state & FileObserver.DELETE) > 0)
+				{
+					synchronized(exportedSearches)
+					{
+						if(exportedSearches.containsKey(file))
+						{
+							for(EventManager event : exportedSearches.get(file))
+							{
+								event.trigger(ExportState.REMOVED);
+							}
+						}
+					}
+				}
+				else if((state & FileObserver.CREATE) > 0)
+				{
+					synchronized(exportedSearches)
+					{
+						if(exportedSearches.containsKey(file))
+						{
+							for(EventManager event : exportedSearches.get(file))
+							{
+								event.trigger(ExportState.CREATED);
+							}
+						}
+					}
+				}
+			}
+		};
+		
+		exportObserver.startWatching();
+	}
+	
+	private Map<String,Set<EventManager>> exportedSearches = Collections.synchronizedMap(new HashMap<String,Set<EventManager>>());
+	
+	public void bindExportSearchState(String search, EventManager event)
+	{
+		File f = getExportFileFromQuery(search);
+		
+		synchronized(exportedSearches)
+		{
+			if(exportedSearches.containsKey(f.getName()))
+			{
+				exportedSearches.get(f.getName()).add(event);
+			}
+			else
+			{
+				Set<EventManager> set = new HashSet<EventManager>();
+				set.add(event);
+				
+				exportedSearches.put(f.getName(),set);
+			}
+		}
+		
+		if(f.exists())
+		{
+			event.trigger(ExportState.CREATED);
 		}
 		else
 		{
-			path = new File(export_path,"all_images_");
+			event.trigger(ExportState.REMOVED);
 		}
+	}
+	
+	public void unbindExportSearchState(String search, EventManager event)
+	{
+		File f = getExportFileFromQuery(search);
 		
-		if(path.exists())
+		synchronized(exportedSearches)
 		{
-			return true;
-		}
-		else
-		{
-			return false;
+			if(exportedSearches.containsKey(f.getName()))
+			{
+				exportedSearches.get(f.getName()).remove(event);
+				
+				if(exportedSearches.get(f.getName()).size() == 0)
+				{
+					exportedSearches.remove(f.getName());
+				}
+			}
 		}
 	}
 	
