@@ -222,7 +222,9 @@ public class SearchActivity extends BaseActivity
 			@Override
 			public void run()
 			{
-				e621.continue_later(SearchQuery.normalize(search), String.valueOf(min_id), String.valueOf(max_id));
+				e621.continue_later(SearchQuery.normalize(search),
+						min_id!=null?String.valueOf(min_id):null,
+						max_id!=null?String.valueOf(max_id):null);
 			}
 		}).start();
 		
@@ -237,7 +239,9 @@ public class SearchActivity extends BaseActivity
 			@Override
 			public void run()
 			{
-				e621.continue_later(SearchQuery.normalize(search), String.valueOf(cur_min_id), String.valueOf(cur_max_id));
+				e621.continue_later(SearchQuery.normalize(search),
+						cur_min_id!=null?String.valueOf(cur_min_id):null,
+						cur_max_id!=null?String.valueOf(cur_max_id):null);
 			}
 		}).start();
 		

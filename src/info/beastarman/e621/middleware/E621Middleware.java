@@ -2016,6 +2016,30 @@ public class E621Middleware extends E621
 		return getLoggedUser() != null;
 	}
 	
+	private Set<EventManager> continueSearchEvents = Collections.synchronizedSet(new HashSet<EventManager>());
+
+	public void bindContinueSearch(EventManager event)
+	{
+		continueSearchEvents.add(event);
+		
+		event.trigger(getAllSearches());
+	}
+	
+	public void unbindContinueSearch(EventManager event)
+	{
+		continueSearchEvents.remove(event);
+	}
+	
+	public void triggerInterruptedSearchEvents()
+	{
+		ArrayList<InterruptedSearch> searches = getAllSearches();
+		
+		for(EventManager event : continueSearchEvents)
+		{
+			event.trigger(searches);
+		}
+	}
+	
 	private void update_new_image_count(String search)
 	{
 		InterruptedSearch interrupted = interrupt.getSearch(search);
@@ -2031,6 +2055,8 @@ public class E621Middleware extends E621
 				int total_old = getSearchResultsCountForce(search_old);
 				
 				interrupt.update_new_image_count(search, total_new + total_old);
+				
+				triggerInterruptedSearchEvents();
 			}
 			catch (IOException e)
 			{
@@ -2042,6 +2068,8 @@ public class E621Middleware extends E621
 		{
 			try {
 				interrupt.update_new_image_count(search, getSearchResultsCountForce(search));
+				
+				triggerInterruptedSearchEvents();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -2075,6 +2103,8 @@ public class E621Middleware extends E621
 		search = prepareQuery(search);
 		
 		interrupt.remove(search);
+		
+		triggerInterruptedSearchEvents();
 	}
 	
 	HashMap<Pair<String,Integer>,E621Search> continue_cache = new HashMap<Pair<String,Integer>,E621Search>();

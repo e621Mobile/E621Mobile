@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.middleware.E621DownloadedImage;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
@@ -51,6 +52,17 @@ public class SlideMenuBaseActivity extends BaseActivity
 	
 	private GestureDetector gestureDetector;
     View.OnTouchListener gestureListener;
+    
+    EventManager event = new EventManager()
+    {
+    	@Override
+		public void onTrigger(Object obj)
+    	{
+    		saved_searches = (ArrayList<InterruptedSearch>)obj;
+    		
+    		update_interrupted_searches(saved_searches);
+		}
+    };
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +99,13 @@ public class SlideMenuBaseActivity extends BaseActivity
         });
 	}
 	
+	protected void onStop()
+	{
+		super.onStop();
+		
+		e621.unbindContinueSearch(event);
+	}
+	
 	protected void onPause()
 	{
 		super.onPause();
@@ -103,67 +122,50 @@ public class SlideMenuBaseActivity extends BaseActivity
 		
 		if(wrapper == null) return;
 		
-        final LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
-        saved_search_container.removeAllViews();
-        
-        new Thread(new Runnable()
-        {
-        	public void run()
-        	{
-        		saved_searches = e621.getAllSearches();
-        		
-        		runOnUiThread(new Runnable()
-                {
-                	public void run()
-                	{
-                		for(final InterruptedSearch search : saved_searches)
-		                {
-		                	View row = getSearchItemView(search);
-		                	saved_search_container.addView(row);
-		                	
-		                	View hr = getLayoutInflater().inflate(R.layout.hr, saved_search_container, false);
-		                	saved_search_container.addView(hr);
-		                	
-		                	row.setTag(R.id.hr, hr);
-		                }
-                	}
-                });
-                
-                if(saved_searches.size() == 0)
-                {
-                	final TextView continue_search_label = (TextView) findViewById(R.id.continue_search_label);
-                	
-                	runOnUiThread(new Runnable()
-                	{
-                		public void run()
-                		{
-                			continue_search_label.setTextColor(getResources().getColor(R.color.gray));
-                		}
-                	});
-                }
-        	}
-        }).start();
+        update_interrupted_searches();
         
         loginout_front();
 	}
 	
-	public void sync(View v)
+	public void update_interrupted_searches()
 	{
-		new Thread(new Runnable()
-		{
-			public void run()
-			{
-				e621.sync();
-				
-				runOnUiThread(new Runnable()
-				{
-					public void run()
-					{
-						update_sidebar();
-					}
-				});
-			}
-		}).start();
+		e621.bindContinueSearch(event);
+	}
+	
+	public void update_interrupted_searches(final ArrayList<InterruptedSearch> saved_searches)
+	{
+		runOnUiThread(new Runnable()
+        {
+        	public void run()
+        	{
+        		final LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
+                saved_search_container.removeAllViews();
+        		
+        		for(final InterruptedSearch search : saved_searches)
+                {
+                	View row = getSearchItemView(search);
+                	saved_search_container.addView(row);
+                	
+                	View hr = getLayoutInflater().inflate(R.layout.hr, saved_search_container, false);
+                	saved_search_container.addView(hr);
+                	
+                	row.setTag(R.id.hr, hr);
+                }
+        	}
+        });
+        
+        if(saved_searches.size() == 0)
+        {
+        	final TextView continue_search_label = (TextView) findViewById(R.id.continue_search_label);
+        	
+        	runOnUiThread(new Runnable()
+        	{
+        		public void run()
+        		{
+        			continue_search_label.setTextColor(getResources().getColor(R.color.gray));
+        		}
+        	});
+        }
 	}
 	
 	private View getSearchItemView(final InterruptedSearch search)
