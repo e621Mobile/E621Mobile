@@ -13,12 +13,6 @@
         android:title="@string/action_offline_search" android:icon="@drawable/ic_action_local"/>
     
     <item
-        android:id="@+id/action_subcribe"
-        android:orderInCategory="25"
-        android:showAsAction="never|collapseActionView"
-        android:title="@string/subscribe" android:icon="@drawable/ic_menu_star"/>
-    
-    <item
         android:id="@+id/action_continue_later"
         android:orderInCategory="25"
         android:showAsAction="never|collapseActionView"
