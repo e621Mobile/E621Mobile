@@ -297,7 +297,12 @@ public class E621DownloadedImages
 	
 	public boolean hasFile(final E621Image img)
 	{
-		if(img == null) return false;
+		return hasFile(img.id);
+	}
+	
+	public boolean hasFile(final Integer id)
+	{
+		if(id == null) return false;
 		
 		final GTFO<Boolean> ret = new GTFO<Boolean>();
 		ret.obj = false;
@@ -311,7 +316,7 @@ public class E621DownloadedImages
 				
 				try
 				{
-					c = db.rawQuery("SELECT image_file FROM e621image WHERE id = ?", new String[]{String.valueOf(img.id)});
+					c = db.rawQuery("SELECT image_file FROM e621image WHERE id = ?", new String[]{String.valueOf(id)});
 					
 					ret.obj = (c != null && c.moveToFirst());
 					

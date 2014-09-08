@@ -2,11 +2,15 @@ package info.beastarman.e621.frontend;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
@@ -63,6 +67,8 @@ public class SearchActivity extends BaseActivity
 
 	protected E621Search e621Search = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
+	
+	private Set<ImageEventManager> events = new HashSet<ImageEventManager>();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -169,6 +175,13 @@ public class SearchActivity extends BaseActivity
 		}
 
 		imageViews.clear();
+		
+		for(ImageEventManager event : events)
+		{
+			e621.unbindDownloadState(event.image.id, event);
+		}
+		
+		events.clear();
 
 		LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
@@ -299,6 +312,12 @@ public class SearchActivity extends BaseActivity
 		for (final E621Image img : e621Search.images)
 		{
 			final LinearLayout resultWrapper = getResultWrapper(img,layout_width,position);
+			
+			ImageEventManager event = new ImageEventManager((ImageButton)resultWrapper.findViewById(R.id.downloadButton),img);
+			
+			e621.bindDownloadState(img.id, event);
+			
+			events.add(event);
 			
 			position++;
 			
@@ -437,6 +456,7 @@ public class SearchActivity extends BaseActivity
 		
 		imgView.setId(R.id.imageView);
 		bar.setId(R.id.progressBar);
+		download.setId(R.id.downloadButton);
 		
 		imageWrapper.addView(bar);
 		imageWrapper.addView(imgView);
@@ -461,47 +481,6 @@ public class SearchActivity extends BaseActivity
 		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
 		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 		download.setLayoutParams(params);
-		
-		new Thread(new Runnable()
-		{
-			public void run()
-			{
-				if(e621.isSaved(img))
-				{
-					runOnUiThread(new Runnable()
-					{
-						public void run()
-						{
-							download.setImageResource(android.R.drawable.ic_menu_delete);
-							
-							download.setOnClickListener(new View.OnClickListener() {
-						        @Override
-						        public void onClick(View v) {
-						        	removeImage(img,(ImageButton)v);
-						        }
-						    });
-						}
-					});
-				}
-				else
-				{
-					runOnUiThread(new Runnable()
-					{
-						public void run()
-						{
-							download.setImageResource(android.R.drawable.ic_menu_save);
-							
-							download.setOnClickListener(new View.OnClickListener() {
-						        @Override
-						        public void onClick(View v) {
-						        	saveImage(img,(ImageButton)v);
-						        }
-						    });
-						}
-					});
-				}
-			}
-		}).start();
 		
 		return download;
 	}
@@ -577,90 +556,6 @@ public class SearchActivity extends BaseActivity
 		details.setText(Html.fromHtml(detailsText));
 		
 		return details;
-	}
-
-	public void saveImage(final E621Image img, final ImageButton v)
-	{
-		v.setImageResource(android.R.drawable.stat_sys_download);
-		
-		e621.saveImageAsync(img, new Runnable()
-		{
-			@Override
-			public void run() {
-				
-				runOnUiThread(new Runnable()
-				{
-					@Override
-					public void run() {
-						v.setImageResource(android.R.drawable.ic_menu_delete);
-						
-						v.setOnClickListener(new View.OnClickListener() {
-					        @Override
-					        public void onClick(View v) {
-					        	removeImage(img,(ImageButton)v);
-					        }
-					    });
-					}
-				});
-			}
-		}, new Runnable()
-		{
-			@Override
-			public void run() {
-				
-				runOnUiThread(new Runnable()
-				{
-					@Override
-					public void run() {
-						v.setImageResource(android.R.drawable.ic_menu_save);
-						
-						v.setOnClickListener(new View.OnClickListener() {
-					        @Override
-					        public void onClick(View v) {
-					        	saveImage(img,(ImageButton)v);
-					        }
-					    });
-					}
-				});
-			}
-		},false);
-	}
-	
-	Semaphore removeImage = new Semaphore(1);
-	
-	public void removeImage(final E621Image img, final ImageButton v)
-	{
-		if(!removeImage.tryAcquire())
-		{
-			return;
-		}
-		
-		v.setImageDrawable(getResources().getDrawable(R.drawable.progress_indicator));
-		
-		new Thread(new Runnable()
-		{
-			public void run()
-			{
-				e621.deleteImage(img);
-				
-				runOnUiThread(new Runnable()
-				{
-					public void run()
-					{
-						v.setImageResource(android.R.drawable.ic_menu_save);
-						
-						v.setOnClickListener(new View.OnClickListener() {
-					        @Override
-					        public void onClick(View v) {
-					        	saveImage(img,(ImageButton)v);
-					        }
-					    });
-					}
-				});
-				
-				removeImage.release();
-			}
-		}).start();
 	}
 
 	public void imageClick(View view) {
@@ -765,5 +660,94 @@ public class SearchActivity extends BaseActivity
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.search, menu);
 		return true;
+	}
+	
+	private class ImageEventManager extends EventManager
+	{
+		private ImageButton button;
+		private E621Image image;
+		
+		public ImageEventManager(ImageButton button, E621Image image)
+		{
+			this.button = button;
+			this.image = image;
+		}
+
+		private void delete()
+		{
+			new Thread(new Runnable()
+			{
+				public void run()
+				{
+					e621.deleteImage(image);
+				}
+			}).start();
+		}
+
+		private void save()
+		{
+			new Thread(new Runnable()
+			{
+				public void run()
+				{
+					e621.saveImage(image);
+				}
+			}).start();
+		}
+		
+		@Override
+		public void onTrigger(final Object obj)
+		{
+			runOnUiThread(new Runnable()
+			{
+				public void run()
+				{
+					if(obj ==  E621Middleware.DownloadStatus.DOWNLOADED)
+					{
+						button.setImageResource(android.R.drawable.ic_menu_delete);
+						
+						button.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	delete();
+					        }
+					    });
+					}
+					else if(obj == E621Middleware.DownloadStatus.DOWNLOADING)
+					{
+						button.setImageResource(android.R.drawable.stat_sys_download);
+						
+						button.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	delete();
+					        }
+					    });
+					}
+					else if(obj == E621Middleware.DownloadStatus.DELETED)
+					{
+						button.setImageResource(android.R.drawable.ic_menu_save);
+						
+						button.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	save();
+					        }
+					    });
+					}
+					else if(obj == E621Middleware.DownloadStatus.DELETING)
+					{
+						button.setImageResource(R.drawable.progress_indicator);
+						
+						button.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	save();
+					        }
+					    });
+					}
+				}
+			});
+		}
 	}
 }

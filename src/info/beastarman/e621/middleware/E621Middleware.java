@@ -511,117 +511,146 @@ public class E621Middleware extends E621
 		return (int) Math.ceil(((double)count)/((double)results_per_page));
 	}
 	
-	public boolean isSaved(E621Image img)
+	public static enum DownloadStatus
 	{
-		return download_manager.hasFile(img);
+		DOWNLOADING,
+		DOWNLOADED,
+		DELETING,
+		DELETED
 	}
 	
-	private NotificationManager saveImageNotificationManager;
-	private Semaphore saveImageSemaphore = new Semaphore(1);
-	private ArrayList<E621Image> downloading = new ArrayList<E621Image>();
+	private Map<Integer,Set<EventManager>> downloads = Collections.synchronizedMap(new HashMap<Integer,Set<EventManager>>());
+	private Map<Integer,DownloadStatus> ongoing = Collections.synchronizedMap(new HashMap<Integer,DownloadStatus>());
+	private Set<Integer> cancel = Collections.synchronizedSet(new HashSet<Integer>());
 	
-	public void saveImageAsync(final E621Image img, final Runnable success_callback, final Runnable error_callback, final boolean notificate)
+	public void bindDownloadState(Integer id, EventManager event)
 	{
-		failed_download_manager.addFile(String.valueOf(img.id));
-		
-		if(notificate)
+		synchronized(downloads)
 		{
-			try {
-				saveImageSemaphore.acquire();
-				
-				if(saveImageNotificationManager == null)
-				{
-					saveImageNotificationManager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
-				}
-				
-				if(downloading.contains(img))
-				{
-					return;
-				}
-				
-				if(downloading.size() == 0)
-				{
-					NotificationCompat.Builder mBuilder =
-					        new NotificationCompat.Builder(ctx)
-					        .setSmallIcon(R.drawable.ic_launcher)
-					        .setContentTitle("Downloading images")
-					        .setContentText("Please wait")
-					        .setOngoing(true);
-					
-					Intent resultIntent = new Intent(ctx, DownloadsActivity.class);
-					PendingIntent pIntent = PendingIntent.getActivity(ctx, 0, resultIntent, 0);
-					
-					mBuilder.setContentIntent(pIntent);
-					
-					saveImageNotificationManager.notify(SAVE_IMAGES_NOTIFICATION_ID,mBuilder.build());
-				}
-				
-				downloading.add(img);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				return;
-			}
-			finally
+			if(downloads.containsKey(id))
 			{
-				saveImageSemaphore.release();
+				downloads.get(id).add(event);
+			}
+			else
+			{
+				Set<EventManager> set = new HashSet<EventManager>();
+				set.add(event);
+				
+				downloads.put(id,set);
 			}
 		}
 		
-		new Thread(new Runnable()
+		if(ongoing.containsKey(id))
 		{
-			@Override
-			public void run()
-			{
-				boolean successfull = saveImage(img);
-				
-				if(successfull)
-				{
-					if(success_callback != null)
-					{
-						success_callback.run();
-					}
-					
-					failed_download_manager.removeFile(String.valueOf(img.id));
-				}
-				else
-				{
-					if(error_callback != null)
-					{
-						error_callback.run();
-					}
-				}
-				
-				if(notificate)
-				{
-					try
-					{
-						saveImageSemaphore.acquire();
-						
-						downloading.remove(img);
-						
-						if(downloading.size() == 0)
-						{
-							saveImageNotificationManager.cancel(SAVE_IMAGES_NOTIFICATION_ID);
-						}
-					}
-					catch(InterruptedException e)
-					{
-						e.printStackTrace();
-					}
-					finally
-					{
-						saveImageSemaphore.release();
-					}
-				}
-			}
-		}).start();
+			event.trigger(ongoing.get(id));
+		}
+		else if(download_manager.hasFile(id))
+		{
+			event.trigger(DownloadStatus.DOWNLOADED);
+		}
+		else
+		{
+			event.trigger(DownloadStatus.DELETED);
+		}
 	}
 	
-	public boolean saveImage(final Integer img)
+	public void unbindDownloadState(Integer id, EventManager event)
 	{
-		try {
-			return(saveImage(post__show(img)));
-		} catch (IOException e) {
+		synchronized(downloads)
+		{
+			if(downloads.containsKey(id))
+			{
+				downloads.get(id).remove(event);
+				
+				if(downloads.get(id).size() == 0)
+				{
+					downloads.remove(id);
+				}
+			}
+		}
+	}
+	
+	public boolean saveImage(final Integer id)
+	{
+		synchronized(ongoing)
+		{
+			if(ongoing.containsKey(id))
+			{
+				if(ongoing.get(id)==DownloadStatus.DELETING)
+				{
+					if(cancel.contains(id))
+					{
+						cancel.remove(id);
+					}
+					else
+					{
+						cancel.add(id);
+					}
+					
+					ongoing.put(id,DownloadStatus.DOWNLOADING);
+					
+					synchronized(downloads)
+					{
+						if(downloads.containsKey(id))
+						{
+							for(EventManager event : downloads.get(id))
+							{
+								event.trigger(DownloadStatus.DOWNLOADING);
+							}
+						}
+						else
+						{
+							ongoing.put(id,DownloadStatus.DOWNLOADING);
+						}
+					}
+				}
+				
+				return true;
+			}
+		}
+
+		synchronized(downloads)
+		{
+			if(downloads.containsKey(id))
+			{
+				for(EventManager event : downloads.get(id))
+				{
+					event.trigger(DownloadStatus.DOWNLOADING);
+				}
+			}
+			else
+			{
+				ongoing.put(id,DownloadStatus.DOWNLOADING);
+			}
+		}
+		
+		try
+		{
+			E621Image img = post__show(id);
+			
+			if(img == null)
+			{
+				synchronized(downloads)
+				{
+					if(downloads.containsKey(id))
+					{
+						for(EventManager event : downloads.get(id))
+						{
+							event.trigger(DownloadStatus.DELETED);
+						}
+					}
+				}
+				
+				cancel.remove(id);
+				ongoing.remove(id);
+				
+				return false;
+			}
+			
+			return saveImageSkipTrigger(img);
+		}
+		catch (IOException e)
+		{
 			e.printStackTrace();
 			return false;
 		}
@@ -631,9 +660,77 @@ public class E621Middleware extends E621
 	{
 		if(img == null) return false;
 		
+		int id = img.id;
+		
+		synchronized(ongoing)
+		{
+			if(ongoing.containsKey(id))
+			{
+				if(ongoing.get(id)==DownloadStatus.DELETING)
+				{
+					if(cancel.contains(id))
+					{
+						cancel.remove(id);
+					}
+					else
+					{
+						cancel.add(id);
+					}
+					
+					ongoing.put(id,DownloadStatus.DOWNLOADING);
+					
+					synchronized(downloads)
+					{
+						if(downloads.containsKey(id))
+						{
+							for(EventManager event : downloads.get(id))
+							{
+								event.trigger(DownloadStatus.DOWNLOADING);
+							}
+						}
+					}
+				}
+				
+				return true;
+			}
+			else
+			{
+				ongoing.put(id,DownloadStatus.DOWNLOADING);
+			}
+		}
+		
+		synchronized(downloads)
+		{
+			if(downloads.containsKey(id))
+			{
+				for(EventManager event : downloads.get(id))
+				{
+					event.trigger(DownloadStatus.DOWNLOADING);
+				}
+			}
+		}
+		
+		return saveImageSkipTrigger(img);
+	}	
+	
+	public boolean saveImageSkipTrigger(final E621Image img)
+	{
 		if(img.status == E621Image.DELETED)
 		{
 			failed_download_manager.removeFile(String.valueOf(img.id));
+			
+			synchronized(downloads)
+			{
+				if(downloads.containsKey(img.id))
+				{
+					for(EventManager event : downloads.get(img.id))
+					{
+						event.trigger(DownloadStatus.DELETED);
+					}
+				}
+			}
+			
+			ongoing.remove(img.id);
 			
 			return false;
 		}
@@ -644,21 +741,49 @@ public class E621Middleware extends E621
 		
 		if(in != null)
 		{
-			new Thread(new Runnable()
+			download_manager.createOrUpdate(img, in, img.file_ext);
+			
+			failed_download_manager.removeFile(String.valueOf(img.id));
+			
+			ongoing.remove(img.id);
+			
+			if(cancel.contains(img.id))
 			{
-				@Override
-				public void run()
+				cancel.remove(img.id);
+				
+				deleteImage(img.id);
+				
+				return false;
+			}
+			
+			synchronized(downloads)
+			{
+				if(downloads.containsKey(img.id))
 				{
-					download_manager.createOrUpdate(img, in, img.file_ext);
-					
-					failed_download_manager.removeFile(String.valueOf(img.id));
+					for(EventManager event : downloads.get(img.id))
+					{
+						event.trigger(DownloadStatus.DOWNLOADED);
+					}
 				}
-			}).start();
+			}
 			
 			return true;
 		}
 		else
 		{
+			synchronized(downloads)
+			{
+				if(downloads.containsKey(img.id))
+				{
+					for(EventManager event : downloads.get(img.id))
+					{
+						event.trigger(DownloadStatus.DELETED);
+					}
+				}
+			}
+			
+			ongoing.remove(img.id);
+			
 			return false;
 		}
 	}
@@ -670,9 +795,83 @@ public class E621Middleware extends E621
 
 	public void deleteImage(Integer id)
 	{
+		synchronized(ongoing)
+		{
+			if(ongoing.containsKey(id))
+			{
+				if(ongoing.get(id)==DownloadStatus.DOWNLOADING)
+				{
+					if(cancel.contains(id))
+					{
+						cancel.remove(id);
+					}
+					else
+					{
+						cancel.add(id);
+					}
+					
+					ongoing.put(id,DownloadStatus.DELETING);
+					
+					synchronized(downloads)
+					{
+						if(downloads.containsKey(id))
+						{
+							for(EventManager event : downloads.get(id))
+							{
+								event.trigger(DownloadStatus.DELETING);
+							}
+						}
+					}
+				}
+				else
+				{
+					Log.d(LOG_TAG,"HERE!");
+				}
+				
+				return;
+			}
+			else
+			{
+				ongoing.put(id,DownloadStatus.DELETING);
+			}
+		}
+		
+		synchronized(downloads)
+		{
+			if(downloads.containsKey(id))
+			{
+				for(EventManager event : downloads.get(id))
+				{
+					event.trigger(DownloadStatus.DELETING);
+				}
+			}
+		}
+		
 		download_manager.removeFile(id);
 		
 		failed_download_manager.removeFile(String.valueOf(id));
+		
+		ongoing.remove(id);
+		
+		if(cancel.contains(id))
+		{
+			cancel.remove(id);
+			
+			saveImage(id);
+			
+			return;
+		}
+		
+		synchronized(downloads)
+		{
+			if(downloads.containsKey(id))
+			{
+				for(EventManager event : downloads.get(id))
+				{
+					event.trigger(DownloadStatus.DELETED);
+				}
+			}
+		}
 	}
 	
 	Semaphore getImageSemaphore = new Semaphore(10);
@@ -1189,7 +1388,15 @@ public class E621Middleware extends E621
 			
 			if(img != null)
 			{
-				saveImageAsync(img,null,null,true);
+				final E621Image img2 = img;
+				
+				new Thread(new Runnable()
+				{
+					public void run()
+					{
+						saveImage(img2);
+					}
+				}).start();
 			}
 		}
 		

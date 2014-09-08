@@ -15,6 +15,7 @@ import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621Vote;
+import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.GIFViewHandler;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
@@ -27,6 +28,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -63,6 +65,66 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	public Intent intent;
 	
 	E621Image e621Image = null;
+	
+	EventManager event = new EventManager()
+	{
+		@Override
+		public void onTrigger(final Object obj)
+		{
+			final ImageButton button = (ImageButton)findViewById(R.id.downloadButton);
+			
+			runOnUiThread(new Runnable()
+			{
+				public void run()
+				{
+					if(obj ==  E621Middleware.DownloadStatus.DOWNLOADED)
+					{
+						button.setImageResource(android.R.drawable.ic_menu_delete);
+						
+						button.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	delete(v);
+					        }
+					    });
+					}
+					else if(obj == E621Middleware.DownloadStatus.DOWNLOADING)
+					{
+						button.setImageResource(android.R.drawable.stat_sys_download);
+						
+						button.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	delete(v);
+					        }
+					    });
+					}
+					else if(obj == E621Middleware.DownloadStatus.DELETED)
+					{
+						button.setImageResource(android.R.drawable.ic_menu_save);
+						
+						button.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	save(v);
+					        }
+					    });
+					}
+					else if(obj == E621Middleware.DownloadStatus.DELETING)
+					{
+						button.setImageResource(R.drawable.progress_indicator);
+						
+						button.setOnClickListener(new View.OnClickListener() {
+					        @Override
+					        public void onClick(View v) {
+					        	save(v);
+					        }
+					    });
+					}
+				}
+			});
+		}
+	};
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +170,14 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		{
 			update_result();
 		}
+	}
+	
+	@Override
+	public void onStop()
+	{
+		super.onStop();
+		
+		e621.unbindDownloadState(image.getId(),event);
 	}
 	
 	@Override
@@ -166,15 +236,11 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        @Override
 	        public void run() 
 	        {
+	        	e621.bindDownloadState(image.getId(),event);
+	        	
 	        	retrieveVote();
 	        	retrieveFav();
 	        	retrieveComments();
-	        	
-	        	if(e621.isSaved(e621Image))
-	        	{
-	        		ImageButton button = (ImageButton)findViewById(R.id.downloadButton);
-	        		button.setImageResource(android.R.drawable.ic_menu_delete);
-	        	}
 	        	
 	        	ImageView imgView = (ImageView)findViewById(R.id.imageWrapper);
 	        	
@@ -935,80 +1001,26 @@ public class ImageActivity extends BaseActivity implements OnClickListener
     	}
     }
 	
-	public void save_delete(View view)
-	{
-		if(e621.isSaved(e621Image))
-		{
-			delete(view);
-		}
-		else
-		{
-			save(view);
-		}
-	}
-	
 	public void delete(View view)
 	{
-		final ImageButton button = (ImageButton)view;
-		
-		e621.deleteImage(e621Image);
-		
-		button.setImageResource(android.R.drawable.ic_menu_save);
-		
-		button.setOnClickListener(new View.OnClickListener() {
-	        @Override
-	        public void onClick(View v) {
-	        	save(v);
-	        }
-	    });
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				e621.deleteImage(e621Image);
+			}
+		}).start();
 	}
 	
 	public void save(View view)
 	{
-		final ImageButton button = (ImageButton)view;
-		button.setImageResource(android.R.drawable.stat_sys_download);
-		
-		e621.saveImageAsync(e621Image,new Runnable()
+		new Thread(new Runnable()
 		{
-			@Override
-			public void run() {
-				
-				runOnUiThread(new Runnable()
-				{
-					@Override
-					public void run() {
-						button.setImageResource(android.R.drawable.ic_menu_delete);
-						
-						button.setOnClickListener(new View.OnClickListener() {
-					        @Override
-					        public void onClick(View v) {
-					        	delete(v);
-					        }
-					    });
-					}
-				});
+			public void run()
+			{
+				e621.saveImage(e621Image);
 			}
-		}, new Runnable()
-		{
-			@Override
-			public void run() {
-				
-				runOnUiThread(new Runnable()
-				{
-					@Override
-					public void run() {
-						button.setImageResource(android.R.drawable.ic_menu_save);
-						
-						button.setOnClickListener(new View.OnClickListener() {
-					        @Override
-					        public void onClick(View v) {
-					        	save(v);
-					        }
-					    });
-					}
-				});
-			}
-		},false);
+		}).start();
 	}
 
 	@Override
