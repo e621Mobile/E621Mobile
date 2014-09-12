@@ -10,6 +10,7 @@ import org.apache.commons.io.IOUtils;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -60,13 +61,22 @@ public class ImageViewHandler extends ImageHandler
         o2.inSampleSize=scale;
         Bitmap bitmap_temp = BitmapFactory.decodeStream(new ByteArrayInputStream(data), null, o2);
         
-        Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
-        
-        bitmap_temp.recycle();
-        
-        s.release();
-        
-        return ret;
+        if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())
+        {
+        	s.release();
+        	
+        	return bitmap_temp;
+        }
+        else
+        {
+	        Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+	        
+	        bitmap_temp.recycle();
+	        
+	        s.release();
+	        
+	        return ret;
+        }
 	}
 	
 	@Override

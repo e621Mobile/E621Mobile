@@ -291,7 +291,7 @@ public class DownloadsActivity extends BaseActivity
 					RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) bar.getLayoutParams();
 					layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT,RelativeLayout.TRUE);
 					bar.setLayoutParams(layoutParams);
-
+					
 					ImageViewHandler handler = new ImageViewHandler(imgView, bar);
 					
 					scroll.addThread(new Thread(new ImageLoadRunnable(handler, img)), image_y);

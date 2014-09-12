@@ -202,6 +202,11 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	
 	private Bitmap decodeFile(Bitmap bmp, int width, int height)
 	{
+		if(width == bmp.getWidth() && height == bmp.getHeight())
+		{
+			return bmp.copy(bmp.getConfig(),false);
+		}
+		
 		Bitmap ret = Bitmap.createScaledBitmap(bmp,width,height,false);
         
         return ret;
