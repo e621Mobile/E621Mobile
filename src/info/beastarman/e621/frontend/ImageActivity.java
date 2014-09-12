@@ -139,6 +139,18 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		
+		retrieveImage();
+		
+		gestureDetector = new GestureDetector(this, new MyGestureDetector());
+        gestureListener = new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                return gestureDetector.onTouchEvent(event);
+            }
+        };
+	}
+	
+	private void retrieveImage()
+	{
 		final Handler handler = new ImageHandler(this);
 		
 		new Thread(new Runnable() {
@@ -152,13 +164,6 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        	handler.sendMessage(msg);
 	        }
 	    }).start();
-		
-		gestureDetector = new GestureDetector(this, new MyGestureDetector());
-        gestureListener = new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                return gestureDetector.onTouchEvent(event);
-            }
-        };
 	}
 	
 	@Override
@@ -223,9 +228,27 @@ public class ImageActivity extends BaseActivity implements OnClickListener
     	intent = new Intent(this, SettingsActivity.class);
 		startActivity(intent);
     }
+    
+    public void reload(View v)
+    {
+    	findViewById(R.id.progressBar1).setVisibility(View.VISIBLE);
+    	findViewById(R.id.textView1).setVisibility(View.GONE);
+		findViewById(R.id.reload_button).setVisibility(View.GONE);
+		
+		retrieveImage();
+    }
 	
 	public void update_result()
 	{
+		if(e621Image == null)
+		{
+			findViewById(R.id.progressBar1).setVisibility(View.GONE);
+			findViewById(R.id.textView1).setVisibility(View.VISIBLE);
+			findViewById(R.id.reload_button).setVisibility(View.VISIBLE);
+			
+			return;
+		}
+		
 		View mainView = getLayoutInflater().inflate(R.layout.activity_image_loaded, null);
 		
 		mainView.setOnClickListener(ImageActivity.this); 
@@ -1050,6 +1073,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		public void handleMessage(Message msg)
 		{
 			E621Image result = (E621Image)msg.obj;
+			
 			activity.e621Image = result;
 			activity.update_result();
 		}

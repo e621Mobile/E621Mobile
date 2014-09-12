@@ -40,10 +40,11 @@
         android:layout_above="@+id/relativeLayout1"
         android:layout_below="@+id/linearLayout1" >
 
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/content_wrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
             android:gravity="top|center"
             android:orientation="vertical" >
 
@@ -52,8 +53,32 @@
                 style="?android:attr/progressBarStyleLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingTop="40dp" />
-        </LinearLayout>
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true" />
+
+            <Button
+                android:id="@+id/reload_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView1"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:onClick="reload"
+                android:text="Reload"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:text="Could not retrieve image"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/white"
+                android:visibility="gone" />
+
+        </RelativeLayout>
 
     </ScrollView>
     
