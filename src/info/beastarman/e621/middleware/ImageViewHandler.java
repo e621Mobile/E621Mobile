@@ -50,6 +50,9 @@ public class ImageViewHandler extends ImageHandler
         	scale*=2;
         }
         
+        Log.d(E621Middleware.LOG_TAG,"width :" + width);
+        Log.d(E621Middleware.LOG_TAG,"height :" + height);
+        
         try {
 			s.acquire();
 		} catch (InterruptedException e) {
@@ -84,7 +87,12 @@ public class ImageViewHandler extends ImageHandler
 	{
 		try
 		{
-			Bitmap bitmap = decodeFile(in, imgView.getLayoutParams().width, imgView.getLayoutParams().height);
+			int width = imgView.getLayoutParams().width;
+			int height = imgView.getLayoutParams().height;
+			
+			double scale = Math.max(1,Math.max(width/2048,height/2048));
+			
+			Bitmap bitmap = decodeFile(in, (int)(width/scale), (int)(height/scale));
 			
 			this.imgView.setImageBitmap(bitmap);
 		}

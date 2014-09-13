@@ -286,7 +286,7 @@ public class E621Middleware extends E621
 		
 		if(!failed_download_file.exists())
 		{
-			failed_download_file.mkdirs();
+			failed_download_file.getParentFile().mkdirs();
 			try {
 				failed_download_file.createNewFile();
 			} catch (IOException e) {
@@ -350,7 +350,7 @@ public class E621Middleware extends E621
 	@Override
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
-		android.util.Log.i(LOG_TAG,"GET " + url);
+		android.util.Log.i(LOG_TAG + "_Request","GET " + url);
 		
 		return super.tryHttpGet(url, tries);
 	}
@@ -358,7 +358,7 @@ public class E621Middleware extends E621
 	@Override
 	protected HttpResponse tryHttpPost(String url, List<NameValuePair> pairs, Integer tries) throws ClientProtocolException, IOException
 	{
-		android.util.Log.i(LOG_TAG,"POST " + url);
+		android.util.Log.i(LOG_TAG + "_Request","POST " + url);
 		
 		return super.tryHttpPost(url, pairs, tries);
 	}
@@ -458,13 +458,8 @@ public class E621Middleware extends E621
 	{
 		tags = prepareQuery(tags);
 		
-		Log.d(E621Middleware.LOG_TAG, tags);
-		Log.d(E621Middleware.LOG_TAG, searchCount.toString());
-		
 		if(searchCount.containsKey(tags))
 		{
-			Log.d(E621Middleware.LOG_TAG, tags);
-			
 			return searchCount.get(tags);
 		}
 		else
@@ -855,10 +850,6 @@ public class E621Middleware extends E621
 							}
 						}
 					}
-				}
-				else
-				{
-					Log.d(LOG_TAG,"HERE!");
 				}
 				
 				return;
@@ -1389,6 +1380,10 @@ public class E621Middleware extends E621
 	
 	public void sync()
 	{
+		Log.d(LOG_TAG,"Begin sync");
+		
+		//if(true) return;
+		
 		for(String file : report_path.list())
 		{
 			File report = new File(report_path,file);
@@ -1448,6 +1443,8 @@ public class E621Middleware extends E621
 		syncSearch();
 		
 		backup();
+		
+		Log.d(LOG_TAG,"End sync");
 	}
 	
 	Semaphore searchCountSemaphore = new Semaphore(10);
@@ -1455,6 +1452,8 @@ public class E621Middleware extends E621
 	public void syncSearch()
 	{
 		ArrayList<Thread> threads = new ArrayList<Thread>();
+		
+		isInterruptTriggerEnabled = false;
 		
 		for(final InterruptedSearch interrupted : getAllSearches())
 		{
@@ -1533,6 +1532,10 @@ public class E621Middleware extends E621
 				Thread.currentThread().interrupt();
 			}
 		}
+		
+		isInterruptTriggerEnabled = true;
+		
+		triggerInterruptedSearchEvents();
 	}
 	
 	public void backup()
@@ -2075,8 +2078,12 @@ public class E621Middleware extends E621
 		continueSearchEvents.remove(event);
 	}
 	
+	private boolean isInterruptTriggerEnabled = true;
+	
 	public void triggerInterruptedSearchEvents()
 	{
+		if(!isInterruptTriggerEnabled) return;
+		
 		ArrayList<InterruptedSearch> searches = getAllSearches();
 		
 		for(EventManager event : continueSearchEvents)
@@ -2745,6 +2752,8 @@ public class E621Middleware extends E621
 			
 			File file = new File(thumbnails_path,search);
 			
+			if(!file.exists()) return null;
+			
 			InputStream in = null;
 			
 			try
@@ -2869,7 +2878,6 @@ public class E621Middleware extends E621
 		final GTFO<File> temp = new GTFO<File>();
 		
 		temp.obj = new File(sd_path, "e621Mobile_" + version.versionName + ".apk");
-		Log.d(LOG_TAG,temp.obj.getAbsolutePath());
 		
 		new Thread(new Runnable()
 		{
