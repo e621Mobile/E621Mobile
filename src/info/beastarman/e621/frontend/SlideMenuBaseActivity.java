@@ -1,24 +1,24 @@
 package info.beastarman.e621.frontend;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
-import info.beastarman.e621.middleware.E621DownloadedImage;
+import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.middleware.AndroidAppUpdater;
 import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
-import info.beastarman.e621.middleware.ImageViewHandler;
-import android.animation.Animator;
-import android.animation.AnimatorInflater;
+import info.beastarman.e621.views.StepsProgressDialog;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Message;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -125,6 +125,33 @@ public class SlideMenuBaseActivity extends BaseActivity
         update_interrupted_searches();
         
         loginout_front();
+        
+        updateButton();
+	}
+	
+	public void updateButton()
+	{
+		int lastVersion = e621.mostRecentKnownVersion();
+		
+		PackageInfo pInfo = null;
+		
+		try
+		{
+			pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+		}
+		catch (NameNotFoundException e)
+		{
+			e.printStackTrace();
+			return;
+		}
+		
+		int currentVersion = pInfo.versionCode;
+		
+		if(currentVersion < lastVersion)
+		{
+			View updateArea = findViewById(R.id.updateArea);
+			updateArea.setVisibility(View.VISIBLE);
+		}
 	}
 	
 	public void update_interrupted_searches()
@@ -713,6 +740,178 @@ public class SlideMenuBaseActivity extends BaseActivity
 	public void cancelSignUp(View v)
 	{
 	}
+	
+	public void update(View v)
+	{
+		final AndroidAppUpdater appUpdater = e621.getAndroidAppUpdater();
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				PackageInfo pInfo = null;
+				
+				try
+				{
+					try {
+						pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+					} catch (NameNotFoundException e) {
+						e.printStackTrace();
+						throw new FailException(0);
+					}
+					
+					int currentVersion = pInfo.versionCode;
+					final AndroidAppVersion version = appUpdater.getLatestVersionInfo();
+					
+					e621.updateMostRecentVersion(version);
+					
+					if(version == null)
+					{
+						throw new FailException(1);
+					}
+					
+					if(version.versionCode > currentVersion)
+					{
+						final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(SlideMenuBaseActivity.this).setTitle("New Version Found").setCancelable(true).
+								setMessage(String.format(getResources().getString(R.string.new_version_found),version.versionName));
+						
+						runOnUiThread(new Runnable()
+						{
+							public void run()
+							{
+								final AlertDialog dialog = dialogBuilder.create();
+								
+								dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Update", new DialogInterface.OnClickListener()
+								{
+									@Override
+									public void onClick(DialogInterface arg0,int arg1)
+									{
+										dialog.dismiss();
+										
+										final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
+										dialogWrapper.obj = new StepsProgressDialog(SlideMenuBaseActivity.this);
+										dialogWrapper.obj.show();
+										
+										e621.updateApp(version, new EventManager()
+										{
+											@Override
+											public void onTrigger(Object obj)
+											{
+												if(obj == E621Middleware.UpdateState.START)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.addStep("Retrieving package file").showStepsMessage();
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.DOWNLOADED)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.addStep("Package downloaded").showStepsMessage();
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.SUCCESS)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.setDone("Starting package install");
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.FAILURE)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.setDone("Package could not be retrieved");
+								    					}
+								    				});
+								    			}
+											}
+										});
+									}
+								});
+								
+								dialog.setButton(AlertDialog.BUTTON_NEGATIVE,"Maybe later", new DialogInterface.OnClickListener()
+								{
+									@Override
+									public void onClick(DialogInterface arg0,int arg1)
+									{
+										dialog.dismiss();
+									}
+								});
+								
+								dialog.show();
+							}
+						});
+					}
+					else
+					{
+						throw new FailException(2);
+					}
+				}
+				catch(FailException e)
+				{
+					final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(SlideMenuBaseActivity.this).setTitle("Update").
+							setCancelable(true);
+					
+					switch(e.code)
+					{
+						case 1:
+							dialogBuilder.setMessage("Could not retrieve latest version");
+							break;
+						case 2:
+							dialogBuilder.setMessage("No newer version found");
+							break;
+						default:
+							dialogBuilder.setMessage("Unknown error happened");
+							break;
+					}
+					
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							final AlertDialog dialog = dialogBuilder.create();
+							
+							dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Ok", new DialogInterface.OnClickListener()
+							{
+								@Override
+								public void onClick(DialogInterface arg0,int arg1)
+								{
+									dialog.dismiss();
+								}
+							});
+							
+							dialog.show();
+						}
+					});
+				}
+			}
+		}).start();
+	}
+	
+	private static class FailException extends Exception
+	{
+		private static final long serialVersionUID = 1615513842090522333L;
+		
+		public int code;
+		
+		public FailException(int code)
+		{
+			this.code = code;
+		}
+	};
 	
 	public static class LoginDialogFragment extends DialogFragment
 	{

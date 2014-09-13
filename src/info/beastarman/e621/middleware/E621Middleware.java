@@ -394,6 +394,18 @@ public class E621Middleware extends E621
 		return settings.getInt("resultsPerPage", 2)*10;
 	}
 	
+	public int mostRecentKnownVersion()
+	{
+		return settings.getInt("mostRecentKnownVersion", -1);
+	}
+	
+	public void updateMostRecentVersion(AndroidAppVersion version)
+	{
+		if(version == null) return;
+		
+		settings.edit().putInt("mostRecentKnownVersion",version.versionCode).commit();
+	}
+	
 	@Override
 	public E621Image post__show(Integer id) throws IOException
 	{
@@ -446,8 +458,13 @@ public class E621Middleware extends E621
 	{
 		tags = prepareQuery(tags);
 		
+		Log.d(E621Middleware.LOG_TAG, tags);
+		Log.d(E621Middleware.LOG_TAG, searchCount.toString());
+		
 		if(searchCount.containsKey(tags))
 		{
+			Log.d(E621Middleware.LOG_TAG, tags);
+			
 			return searchCount.get(tags);
 		}
 		else
@@ -466,7 +483,15 @@ public class E621Middleware extends E621
 		}
 		else
 		{
+			final ArrayList<Integer> suspicious_counts = new ArrayList<Integer>();
+			suspicious_counts.add(10);
+			
 			int temp = post__index(tags,0,1).count;
+			
+			if(suspicious_counts.contains(temp))
+			{
+				temp = post__index(tags,0,1).count;
+			}
 			
 			searchCount.put(tags, temp);
 			
@@ -495,22 +520,19 @@ public class E621Middleware extends E621
 			return null;
 		}
 		
-		Log.d(LOG_TAG,tags + " " + pair.is_valid());
-		
 		if(!pair.is_valid())
 		{
-			Log.d(LOG_TAG,tags + " " + pair.is_valid());
-			
 			return getSearchResultsPages(tags,results_per_page);
 		}
 		
-		Log.d(LOG_TAG,tags + " " + pair.is_valid());
+		String search_new = tags + " id:>" + pair.max_id + " order:id";
+		String search_old = tags + " id:<" + pair.min_id;
 		
-		String search_new = tags + " id:>" + pair.min_id + " order:id";
-		String search_old = tags + " id:<" + pair.max_id;
+		Integer count_new;
+		Integer count_old;
 		
-		Integer count_new = getSearchResultsCount(search_new);
-		Integer count_old = getSearchResultsCount(search_old);
+		count_new = getSearchResultsCount(search_new);
+		count_old = getSearchResultsCount(search_old);
 		
 		if(count_new == null || count_old == null)
 		{
@@ -1416,6 +1438,13 @@ public class E621Middleware extends E621
 			}
 		}
 		
+		AndroidAppVersion version = getAndroidAppUpdater().getLatestVersionInfo();
+		
+		if(version != null)
+		{
+			updateMostRecentVersion(version);
+		}
+		
 		syncSearch();
 		
 		backup();
@@ -2058,9 +2087,6 @@ public class E621Middleware extends E621
 	
 	private void update_new_image_count(String search)
 	{
-		final ArrayList<Integer> suspicious_counts = new ArrayList<Integer>();
-		suspicious_counts.add(10);
-		
 		InterruptedSearch interrupted = interrupt.getSearch(search);
 		
 		if(interrupted.is_valid())
@@ -2072,16 +2098,6 @@ public class E621Middleware extends E621
 			{
 				int total_new = getSearchResultsCountForce(search_new);
 				int total_old = getSearchResultsCountForce(search_old);
-
-				if(suspicious_counts.contains(total_new))
-				{
-					total_new = getSearchResultsCountForce(search_new);
-				}
-				
-				if(suspicious_counts.contains(total_old))
-				{
-					total_old = getSearchResultsCountForce(search_new);
-				}
 				
 				interrupt.update_new_image_count(search, total_new + total_old);
 				

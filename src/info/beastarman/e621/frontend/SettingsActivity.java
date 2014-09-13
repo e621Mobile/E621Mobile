@@ -343,6 +343,8 @@ public class SettingsActivity extends PreferenceActivity
 					int currentVersion = pInfo.versionCode;
 					final AndroidAppVersion version = appUpdater.getLatestVersionInfo();
 					
+					e621.updateMostRecentVersion(version);
+					
 					if(version == null)
 					{
 						throw new FailException(1);

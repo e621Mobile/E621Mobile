@@ -234,6 +234,43 @@
                         android:orientation="vertical" >
                     </LinearLayout>
                 </FrameLayout>
+                
+                <include layout="@layout/hr" />
+                
+                <LinearLayout
+                    android:id="@+id/updateArea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone" >
+
+	                <LinearLayout
+	                    android:layout_width="match_parent"
+	                    android:layout_height="wrap_content"
+	                    android:layout_marginBottom="8dp"
+	                    android:layout_marginTop="8dp"
+	                    android:onClick="update"
+	                    android:padding="4dp" >
+	
+	                    <ImageView
+	                        android:layout_width="32dp"
+	                        android:layout_height="32dp"
+	                        android:src="@drawable/ic_launcher" />
+	
+	                    <TextView
+	                        android:id="@+id/updateText"
+	                        android:layout_width="wrap_content"
+	                        android:layout_height="wrap_content"
+	                        android:layout_gravity="center_vertical"
+	                        android:paddingLeft="12dp"
+	                        android:text="Update available"
+	                        android:textAppearance="?android:attr/textAppearanceSmall"
+	                        android:textColor="@color/white" />
+	                </LinearLayout>
+	                
+	                <include layout="@layout/hr" />
+	            </LinearLayout>
+                
             </LinearLayout>
 
         </ScrollView>
