@@ -438,14 +438,14 @@ public class SearchActivity extends BaseActivity
 			imageWrapper.setBackgroundResource(R.drawable.pending_mark);
 			has_border = true;
 		}
-		else if(img.has_children())
-		{
-			imageWrapper.setBackgroundResource(R.drawable.has_children_mark);
-			has_border = true;
-		}
 		else if(img.parent_id != null)
 		{
 			imageWrapper.setBackgroundResource(R.drawable.has_parent_mark);
+			has_border = true;
+		}
+		else if(img.has_children)
+		{
+			imageWrapper.setBackgroundResource(R.drawable.has_children_mark);
 			has_border = true;
 		}
 		

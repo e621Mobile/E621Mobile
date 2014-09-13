@@ -168,6 +168,85 @@
                 </LinearLayout>
 
             </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/relatedWrapper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@color/detailsBackgroundColor"
+                android:padding="10dp" >
+
+                <RelativeLayout
+                    android:id="@+id/relatedArea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="4dp" >
+
+                    <TextView
+                        android:id="@+id/textView1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Related"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="@color/white" />
+
+                </RelativeLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/relatedArea" >
+
+                    <LinearLayout
+                        android:id="@+id/relatedGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical" >
+
+                        <RelativeLayout
+                            android:id="@+id/parentWrapper"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:onClick="goToParent"
+                            android:paddingBottom="8dp"
+                            android:paddingLeft="24dp"
+                            android:paddingTop="8dp" >
+
+                            <TextView
+                                android:id="@+id/parentTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/parent_post"
+                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                android:textColor="@color/white" />
+
+                        </RelativeLayout>
+                        
+                        <RelativeLayout
+                            android:id="@+id/childrenWrapper"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:onClick="goToChildren"
+                            android:paddingBottom="8dp"
+                            android:paddingLeft="24dp"
+                            android:paddingTop="8dp" >
+
+                            <TextView
+                                android:id="@+id/childrenTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/children_posts"
+                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                android:textColor="@color/white" />
+
+                        </RelativeLayout>
+
+                    </LinearLayout>
+
+                </FrameLayout>
+
+            </RelativeLayout>
             
             <RelativeLayout
                 android:layout_width="match_parent"

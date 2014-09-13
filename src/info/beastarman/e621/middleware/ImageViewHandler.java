@@ -50,9 +50,6 @@ public class ImageViewHandler extends ImageHandler
         	scale*=2;
         }
         
-        Log.d(E621Middleware.LOG_TAG,"width :" + width);
-        Log.d(E621Middleware.LOG_TAG,"height :" + height);
-        
         try {
 			s.acquire();
 		} catch (InterruptedException e) {

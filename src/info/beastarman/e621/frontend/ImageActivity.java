@@ -21,6 +21,7 @@ import info.beastarman.e621.middleware.GIFViewHandler;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
 import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.ImageViewHandler;
+import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
 import info.beastarman.e621.views.GIFView;
 import android.net.Uri;
 import android.os.Bundle;
@@ -264,6 +265,8 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        	retrieveVote();
 	        	retrieveFav();
 	        	retrieveComments();
+	        	
+	        	updateRelated();
 	        	
 	        	ImageView imgView = (ImageView)findViewById(R.id.imageWrapper);
 	        	
@@ -616,6 +619,62 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        	}
 	        }
 	    }).start();
+	}
+	
+	public void fillParentView()
+	{
+		TextView text = (TextView) findViewById(R.id.parentTextView);
+		
+		text.setText(String.format(text.getText().toString(),e621Image.parent_id));
+	}
+	
+	public void goToParent(View v)
+	{
+		if(e621Image.parent_id == null) return;
+		
+		Intent i = new Intent(this,ImageActivity.class);
+		i.putExtra(ImageActivity.NAVIGATOR, new NowhereToGoImageNavigator(Integer.parseInt(e621Image.parent_id)));
+		i.putExtra(ImageActivity.INTENT,intent);
+		startActivity(i);
+	}
+	
+	public void goToChildren(View v)
+	{
+		Intent i = new Intent(this,SearchActivity.class);
+		i.putExtra(SearchActivity.SEARCH, "parent:" + e621Image.id);
+		startActivity(i);
+	}
+	
+	public void updateRelated()
+	{
+		boolean hide = true;
+		
+		ViewGroup group = (ViewGroup)findViewById(R.id.relatedGroup);
+		
+		if(e621Image.parent_id != null)
+		{
+			hide = false;
+			
+			fillParentView();
+		}
+		else
+		{
+			findViewById(R.id.parentWrapper).setVisibility(View.GONE);
+		}
+		
+		if(e621Image.has_children)
+		{
+			hide = false;
+		}
+		else
+		{
+			findViewById(R.id.childrenWrapper).setVisibility(View.GONE);
+		}
+		
+		if(hide)
+		{
+			findViewById(R.id.relatedWrapper).setVisibility(View.GONE);
+		}
 	}
 	
 	public static final int NO_VOTE = 0;

@@ -33,6 +33,7 @@ public class E621Image implements Serializable
 	public String rating = SAFE;
 	public ArrayList<E621Tag> tags = new ArrayList<E621Tag>();
 	public ArrayList<String> children = new ArrayList<String>();
+	public boolean has_children = false;
 	
 	public int score = 0;
 
@@ -80,6 +81,8 @@ public class E621Image implements Serializable
 		img.width = json.optInt("width",1); 
 		
 		img.height = json.optInt("height",1);
+		
+		img.has_children = json.optBoolean("has_children",false);
 		
 		if(!json.isNull(("parent_id")))
 		{
@@ -133,6 +136,7 @@ public class E621Image implements Serializable
 		img.rating = xml.getAttribute("rating"); 
 		img.file_ext = xml.getAttribute("file_ext");
 		img.has_comments = xml.getAttribute("has_comments").equals("true");
+		img.has_children= xml.getAttribute("has_children").equals("true");
 		
 		if(xml.getAttribute("parent_id").length() > 0)
 		{
@@ -191,11 +195,6 @@ public class E621Image implements Serializable
 		}
 		
 		return img;
-	}
-	
-	public boolean has_children()
-	{
-		return (children.size() > 0);
 	}
 	
 	@Override

@@ -60,4 +60,6 @@
         	Thank you very much for considering making a donation!<br/><br/>Check below for donation methods.
         ]]>
        </string>
+    <string name="parent_post">Parent Post: #%1$s</string>
+    <string name="children_posts">Child posts</string>
 </resources>
