@@ -114,7 +114,7 @@
             android:key="aboutE621"/>
         <Preference
             android:title="Donate"
-            android:summary="Send me some money"
+            android:summary="Buy me a beer"
             android:key="donate"/>
     </PreferenceCategory>
 </PreferenceScreen>

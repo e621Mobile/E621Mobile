@@ -47,4 +47,17 @@
     </string>
     <string name="changelog">Version 0.1: Everything.</string>
     <string name="new_version_found">Version %1$s is out! Would you like to upgrade?</string>
+    
+    <string name="bitcoin">1GA82eVKvXv23Ww8kPFQR7oALfXUuomx9</string>
+    <string name="paypal">douglas.v.d@hotmail.com</string>
+    <string name="paypal_donation_link">
+        <![CDATA[
+        	https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=douglas%2ev%2ed%40hotmail%2ecom&lc=US&item_name=E621%20Mobile%20App%20Donation&no_note=0&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest
+    	]]>
+    </string>
+    <string name="buy_me_porn">
+        <![CDATA[
+        	Thank you very much for considering making a donation!<br/><br/>Check below for donation methods.
+        ]]>
+       </string>
 </resources>

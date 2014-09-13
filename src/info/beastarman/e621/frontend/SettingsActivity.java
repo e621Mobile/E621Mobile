@@ -31,6 +31,7 @@ import android.preference.MultiSelectListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.text.Html;
 import android.util.Log;
 
 public class SettingsActivity extends PreferenceActivity
@@ -49,6 +50,12 @@ public class SettingsActivity extends PreferenceActivity
         
         getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
     }
+	
+	protected void donate()
+	{
+		Intent i = new Intent(this,DonateActivity.class);
+		startActivity(i);
+	}
 
 	protected void updateTags()
 	{
@@ -612,6 +619,17 @@ public class SettingsActivity extends PreferenceActivity
                 }
             });
 
+            final Preference donate = (Preference)getPreferenceManager().findPreference("donate");
+            donate.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0)
+                {
+                	donate.setSummary(Html.fromHtml("Buy me porn"));
+                	activity.donate();
+                    return true;
+                }
+            });
+
             Preference aboutE621 = (Preference)getPreferenceManager().findPreference("aboutE621");
             aboutE621.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
@@ -694,6 +712,15 @@ public class SettingsActivity extends PreferenceActivity
             
             CheckBoxPreference lazyLoad = (CheckBoxPreference)findPreference("lazyLoad");
             lazyLoad.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("lazyLoad", true));
+        }
+        
+        @Override
+        public void onStart()
+        {
+        	super.onStart();
+        	
+        	final Preference donate = (Preference)getPreferenceManager().findPreference("donate");
+        	donate.setSummary("Buy me a beer");
         }
     }
 }

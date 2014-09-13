@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="info.beastarman.e621"
-    android:versionCode="2"
-    android:versionName="0.1.1" >
+    android:versionCode="1"
+    android:versionName="0.1" >
 
     <uses-sdk
         android:minSdkVersion="11"
@@ -71,6 +71,12 @@
 			    </intent-filter>
 			            
         </receiver>
+        <activity
+            android:name="info.beastarman.e621.frontend.DonateActivity"
+            android:label="Donate"
+            android:parentActivityName="info.beastarman.e621.frontend.MainActivity"
+            android:windowSoftInputMode="stateHidden">
+        </activity>
     </application>
 
 </manifest>

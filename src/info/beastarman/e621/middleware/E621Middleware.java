@@ -2058,6 +2058,9 @@ public class E621Middleware extends E621
 	
 	private void update_new_image_count(String search)
 	{
+		final ArrayList<Integer> suspicious_counts = new ArrayList<Integer>();
+		suspicious_counts.add(10);
+		
 		InterruptedSearch interrupted = interrupt.getSearch(search);
 		
 		if(interrupted.is_valid())
@@ -2069,6 +2072,16 @@ public class E621Middleware extends E621
 			{
 				int total_new = getSearchResultsCountForce(search_new);
 				int total_old = getSearchResultsCountForce(search_old);
+
+				if(suspicious_counts.contains(total_new))
+				{
+					total_new = getSearchResultsCountForce(search_new);
+				}
+				
+				if(suspicious_counts.contains(total_old))
+				{
+					total_old = getSearchResultsCountForce(search_new);
+				}
 				
 				interrupt.update_new_image_count(search, total_new + total_old);
 				
