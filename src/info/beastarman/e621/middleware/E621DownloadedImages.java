@@ -504,18 +504,52 @@ public class E621DownloadedImages
 		});
 	}
 	
+	public synchronized void updateMetadataForce(E621Middleware e621)
+	{
+		android.util.Log.i(E621Middleware.LOG_TAG + "_Meta","Cleaning Metadata");
+		cleanTagBase();
+		
+		updateMetadata(e621);
+	}
+	
 	public synchronized void updateMetadata(E621Middleware e621)
 	{
-		android.util.Log.i(E621Middleware.LOG_TAG,"Starting Tag sync");
+		android.util.Log.i(E621Middleware.LOG_TAG + "_Meta","Starting Tag sync");
 		updateTagBase(e621);
 		
-		android.util.Log.i(E621Middleware.LOG_TAG,"Starting Tag Alias sync");
+		android.util.Log.i(E621Middleware.LOG_TAG + "_Meta","Starting Tag Alias sync");
 		updateTagAliasBase(e621);
 		
-		android.util.Log.i(E621Middleware.LOG_TAG,"Starting Image Tag sync");
+		android.util.Log.i(E621Middleware.LOG_TAG + "_Meta","Starting Image Tag sync");
 		updateImageTags(e621);
 		
-		android.util.Log.i(E621Middleware.LOG_TAG,"Sync completed");
+		android.util.Log.i(E621Middleware.LOG_TAG + "_Meta","Sync completed");
+	}
+	
+	private void cleanTagBase()
+	{
+		this.tags.clean();
+		
+		lock.write(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = getDB();
+				db.beginTransaction();
+				
+				try
+				{
+					db.delete("image_tag", "1", null);
+					
+					db.setTransactionSuccessful();
+				}
+				finally
+				{
+					db.endTransaction();
+					db.close();
+				}
+			}
+		});
 	}
 	
 	private void updateTagBase(E621Middleware e621)
@@ -647,13 +681,13 @@ public class E621DownloadedImages
 		
 		final List<E621Image> images = Collections.synchronizedList(new ArrayList<E621Image>());
 		
-		int steps = 50;
+		final int steps = 20;
 		
 		while(cur_ids.size() > 0)
 		{
 			ArrayList<Thread> threads = new ArrayList<Thread>();
 			
-			for(int i=0; i<50 && cur_ids.size() > i; i++)
+			for(int i=0; i<steps && cur_ids.size() > i; i++)
 			{
 				final int id = cur_ids.get(i);
 				

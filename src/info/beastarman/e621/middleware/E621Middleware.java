@@ -160,8 +160,8 @@ public class E621Middleware extends E621
 		download_path = new File(sd_path,"e621 Images/");
 		export_path = new File(sd_path,"export/");
 		report_path = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"reports/");
-		interrupted_path = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"interrupt/");
-		backup_path = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"backups/");
+		interrupted_path = new File(sd_path,"interrupt/");
+		backup_path = new File(sd_path,"backups/");
 		emergency_backup = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"emergency.json");
 		
 		backupManager = new BackupManager(backup_path,
@@ -494,6 +494,17 @@ public class E621Middleware extends E621
 		{
 			return null;
 		}
+		
+		Log.d(LOG_TAG,tags + " " + pair.is_valid());
+		
+		if(!pair.is_valid())
+		{
+			Log.d(LOG_TAG,tags + " " + pair.is_valid());
+			
+			return getSearchResultsPages(tags,results_per_page);
+		}
+		
+		Log.d(LOG_TAG,tags + " " + pair.is_valid());
 		
 		String search_new = tags + " id:>" + pair.min_id + " order:id";
 		String search_old = tags + " id:<" + pair.max_id;
@@ -1034,6 +1045,11 @@ public class E621Middleware extends E621
 	public void update_tags()
 	{
 		download_manager.updateMetadata(this);
+	}
+	
+	public void force_update_tags()
+	{
+		download_manager.updateMetadataForce(this);
 	}
 	
 	public void update_tags(Activity activity)
@@ -2113,6 +2129,11 @@ public class E621Middleware extends E621
 	public E621Search continue_search(String search, int page, int limit) throws IOException
 	{
 		InterruptedSearch pair = interrupt.getSearch(search);
+		
+		if(pair == null || !pair.is_valid())
+		{
+			return post__index(search,page,limit);
+		}
 		
 		String search_new = search + " id:>" + pair.max_id + " order:id";
 		String search_old = search + " id:<" + pair.min_id;

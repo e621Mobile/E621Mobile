@@ -543,6 +543,7 @@ public class E621
 		
 		final HttpParams httpParams = new BasicHttpParams();
 	    HttpConnectionParams.setConnectionTimeout(httpParams, 30000);
+	    HttpConnectionParams.setSoTimeout(httpParams, 30000);
 		HttpClient httpclient = new DefaultHttpClient(httpParams);
 		
 		for(;tries>=0; tries--)

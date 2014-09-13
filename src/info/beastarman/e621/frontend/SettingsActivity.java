@@ -49,7 +49,7 @@ public class SettingsActivity extends PreferenceActivity
         
         getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
     }
-	
+
 	protected void updateTags()
 	{
 		final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "","Updating tags. This may take an while. Please wait...", true);
@@ -66,6 +66,43 @@ public class SettingsActivity extends PreferenceActivity
 				dialog.dismiss();
 			}
 		}).start();
+	}
+
+	protected void forceUpdateTags()
+	{
+		AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(this);
+		confirmFullUpdateBuilder.setMessage("Are you sure? This will take an while.");
+		confirmFullUpdateBuilder.setPositiveButton("Continue", new OnClickListener()
+		{
+			@Override
+			public void onClick(DialogInterface dialogInterface, int which)
+			{
+				final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "","Forcing tags update. This will take an while. Please wait...", true);
+				dialog.setIndeterminate(true);
+				dialog.show();
+				
+				new Thread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						e621.force_update_tags();
+						
+						dialog.dismiss();
+					}
+				}).start();
+			}
+		});
+		confirmFullUpdateBuilder.setNegativeButton("Cancel", new OnClickListener()
+		{
+			@Override
+			public void onClick(DialogInterface dialog, int which)
+			{
+				
+			}
+		});
+		
+		confirmFullUpdateBuilder.create().show();
 	}
 	
 	protected void clearCache()
@@ -556,12 +593,21 @@ public class SettingsActivity extends PreferenceActivity
             		return true;
                 }
             });
-            
+
             Preference button = (Preference)getPreferenceManager().findPreference("updateTags");
             button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference arg0) {
                 	activity.updateTags();
+                    return true;
+                }
+            });
+
+            Preference updateTagsForce = (Preference)getPreferenceManager().findPreference("updateTagsForce");
+            updateTagsForce.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0) {
+                	activity.forceUpdateTags();
                     return true;
                 }
             });

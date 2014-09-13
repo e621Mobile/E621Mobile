@@ -70,6 +70,31 @@ public class E621TagDatabase
 		);
 	}
 	
+	public void clean()
+	{
+		lock.write(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = getDB();
+				db.beginTransaction();
+				
+				try
+				{
+					db.delete("tag", "1", null);
+					db.delete("tag_alias", "1", null);
+					
+					db.setTransactionSuccessful();
+				}
+				finally
+				{
+					db.endTransaction();
+					db.close();
+				}
+			}
+		});
+	}
+	
 	public void addTag(final E621Tag[] tags)
 	{
 		lock.write(new Runnable()
