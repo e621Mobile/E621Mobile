@@ -601,7 +601,17 @@ public class E621DownloadedImages
 				{
 					public void run()
 					{
-						rets.add(e621.tag_alias__index(true, "date", ppage*steps + delta));
+						ArrayList<E621TagAlias> aliases = e621.tag_alias__index(true, "date", ppage*steps + delta);
+						
+						if(aliases == null)
+						{
+							aliases = e621.tag_alias__index(true, "date", ppage*steps + delta);
+						}
+						
+						if(aliases != null)
+						{
+							rets.add(aliases);
+						}
 					}
 				});
 				

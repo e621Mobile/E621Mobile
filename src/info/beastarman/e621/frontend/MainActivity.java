@@ -4,7 +4,11 @@ import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware.Mascot;
 import android.net.Uri;
 import android.os.Bundle;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +28,22 @@ public class MainActivity extends SlideMenuBaseActivity
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_main);
+		
+		if(e621.isFirstRun())
+		{
+			AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(this);
+			confirmFullUpdateBuilder.setTitle("Welcome to E621 Mobile!");
+			confirmFullUpdateBuilder.setMessage(getString(R.string.welcome));
+			confirmFullUpdateBuilder.setPositiveButton("Ok", new OnClickListener()
+			{
+				@Override
+				public void onClick(DialogInterface dialogInterface, int which)
+				{
+				}
+			});
+			
+			confirmFullUpdateBuilder.create().show();
+		}
     }
 	
 	protected void onStart()

@@ -62,4 +62,11 @@
        </string>
     <string name="parent_post">Parent Post: #%1$s</string>
     <string name="children_posts">Child posts</string>
+    <string name="welcome">
+        E621 Mobile lets you browse the whole E621 image database and even pick the images you like and download to
+        your phone discretely. You can even search for them without any internet connection.
+        \n\n
+        To do that however, please visit the settings page and click "Force full metadata update". This will download the whole
+        tag base from E621, allowing you to search for your downloads using tags. You can do it whenever you want. 
+    </string>
 </resources>
