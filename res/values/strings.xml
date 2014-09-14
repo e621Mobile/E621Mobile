@@ -45,7 +45,11 @@
 		\n\n
 		Developed by Douglas Vanny Bento (me@beastarman.info)
     </string>
-    <string name="changelog">Version 0.1: Everything.</string>
+    <string name="changelog">
+        Version 0.1a.1: Fixed Urgent Error Reporting bug.
+        \n\n
+        Version 0.1a: Everything.
+    </string>
     <string name="new_version_found">Version %1$s is out! Would you like to upgrade?</string>
     
     <string name="bitcoin">1GA82eVKvXv23Ww8kPFQR7oALfXUuomx9</string>
