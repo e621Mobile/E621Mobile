@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="info.beastarman.e621"
-    android:versionCode="1"
-    android:versionName="0.1a" >
+    android:versionCode="2"
+    android:versionName="0.1a.1" >
 
     <uses-sdk
         android:minSdkVersion="11"

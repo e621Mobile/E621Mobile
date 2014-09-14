@@ -685,11 +685,13 @@ public class SettingsActivity extends PreferenceActivity
             			String[] get_pid = {
             				"sh",
             				"-c",
-            				"ps | grep info.beastarman.e621 | cut -c10-15"
+            				"ps | grep info.beastarman.e621"
             			};
             			
             			Process process = Runtime.getRuntime().exec(get_pid);
             			String pid = IOUtils.toString(process.getInputStream());
+            			
+            			pid = pid.substring(10,15);
             			
             			String[] get_log = {
             				"sh",
