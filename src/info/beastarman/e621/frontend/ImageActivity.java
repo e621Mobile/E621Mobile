@@ -459,7 +459,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 			{
 				ArrayList<E621Comment> comments = e621.comment__index(Integer.valueOf(e621Image.id),commentsNextPage++);
 				
-				if(comments.size() > 0)
+				if(comments!=null && comments.size() > 0)
 				{
 					appendComments(comments);
 				}
