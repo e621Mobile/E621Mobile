@@ -46,6 +46,8 @@
 		Developed by Douglas Vanny Bento (me@beastarman.info)
     </string>
     <string name="changelog">
+        Version 0.1a.3: Improved transition between activities and fixed download buttons.
+        \n\n
         Version 0.1a.1: Fixed Urgent Error Reporting bug.
         \n\n
         Version 0.1a: Everything.
