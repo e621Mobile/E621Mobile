@@ -75,4 +75,5 @@
         To do that however, please visit the settings page and click "Force full metadata update". This will download the whole
         tag base from E621, allowing you to search for your downloads using tags. You can do it whenever you want. 
     </string>
+    <string name="look_for_update">Look for update</string>
 </resources>

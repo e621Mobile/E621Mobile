@@ -5,4 +5,9 @@
         android:orderInCategory="100"
         android:showAsAction="never"
         android:title="@string/restore_last_backup" android:icon="@android:drawable/ic_dialog_alert"/>
+   <item
+        android:id="@+id/look_for_update"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/look_for_update" android:icon="@android:drawable/ic_dialog_alert"/>
 </menu>

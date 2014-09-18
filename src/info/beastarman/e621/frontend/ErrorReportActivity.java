@@ -6,7 +6,9 @@ import java.util.Date;
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.middleware.AndroidAppUpdater;
 import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.views.StepsProgressDialog;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -157,9 +159,184 @@ public class ErrorReportActivity extends Activity
 		case R.id.restore_backup:
 			restoreBackup(Collections.max(e621.getBackups()));
 			return true;
+		case R.id.look_for_update:
+			lookForUpdate();
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	private static class FailException extends Exception
+	{
+		private static final long serialVersionUID = 1615513842090522333L;
+		
+		public int code;
+		
+		public FailException(int code)
+		{
+			this.code = code;
+		}
+	};
+	
+	private void lookForUpdate()
+	{
+		final AndroidAppUpdater appUpdater = e621.getAndroidAppUpdater();
+		
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				PackageInfo pInfo = null;
+				
+				try
+				{
+					try {
+						pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+					} catch (NameNotFoundException e) {
+						e.printStackTrace();
+						throw new FailException(0);
+					}
+					
+					int currentVersion = pInfo.versionCode;
+					final AndroidAppVersion version = appUpdater.getLatestVersionInfo();
+					
+					e621.updateMostRecentVersion(version);
+					
+					if(version == null)
+					{
+						throw new FailException(1);
+					}
+					
+					if(version.versionCode > currentVersion)
+					{
+						final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(ErrorReportActivity.this).setTitle("New Version Found").setCancelable(true).
+								setMessage(String.format(getResources().getString(R.string.new_version_found),version.versionName));
+						
+						runOnUiThread(new Runnable()
+						{
+							public void run()
+							{
+								final AlertDialog dialog = dialogBuilder.create();
+								
+								dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Update", new DialogInterface.OnClickListener()
+								{
+									@Override
+									public void onClick(DialogInterface arg0,int arg1)
+									{
+										dialog.dismiss();
+										
+										final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
+										dialogWrapper.obj = new StepsProgressDialog(ErrorReportActivity.this);
+										dialogWrapper.obj.show();
+										
+										e621.updateApp(version, new EventManager()
+										{
+											@Override
+											public void onTrigger(Object obj)
+											{
+												if(obj == E621Middleware.UpdateState.START)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.addStep("Retrieving package file").showStepsMessage();
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.DOWNLOADED)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.addStep("Package downloaded").showStepsMessage();
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.SUCCESS)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.setDone("Starting package install");
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.FAILURE)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.setDone("Package could not be retrieved");
+								    					}
+								    				});
+								    			}
+											}
+										});
+									}
+								});
+								
+								dialog.setButton(AlertDialog.BUTTON_NEGATIVE,"Maybe later", new DialogInterface.OnClickListener()
+								{
+									@Override
+									public void onClick(DialogInterface arg0,int arg1)
+									{
+										dialog.dismiss();
+									}
+								});
+								
+								dialog.show();
+							}
+						});
+					}
+					else
+					{
+						throw new FailException(2);
+					}
+				}
+				catch(FailException e)
+				{
+					final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(ErrorReportActivity.this).setTitle("Update").
+							setCancelable(true);
+					
+					switch(e.code)
+					{
+						case 1:
+							dialogBuilder.setMessage("Could not retrieve latest version");
+							break;
+						case 2:
+							dialogBuilder.setMessage("No newer version found");
+							break;
+						default:
+							dialogBuilder.setMessage("Unknown error happened");
+							break;
+					}
+					
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							final AlertDialog dialog = dialogBuilder.create();
+							
+							dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Ok", new DialogInterface.OnClickListener()
+							{
+								@Override
+								public void onClick(DialogInterface arg0,int arg1)
+								{
+									dialog.dismiss();
+								}
+							});
+							
+							dialog.show();
+						}
+					});
+				}
+			}
+		}).start();
 	}
 	
 	protected void restoreBackup(final Date date)
