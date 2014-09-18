@@ -463,7 +463,7 @@ public class E621DownloadedImages
 		
 		final String file_name = img.id + "." + file_ext;
 		
-		lock.writeAsync(new Runnable()
+		lock.write(new Runnable()
 		{
 			public void run()
 			{
