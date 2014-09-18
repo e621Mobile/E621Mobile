@@ -579,8 +579,6 @@ public class E621Middleware extends E621
 		
 		if(ongoing.containsKey(id))
 		{
-			Log.d(LOG_TAG, id + " modeA");
-			
 			event.trigger(ongoing.get(id));
 		}
 		else
@@ -589,8 +587,6 @@ public class E621Middleware extends E621
 			{
 				public void run()
 				{
-					Log.d(LOG_TAG, id + " modeB");
-					
 					if(download_manager.hasFile(id))
 					{
 						event.trigger(DownloadStatus.DOWNLOADED);
