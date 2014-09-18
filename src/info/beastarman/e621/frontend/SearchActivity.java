@@ -27,6 +27,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.text.Html;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -327,7 +328,7 @@ public class SearchActivity extends BaseActivity
 			
 			views.add(resultWrapper);
 		}
-
+		
 		int image_y = 0;
 		
 		for(int i=0; i<e621Search.images.size(); i++)

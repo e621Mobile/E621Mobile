@@ -11,9 +11,9 @@ public class E621Image implements Serializable
 {
 	private static final long serialVersionUID = 4972427634331752322L;
 	
-	public static int PREVIEW = 1;
-	public static int SAMPLE = 2;
-	public static int FULL = 3;
+	public static final int PREVIEW = 1;
+	public static final int SAMPLE = 2;
+	public static final int FULL = 3;
 	
 	public static int ACTIVE = 1;
 	public static int FLAGGED = 2;

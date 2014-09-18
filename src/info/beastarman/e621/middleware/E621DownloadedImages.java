@@ -300,42 +300,6 @@ public class E621DownloadedImages
 		return hasFile(img.id);
 	}
 	
-	public boolean hasFile(final Integer id)
-	{
-		if(id == null) return false;
-		
-		final GTFO<Boolean> ret = new GTFO<Boolean>();
-		ret.obj = false;
-		
-		lock.read(new Runnable()
-		{
-			public void run()
-			{
-				SQLiteDatabase db = getDB();
-				Cursor c = null;
-				
-				try
-				{
-					c = db.rawQuery("SELECT image_file FROM e621image WHERE id = ?", new String[]{String.valueOf(id)});
-					
-					ret.obj = (c != null && c.moveToFirst());
-					
-					if(ret.obj)
-					{
-						ret.obj = images.hasFile(c.getString(c.getColumnIndex("image_file")));
-					}
-				}
-				finally
-				{
-					if(c != null) c.close();
-					db.close();
-				}
-			}
-		});
-		
-		return ret.obj;
-	}
-	
 	private String getFileName(final Integer id)
 	{
 		final GTFO<String> ret = new GTFO<String>();
@@ -373,6 +337,42 @@ public class E621DownloadedImages
 	private String getFileName(final E621Image img)
 	{
 		return getFileName(img.id);
+	}
+	
+	public boolean hasFile(final Integer id)
+	{
+		if(id == null) return false;
+		
+		final GTFO<Boolean> ret = new GTFO<Boolean>();
+		ret.obj = false;
+		
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = getDB();
+				Cursor c = null;
+				
+				try
+				{
+					c = db.rawQuery("SELECT image_file FROM e621image WHERE id = ?", new String[]{String.valueOf(id)});
+					
+					ret.obj = (c != null && c.moveToFirst());
+					
+					if(ret.obj)
+					{
+						ret.obj = images.hasFile(c.getString(c.getColumnIndex("image_file")));
+					}
+				}
+				finally
+				{
+					if(c != null) c.close();
+					db.close();
+				}
+			}
+		});
+		
+		return ret.obj;
 	}
 	
 	public InputStream getFile(final Integer id)
@@ -467,8 +467,6 @@ public class E621DownloadedImages
 		{
 			public void run()
 			{
-				images.createOrUpdate(file_name, in);
-				
 				SQLiteDatabase db = getDB();
 				
 				try
@@ -502,6 +500,8 @@ public class E621DownloadedImages
 				}
 			}
 		});
+		
+		images.createOrUpdate(file_name, in);
 	}
 	
 	public synchronized void updateMetadataForce(E621Middleware e621)

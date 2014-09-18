@@ -350,7 +350,14 @@ public class E621Middleware extends E621
 	@Override
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
-		android.util.Log.i(LOG_TAG + "_Request","GET " + url);
+		if(url.contains("password"))
+		{
+			android.util.Log.i(LOG_TAG + "_Request","GET password containing request");
+		}
+		else
+		{
+			android.util.Log.i(LOG_TAG + "_Request","GET " + url);
+		}
 		
 		return super.tryHttpGet(url, tries);
 	}
@@ -551,7 +558,7 @@ public class E621Middleware extends E621
 	private Map<Integer,DownloadStatus> ongoing = Collections.synchronizedMap(new HashMap<Integer,DownloadStatus>());
 	private Set<Integer> cancel = Collections.synchronizedSet(new HashSet<Integer>());
 	
-	public void bindDownloadState(Integer id, EventManager event)
+	public void bindDownloadState(final Integer id, final EventManager event)
 	{
 		synchronized(downloads)
 		{
@@ -572,13 +579,22 @@ public class E621Middleware extends E621
 		{
 			event.trigger(ongoing.get(id));
 		}
-		else if(download_manager.hasFile(id))
-		{
-			event.trigger(DownloadStatus.DOWNLOADED);
-		}
 		else
 		{
-			event.trigger(DownloadStatus.DELETED);
+			new Thread(new Runnable()
+			{
+				public void run()
+				{
+					if(download_manager.hasFile(id))
+					{
+						event.trigger(DownloadStatus.DOWNLOADED);
+					}
+					else
+					{
+						event.trigger(DownloadStatus.DELETED);
+					}
+				}
+			}).start();
 		}
 	}
 	
@@ -950,99 +966,142 @@ public class E621Middleware extends E621
 		}
 	}
 	
-	public InputStream getImage(E621Image img, int size)
+	public InputStream getImage(final E621Image img, int size)
 	{
+		final GTFO<InputStream> in = new GTFO<InputStream>();
+		
+		final Object lock = new Object();
+		
+		List<Thread> threads = Collections.synchronizedList(new ArrayList<Thread>());
+		
+		threads.add(new Thread(new Runnable()
+		{
+			public void run()
+			{
+				InputStream inTemp = download_manager.getFile(img);
+				
+				if(inTemp != null)
+				{
+					synchronized(lock)
+					{
+						if(in.obj == null)
+						{
+							in.obj = inTemp;
+						}
+					}
+				}
+			}
+		}));
+		
+		threads.add(new Thread(new Runnable()
+		{
+			public void run()
+			{
+				InputStream inTemp = full_cache.getFile(String.valueOf(img.id));
+				
+				if(inTemp != null)
+				{
+					synchronized(lock)
+					{
+						if(in.obj == null)
+						{
+							in.obj = inTemp;
+						}
+					}
+				}
+			}
+		}));
+		
 		if(size == E621Image.PREVIEW)
 		{
-			InputStream in = download_manager.getFile(img);
-			
-			if(in != null)
+			threads.add(new Thread(new Runnable()
 			{
-				return in;
-			}
-			else
-			{
-				in = full_cache.getFile(String.valueOf(img.id));
-				
-				if(in != null)
+				public void run()
 				{
-					return in;
-				}
-				else
-				{
-					in = thumb_cache.getFile(String.valueOf(img.id));
+					InputStream inTemp = thumb_cache.getFile(String.valueOf(img.id));
 					
-					if(in != null)
+					if(inTemp != null)
 					{
-						return in;
-					}
-					else
-					{
-						byte[] raw_file = getImageFromInternet(img.preview_url);
-						
-						if(raw_file == null)
+						synchronized(lock)
 						{
-							return null; 
+							if(in.obj == null)
+							{
+								in.obj = inTemp;
+							}
 						}
-				        
-				        thumb_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
-				        
-				        return new ByteArrayInputStream(raw_file);
 					}
 				}
+			}));
+		}
+		
+		if(size == E621Image.FULL && getFileDownloadSize() == E621Image.SAMPLE)
+		{
+			threads.clear();
+		}
+		
+		for(Thread t : threads)
+		{
+			t.start();
+		}
+		
+		while(in.obj == null)
+		{
+			int i=0;
+			
+			for(i=threads.size(); i>0; i--)
+			{
+				if(!threads.get(i-1).isAlive())
+				{
+					threads.remove(i-1);
+				}
+			}
+			
+			if(threads.size() == 0)
+			{
+				break;
 			}
 		}
 		
-		if(size != E621Image.PREVIEW)
+		if(in.obj != null)
 		{
-			InputStream in = null;
+			return in.obj;
+		}
+		else
+		{
+			String url;
 			
-			if(size == getFileDownloadSize())
+			switch(size)
 			{
-				in = download_manager.getFile(img);
+				case E621Image.PREVIEW:
+					url = img.preview_url;
+					break;
+				case E621Image.SAMPLE:
+					url = img.sample_url;
+					break;
+				case E621Image.FULL:
+				default:
+					url = img.file_url;
+					break;
 			}
 			
-			if(in != null)
+			byte[] raw_file = getImageFromInternet(url);
+			
+			if(raw_file == null)
 			{
-				return in;
+				return null; 
+			}
+	        
+			if(size == E621Image.PREVIEW)
+			{
+				thumb_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
 			}
 			else
 			{
-				if(size == getFileDownloadSize())
-				{
-					in = full_cache.getFile(String.valueOf(img.id));
-				}
-				
-				if(in != null)
-				{
-					return in;
-				}
-				else
-				{
-					byte[] raw_file;
-	
-					if(size == E621Image.FULL)
-					{
-						raw_file = getImageFromInternet(img.file_url);
-					}
-					else
-					{
-						raw_file = getImageFromInternet(img.sample_url);
-					}
-					
-					if(raw_file == null)
-					{
-						return null; 
-					}
-			        
-					full_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
-			        
-			        return new ByteArrayInputStream(raw_file);
-				}
+				full_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
 			}
+	        
+	        return new ByteArrayInputStream(raw_file);
 		}
-		
-		return null;
 	}
 	
 	public InputStream getDownloadedImage(Integer id)
@@ -2280,12 +2339,14 @@ public class E621Middleware extends E621
 	{
 		File file;
 		
+		ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
+		
 		public FailedDownloadManager(File file)
 		{
 			this.file = file;
 		}
 		
-		public synchronized ArrayList<String> getFiles()
+		private ArrayList<String> getAllFiles()
 		{
 			FileInputStream in;
 			try {
@@ -2313,8 +2374,23 @@ public class E621Middleware extends E621
 				return new ArrayList<String>();
 			}
 		}
+
+		public ArrayList<String> getFiles()
+		{
+			final GTFO<ArrayList<String>> ret = new GTFO<ArrayList<String>>();
+			
+			lock.read(new Runnable()
+			{
+				public void run()
+				{
+					ret.obj = getAllFiles();
+				}
+			});
+			
+			return ret.obj;
+		}
 		
-		public synchronized void setFiles(ArrayList<String> strings)
+		private void setFiles(ArrayList<String> strings)
 		{
 			String listString = "";
 
@@ -2337,29 +2413,53 @@ public class E621Middleware extends E621
 			}
 		}
 		
-		public synchronized boolean hasFile(String file)
+		public boolean hasFile(final String file)
 		{
-			return getFiles().contains(file);
+			final GTFO<Boolean> ret = new GTFO<Boolean>();
+			
+			lock.read(new Runnable()
+			{
+				public void run()
+				{
+					ret.obj = getAllFiles().contains(file);
+				}
+			});
+			
+			return ret.obj;
 		}
 		
-		public synchronized void addFile(String file)
+		public void addFile(final String file)
 		{
-			if(!hasFile(file))
+			lock.write(new Runnable()
 			{
-				ArrayList<String> files = getFiles();
-				files.add(file);
-				setFiles(files);
-			}
+				public void run()
+				{
+					ArrayList<String> files = getAllFiles();
+					
+					if(!files.contains(file))
+					{
+						files.add(file);
+						setFiles(files);
+					}
+				}
+			});
 		}
 		
-		public synchronized void removeFile(String file)
+		public void removeFile(final String file)
 		{
-			if(hasFile(file))
+			lock.write(new Runnable()
 			{
-				ArrayList<String> files = getFiles();
-				files.remove(file);
-				setFiles(files);
-			}
+				public void run()
+				{
+					ArrayList<String> files = getAllFiles();
+					
+					if(files.contains(file))
+					{
+						files.remove(file);
+						setFiles(files);
+					}
+				}
+			});
 		}
 	}
 	

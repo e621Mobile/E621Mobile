@@ -123,15 +123,24 @@ public class MainActivity extends SlideMenuBaseActivity
     		mascot_by.setVisibility(View.VISIBLE);
     	}
     	
-    	int random_mascot = (int) (Math.random()*(mascots.length-1));
-    	if(random_mascot >= previous_mascot)
+    	Mascot m;
+    	
+    	if(mascots.length == 1)
     	{
-    		random_mascot++;
+    		m = mascots[0];
     	}
+    	else
+    	{
+	    	int random_mascot = (int) (Math.random()*(mascots.length-1));
+	    	if(random_mascot >= previous_mascot)
+	    	{
+	    		random_mascot++;
+	    	}
+	    	
+	    	previous_mascot = random_mascot;
     	
-    	previous_mascot = random_mascot;
-    	
-    	Mascot m = mascots[random_mascot];
+	    	m = mascots[random_mascot%mascots.length];
+    	}
     	
     	mascot.setImageResource(m.image);
     	mascot_blur.setImageResource(m.blur);
