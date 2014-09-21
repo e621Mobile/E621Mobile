@@ -1,7 +1,5 @@
 package info.beastarman.e621.api;
 
-import info.beastarman.e621.middleware.E621Middleware;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,7 +36,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import android.net.Uri;
-import android.util.Log;
 
 public class E621
 {

@@ -1,7 +1,5 @@
 package info.beastarman.e621.backend;
 
-import info.beastarman.e621.middleware.E621Middleware;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;

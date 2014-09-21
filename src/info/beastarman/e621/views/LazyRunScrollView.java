@@ -7,7 +7,7 @@ import java.util.concurrent.Semaphore;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.util.AttributeSet; 
+import android.util.AttributeSet;
 
 public class LazyRunScrollView extends ObservableScrollView
 {

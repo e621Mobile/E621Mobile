@@ -16,15 +16,15 @@
 
 package info.beastarman.e621.qrcode;
 
-import android.provider.ContactsContract;
-import android.graphics.Bitmap;
-import android.os.Bundle;
-import android.telephony.PhoneNumberUtils;
-
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import android.graphics.Bitmap;
+import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.telephony.PhoneNumberUtils;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;

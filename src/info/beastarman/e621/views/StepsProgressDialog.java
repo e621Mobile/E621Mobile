@@ -2,13 +2,11 @@ package info.beastarman.e621.views;
 
 import java.util.ArrayList;
 
-import android.R.drawable;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.view.View;
 
 public class StepsProgressDialog extends ProgressDialog

@@ -1,12 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.DText;
 import info.beastarman.e621.api.DTextObject;
@@ -23,13 +16,20 @@ import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
 import info.beastarman.e621.views.GIFView;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
+import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.content.Intent;
-import android.graphics.Typeface;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -39,9 +39,9 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -648,8 +648,6 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	public void updateRelated()
 	{
 		boolean hide = true;
-		
-		ViewGroup group = (ViewGroup)findViewById(R.id.relatedGroup);
 		
 		if(e621Image.parent_id != null)
 		{

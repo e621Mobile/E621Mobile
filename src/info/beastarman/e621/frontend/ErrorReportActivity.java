@@ -1,20 +1,21 @@
 package info.beastarman.e621.frontend;
 
-import java.util.Collections;
-import java.util.Date;
-
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.middleware.AndroidAppUpdater;
-import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.StepsProgressDialog;
+
+import java.util.Collections;
+import java.util.Date;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;

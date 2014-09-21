@@ -3,6 +3,7 @@ package info.beastarman.e621.views;
 import info.beastarman.e621.R;
 
 import java.io.InputStream;
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;

@@ -1,8 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
-
 import info.beastarman.e621.R;
 import info.beastarman.e621.qrcode.Contents;
 import info.beastarman.e621.qrcode.QRCodeEncoder;
@@ -14,14 +11,15 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
 
 public class DonateActivity extends BaseActivity
 {

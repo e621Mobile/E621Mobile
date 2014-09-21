@@ -1,9 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
@@ -12,10 +8,11 @@ import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.OfflineImageNavigator;
 import info.beastarman.e621.views.LazyRunScrollView;
-import android.media.MediaScannerConnection;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Message;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+
 import android.app.ActionBar;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -23,7 +20,10 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Message;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;

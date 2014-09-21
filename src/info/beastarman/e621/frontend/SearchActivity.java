@@ -1,11 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.Semaphore;
-
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
@@ -16,18 +10,22 @@ import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
 import info.beastarman.e621.middleware.SearchQuery;
 import info.beastarman.e621.views.LazyRunScrollView;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
 import android.app.ActionBar;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.StateListDrawable;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.Html;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;

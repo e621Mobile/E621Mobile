@@ -5,20 +5,15 @@ import info.beastarman.e621.api.E621;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
-import info.beastarman.e621.api.E621TagAlias;
 import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.backend.BackupManager;
-
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.FileName;
 import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.backend.ImageCacheManager;
-import info.beastarman.e621.backend.ImageCacheManagerOld;
 import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.backend.PersistentHttpClient;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
-import info.beastarman.e621.frontend.DownloadsActivity;
-import info.beastarman.e621.frontend.MainActivity;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.views.StepsProgressDialog;
 
@@ -70,7 +65,6 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.AlarmManager;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
@@ -87,9 +81,7 @@ import android.os.FileObserver;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.view.View;
 
 public class E621Middleware extends E621
 {
@@ -122,8 +114,6 @@ public class E621Middleware extends E621
 	
 	BackupManager backupManager;
 	
-	private static int UPDATE_TAGS_NOTIFICATION_ID = 1;
-	private static int SAVE_IMAGES_NOTIFICATION_ID = 2;
 	private Semaphore updateTagsSemaphore = new Semaphore(1);
 	
 	private static E621Middleware instance;
@@ -1133,23 +1123,6 @@ public class E621Middleware extends E621
 			return;
 		}
 		
-		NotificationCompat.Builder mBuilder =
-		        new NotificationCompat.Builder(ctx)
-		        .setSmallIcon(R.drawable.ic_launcher)
-		        .setContentTitle("Updating tags")
-		        .setContentText("Please wait")
-		        .setOngoing(true);
-		
-		Intent resultIntent = new Intent(activity, MainActivity.class);
-		PendingIntent pIntent = PendingIntent.getActivity(activity, 0, resultIntent, 0);
-		
-		mBuilder.setContentIntent(pIntent);
-		
-		final NotificationManager mNotificationManager =
-		    (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-
-		mNotificationManager.notify(UPDATE_TAGS_NOTIFICATION_ID, mBuilder.build());
-		
 		new Thread(new Runnable()
 		{
 			@Override
@@ -1157,7 +1130,6 @@ public class E621Middleware extends E621
 				try
 				{
 					download_manager.updateMetadata(E621Middleware.this);
-					mNotificationManager.cancel(UPDATE_TAGS_NOTIFICATION_ID);
 				}
 				finally
 				{
@@ -2413,21 +2385,6 @@ public class E621Middleware extends E621
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
-		
-		public boolean hasFile(final String file)
-		{
-			final GTFO<Boolean> ret = new GTFO<Boolean>();
-			
-			lock.read(new Runnable()
-			{
-				public void run()
-				{
-					ret.obj = getAllFiles().contains(file);
-				}
-			});
-			
-			return ret.obj;
 		}
 		
 		public void addFile(final String file)

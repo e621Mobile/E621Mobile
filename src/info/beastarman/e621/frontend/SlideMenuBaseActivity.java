@@ -1,15 +1,16 @@
 package info.beastarman.e621.frontend;
 
-import java.util.ArrayList;
-
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.middleware.AndroidAppUpdater;
-import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
 import info.beastarman.e621.views.StepsProgressDialog;
+
+import java.util.ArrayList;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -20,17 +21,18 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -40,7 +42,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.animation.Transformation;
 
 public class SlideMenuBaseActivity extends BaseActivity
 {
@@ -55,7 +56,8 @@ public class SlideMenuBaseActivity extends BaseActivity
     
     EventManager event = new EventManager()
     {
-    	@Override
+    	@SuppressWarnings("unchecked")
+		@Override
 		public void onTrigger(Object obj)
     	{
     		saved_searches = (ArrayList<InterruptedSearch>)obj;

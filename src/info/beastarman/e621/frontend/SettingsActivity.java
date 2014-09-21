@@ -1,12 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-
-import org.apache.commons.io.IOUtils;
-
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
@@ -15,8 +8,15 @@ import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.SeekBarDialogPreference;
 import info.beastarman.e621.views.StepsProgressDialog;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+
+import org.apache.commons.io.IOUtils;
+
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -32,7 +32,6 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.text.Html;
-import android.util.Log;
 
 public class SettingsActivity extends PreferenceActivity
 {
