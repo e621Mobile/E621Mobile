@@ -777,7 +777,15 @@ public class E621Middleware extends E621
 		
 		if(in != null)
 		{
-			download_manager.createOrUpdate(img, in, img.file_ext);
+			String ext = img.file_ext;
+			
+			if(getFileDownloadSize() == E621Image.SAMPLE)
+			{
+				String[] temp = img.sample_url.split("\\.");
+				ext = temp[temp.length-1];
+			}
+			
+			download_manager.createOrUpdate(img, in, ext);
 			
 			failed_download_manager.removeFile(String.valueOf(img.id));
 			
