@@ -332,6 +332,21 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	}
 	
 	@Override
+	public void clear()
+	{
+		final HashMap<String,Long> files = getAllFiles();
+		
+		final ArrayList<String> toRemove = new ArrayList<String>();
+		
+		for(String id : files.keySet())
+		{
+			toRemove.add(id);
+		}
+		
+		removeFiles((String[])toRemove.toArray(new String[toRemove.size()]));
+	}
+	
+	@Override
 	public void clean()
 	{
 		if(max_size < 1)

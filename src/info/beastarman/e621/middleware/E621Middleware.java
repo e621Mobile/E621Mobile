@@ -442,13 +442,8 @@ public class E621Middleware extends E621
 	
 	public void clearCache()
 	{
-		for (File child : cache_path.listFiles()) child.delete();
-		cache_path.delete();
-		
-		for (File child : full_cache_path.listFiles()) child.delete();
-		full_cache_path.delete();
-		
-		setup();
+		full_cache.clear();
+		thumb_cache.clear();
 	}
 	
 	public Integer getSearchResultsCount(String tags)

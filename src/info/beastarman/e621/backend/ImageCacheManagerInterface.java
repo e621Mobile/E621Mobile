@@ -26,4 +26,6 @@ public interface ImageCacheManagerInterface {
 
 	void removeFiles(String[] ids);
 
+	void clear();
+
 }
