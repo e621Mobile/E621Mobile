@@ -961,7 +961,7 @@ public class E621Middleware extends E621
 		}
 	}
 	
-	public InputStream getImage(final E621Image img, int size)
+	public InputStream getImage(final E621Image img, final int size)
 	{
 		final GTFO<InputStream> in = new GTFO<InputStream>();
 		
@@ -1014,6 +1014,58 @@ public class E621Middleware extends E621
 				public void run()
 				{
 					InputStream inTemp = thumb_cache.getFile(String.valueOf(img.id));
+					
+					if(inTemp != null)
+					{
+						synchronized(lock)
+						{
+							if(in.obj == null)
+							{
+								in.obj = inTemp;
+							}
+						}
+					}
+				}
+			}));
+		}
+		
+		//TODO Preemptive loading
+		if(true)
+		{
+			threads.add(new Thread(new Runnable()
+			{
+				public void run()
+				{
+					String url;
+					
+					switch(size)
+					{
+						case E621Image.PREVIEW:
+							url = img.preview_url;
+							break;
+						case E621Image.SAMPLE:
+							url = img.sample_url;
+							break;
+						case E621Image.FULL:
+						default:
+							url = img.file_url;
+							break;
+					}
+					
+					byte[] raw_file = getImageFromInternet(url);
+					
+					if(raw_file == null) return;
+					
+					if(size == E621Image.PREVIEW)
+					{
+						thumb_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
+					}
+					else
+					{
+						full_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
+					}
+					
+					InputStream inTemp = new ByteArrayInputStream(raw_file);
 					
 					if(inTemp != null)
 					{
