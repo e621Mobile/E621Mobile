@@ -58,7 +58,7 @@ public class SearchContinueActivity extends SearchActivity
 	}
 	
 	@Override
-	protected E621Search get_results()
+	protected E621Search get_results(int page)
 	{
 		try {
 			return e621.continue_search(search, page, limit);
@@ -79,13 +79,27 @@ public class SearchContinueActivity extends SearchActivity
 				return;
 			}
 			
-			Intent intent = new Intent(this, SearchContinueActivity.class);
-			intent.putExtra(SearchActivity.SEARCH, search);
-			intent.putExtra(SearchActivity.PAGE, page - 1);
-			intent.putExtra(SearchActivity.LIMIT, limit);
-			intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
-			intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
-			startActivity(intent);
+			if(previous_page!=null && previous_page == page-1)
+			{
+				finish();
+			}
+			else
+			{
+				Intent intent = new Intent(this, SearchContinueActivity.class);
+				intent.putExtra(SearchContinueActivity.SEARCH, search);
+				intent.putExtra(SearchContinueActivity.PAGE, page - 1);
+				intent.putExtra(SearchContinueActivity.LIMIT, limit);
+				intent.putExtra(SearchContinueActivity.MIN_ID, cur_min_id);
+				intent.putExtra(SearchContinueActivity.MAX_ID, cur_max_id);
+				intent.putExtra(SearchContinueActivity.PREVIOUS_PAGE, page);
+
+				if(nextE621Search != null)
+				{
+					intent.putExtra(SearchContinueActivity.PRELOADED_SEARCH, nextE621Search);
+				}
+				
+				startActivity(intent);
+			}
 		}
 	}
 
@@ -99,13 +113,27 @@ public class SearchContinueActivity extends SearchActivity
 			return;
 		}
 		
-		Intent intent = new Intent(this, SearchContinueActivity.class);
-		intent.putExtra(SearchActivity.SEARCH, search);
-		intent.putExtra(SearchActivity.PAGE, page + 1);
-		intent.putExtra(SearchActivity.LIMIT, limit);
-		intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
-		intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
-		startActivity(intent);
+		if(previous_page!=null && previous_page == page+1)
+		{
+			finish();
+		}
+		else
+		{
+			Intent intent = new Intent(this, SearchContinueActivity.class);
+			intent.putExtra(SearchContinueActivity.SEARCH, search);
+			intent.putExtra(SearchContinueActivity.PAGE, page + 1);
+			intent.putExtra(SearchContinueActivity.LIMIT, limit);
+			intent.putExtra(SearchContinueActivity.MIN_ID, cur_min_id);
+			intent.putExtra(SearchContinueActivity.MAX_ID, cur_max_id);
+			intent.putExtra(SearchContinueActivity.PREVIOUS_PAGE, page);
+
+			if(nextE621Search != null)
+			{
+				intent.putExtra(SearchContinueActivity.PRELOADED_SEARCH, nextE621Search);
+			}
+			
+			startActivity(intent);
+		}
 	}
 
 	public void imageClick(View view) {

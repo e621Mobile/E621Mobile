@@ -51,6 +51,7 @@ public class SearchActivity extends BaseActivity
 	public static String MAX_ID = "max_id";
 	
 	public static String PREVIOUS_PAGE = "previous_page";
+	public static String PRELOADED_SEARCH = "preloaded_search";
 
 	public String search = "";
 	public int page = 0;
@@ -65,6 +66,7 @@ public class SearchActivity extends BaseActivity
 	public Integer previous_page = null;
 
 	protected E621Search e621Search = null;
+	protected Long nextE621Search = null;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
 	
 	private Set<ImageEventManager> events = new HashSet<ImageEventManager>();
@@ -94,6 +96,13 @@ public class SearchActivity extends BaseActivity
 		previous_page = getIntent().getIntExtra(SearchActivity.PREVIOUS_PAGE, -666);
 		if(previous_page<0) previous_page = null;
 		
+		Long e621SearchKey = getIntent().getLongExtra(SearchActivity.PRELOADED_SEARCH,-1);
+		
+		if(e621SearchKey != -1)
+		{
+			e621Search = e621.getStorage().returnKey(e621SearchKey);
+		}
+		
 		trySearch();
 		
 		((EditText) findViewById(R.id.searchInput)).setText(search);
@@ -120,15 +129,38 @@ public class SearchActivity extends BaseActivity
 		
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
-
 		
-		final Handler handler = new SearchHandler(this);
-
-		new Thread(new Runnable() {
-			public void run() {
-				Message msg = handler.obtainMessage();
-				msg.obj = get_results();
-				handler.sendMessage(msg);
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				if(e621Search == null)
+				{
+					e621Search = get_results(page);
+					
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							update_results();
+						}
+					});
+				}
+				
+				E621Search nextSearch = get_results(page+1);
+				
+				nextE621Search = e621.getStorage().rent(nextSearch);
+				
+				for(final E621Image img : nextSearch.images)
+				{
+					new Thread(new Runnable()
+					{
+						public void run()
+						{
+							e621.getImage(img,E621Image.PREVIEW);
+						}
+					}).start();
+				}
 			}
 		}).start();
 	}
@@ -138,7 +170,7 @@ public class SearchActivity extends BaseActivity
 		return e621.getSearchResultsPages(search,limit);
 	}
 	
-	protected E621Search get_results()
+	protected E621Search get_results(int page)
 	{
 		try {
 			return e621.post__index(search, page, limit);
@@ -151,8 +183,15 @@ public class SearchActivity extends BaseActivity
 	public void onStart() {
 		super.onStart();
 
-		if (e621Search != null) {
-			update_results();
+		if (e621Search != null)
+		{
+			this.getWindow().getDecorView().post(new Runnable()
+			{
+				public void run()
+				{
+					update_results();
+				}
+			});
 		}
 	}
 
@@ -614,6 +653,12 @@ public class SearchActivity extends BaseActivity
 				intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
 				intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
 				intent.putExtra(SearchActivity.PREVIOUS_PAGE, page);
+				
+				if(nextE621Search != null)
+				{
+					intent.putExtra(SearchActivity.PRELOADED_SEARCH, nextE621Search);
+				}
+				
 				startActivity(intent);
 			}
 		}
@@ -641,25 +686,16 @@ public class SearchActivity extends BaseActivity
 			intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
 			intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
 			intent.putExtra(SearchActivity.PREVIOUS_PAGE, page);
+			
+			if(nextE621Search != null)
+			{
+				intent.putExtra(SearchActivity.PRELOADED_SEARCH, nextE621Search);
+			}
+			
 			startActivity(intent);
 		}
 	}
-
-	private static class SearchHandler extends Handler {
-		SearchActivity activity;
-
-		public SearchHandler(SearchActivity activity) {
-			this.activity = activity;
-		}
-
-		@Override
-		public void handleMessage(Message msg) {
-			E621Search result = (E621Search) msg.obj;
-			activity.e621Search = result;
-			activity.update_results();
-		}
-	};
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

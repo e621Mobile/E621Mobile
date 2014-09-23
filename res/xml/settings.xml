@@ -38,6 +38,18 @@
 	        custom:progressTextSuffix=" Mb"
 	        custom:min="1" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="Data Usage">
+        <CheckBoxPreference
+            android:key="syncOnWiFi"
+            android:summary="Disable requests sent on background sync when device is not connected on WiFi"
+            android:title="Disable Sync on 3G" >
+        </CheckBoxPreference>
+        <CheckBoxPreference
+            android:key="antecipateOnWiFi"
+            android:summary="Disable antecipated requests when device is not connected on WiFi"
+            android:title="Disable unnecessary requests on 3G" >
+        </CheckBoxPreference>
+    </PreferenceCategory>
     <PreferenceCategory android:title="Interface">
         <CheckBoxPreference
             android:key="lazyLoad"

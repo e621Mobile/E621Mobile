@@ -1,9 +1,12 @@
 package info.beastarman.e621.api;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class E621Search
+public class E621Search implements Serializable
 {
+	private static final long serialVersionUID = 2951933484510381506L;
+	
 	public ArrayList<E621Image> images;
 	public int offset;
 	public int count;

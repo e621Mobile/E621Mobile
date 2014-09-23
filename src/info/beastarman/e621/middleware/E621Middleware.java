@@ -11,6 +11,7 @@ import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.FileName;
 import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.backend.ImageCacheManager;
+import info.beastarman.e621.backend.ObjectStorage;
 import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.backend.PersistentHttpClient;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
@@ -75,6 +76,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.FileObserver;
@@ -115,6 +118,7 @@ public class E621Middleware extends E621
 	BackupManager backupManager;
 	
 	private Semaphore updateTagsSemaphore = new Semaphore(1);
+	private ObjectStorage<E621Search> searchStorage = new ObjectStorage<E621Search>();
 	
 	private static E621Middleware instance;
 	
@@ -3038,4 +3042,16 @@ public class E621Middleware extends E621
 			}
 		}).start();
 	}
+	
+	public ObjectStorage<E621Search> getStorage()
+	{
+		return searchStorage;
+	}
+	
+	public boolean isWifiConnected()
+	{
+        ConnectivityManager connManager = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        return ((netInfo != null) && netInfo.isConnected());
+    }
 }
