@@ -479,11 +479,13 @@ public class SearchActivity extends BaseActivity
 		}
 
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-			    RelativeLayout.LayoutParams.WRAP_CONTENT, 
-			    RelativeLayout.LayoutParams.WRAP_CONTENT);
+			    dpToPx(55), 
+			    dpToPx(45));
 		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
 		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 		download.setLayoutParams(params);
+		
+		download.setImageResource(R.drawable.spinner);
 		
 		return download;
 	}
