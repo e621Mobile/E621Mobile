@@ -146,6 +146,22 @@ public class SearchActivity extends BaseActivity
 						}
 					});
 				}
+				else
+				{
+					runOnUiThread(new Runnable()
+					{
+						public void run()
+						{
+							getWindow().getDecorView().post(new Runnable()
+							{
+								public void run()
+								{
+									update_results();
+								}
+							});
+						}
+					});
+				}
 				
 				if(e621.antecipateOnlyOnWiFi() && !e621.isWifiConnected())
 				{
@@ -190,13 +206,7 @@ public class SearchActivity extends BaseActivity
 
 		if (e621Search != null)
 		{
-			this.getWindow().getDecorView().post(new Runnable()
-			{
-				public void run()
-				{
-					update_results();
-				}
-			});
+			update_results();
 		}
 	}
 

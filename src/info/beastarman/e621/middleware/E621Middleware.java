@@ -574,8 +574,6 @@ public class E621Middleware extends E621
 			}
 		}
 		
-		Log.d(LOG_TAG, id + ongoing.toString());
-		
 		if(ongoing.containsKey(id))
 		{
 			event.trigger(ongoing.get(id));

@@ -280,7 +280,6 @@ public class SlideMenuBaseActivity extends BaseActivity
 					public void run()
 					{
 						e621.removeSearch(search.search);
-						activity.removeSearch(v);
 					}
 				});
 				
@@ -291,14 +290,6 @@ public class SlideMenuBaseActivity extends BaseActivity
 		});
 		
 		return row;
-	}
-	
-	public void removeSearch(View v)
-	{
-		View hr = (View)v.getTag(R.id.hr);
-		
-		((ViewGroup)v.getParent()).removeView(v);
-		((ViewGroup)hr.getParent()).removeView(hr);
 	}
 	
 	@Override
