@@ -147,6 +147,11 @@ public class SearchActivity extends BaseActivity
 					});
 				}
 				
+				if(e621.antecipateOnlyOnWiFi() && !e621.isWifiConnected())
+				{
+					return;
+				}
+				
 				E621Search nextSearch = get_results(page+1);
 				
 				nextE621Search = e621.getStorage().rent(nextSearch);

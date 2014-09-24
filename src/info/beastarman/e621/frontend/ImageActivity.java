@@ -19,8 +19,11 @@ import info.beastarman.e621.views.GIFView;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +33,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -519,33 +523,47 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	
 	public String formatCommentTime(Date time)
 	{
-		Date now = new Date();
-		
+		Calendar c = Calendar.getInstance();
+	    c.setTimeZone(TimeZone.getTimeZone("GMT+0"));
+	    Date now = c.getTime();
+	    
 		long minutes = TimeUnit.MINUTES.convert(now.getTime() - time.getTime(), TimeUnit.MILLISECONDS);
-		
-		if(minutes == 0)
+
+		if(minutes < 0)
+		{
+			return "Sent from the future!";
+		}
+		else if(minutes == 0)
 		{
 			return "Less than a minute ago";
 		}
 		else if(minutes < 60)
 		{
-			return minutes + " minutes ago";
+			return minutes + (minutes>1?" minutes ago":" minute ago");
 		}
 		else if(TimeUnit.HOURS.convert(minutes, TimeUnit.MINUTES) < 24)
 		{
-			return TimeUnit.HOURS.convert(minutes, TimeUnit.MINUTES) + " hours ago";
+			long hours = TimeUnit.HOURS.convert(minutes, TimeUnit.MINUTES);
+			
+			return hours + (hours>1?" hours ago":" hour ago");
 		}
 		else if(TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES) < 30)
 		{
-			return TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES) + " days ago";
+			long days = TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES);
+			
+			return days + (days>1?" days ago":" day ago");
 		}
 		else if(TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES) < 365)
 		{
-			return (int)Math.floor(12F*TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES)/365F) + " months ago";
+			long months = (long)Math.floor(12F*TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES)/365F);
+			
+			return months + (months>1?" months ago":" month ago");
 		}
 		else
 		{
-			return (int)Math.floor(TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES)/365F) + " years ago";
+			long years = (long)Math.floor(TimeUnit.DAYS.convert(minutes, TimeUnit.MINUTES)/365F);
+			
+			return years + (years>1?" years ago":" year ago");
 		}
 	}
 	

@@ -490,9 +490,15 @@ public class SettingsActivity extends PreferenceActivity
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.settings);
             getPreferenceManager().setSharedPreferencesName(E621Middleware.PREFS_NAME);
-            
+
             CheckBoxPreference hideDownload = (CheckBoxPreference)findPreference("hideDownloadFolder");
             hideDownload.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("hideDownloadFolder", true));
+
+            CheckBoxPreference antecipateOnlyOnWiFi = (CheckBoxPreference)findPreference("antecipateOnlyOnWiFi");
+            antecipateOnlyOnWiFi.setChecked(activity.e621.antecipateOnlyOnWiFi());
+
+            CheckBoxPreference syncOnlyOnWiFi = (CheckBoxPreference)findPreference("syncOnlyOnWiFi");
+            syncOnlyOnWiFi.setChecked(activity.e621.syncOnlyOnWiFi());
             
             CheckBoxPreference playGifs = (CheckBoxPreference)findPreference("playGifs");
             playGifs.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("playGifs", true));

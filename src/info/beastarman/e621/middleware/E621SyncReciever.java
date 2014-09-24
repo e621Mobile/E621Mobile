@@ -16,6 +16,11 @@ public class E621SyncReciever extends BroadcastReceiver
 			@Override
 			public void run()
 			{
+				if(e621.syncOnlyOnWiFi() && !e621.isWifiConnected())
+				{
+					return;
+				}
+				
 				e621.sync();
 			}
 		}).start();

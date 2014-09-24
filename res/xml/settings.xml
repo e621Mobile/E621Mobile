@@ -40,14 +40,14 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="Data Usage">
         <CheckBoxPreference
-            android:key="syncOnWiFi"
+            android:key="syncOnlyOnWiFi"
             android:summary="Disable requests sent on background sync when device is not connected on WiFi"
             android:title="Disable Sync on 3G" >
         </CheckBoxPreference>
         <CheckBoxPreference
-            android:key="antecipateOnWiFi"
+            android:key="antecipateOnlyOnWiFi"
             android:summary="Disable antecipated requests when device is not connected on WiFi"
-            android:title="Disable unnecessary requests on 3G" >
+            android:title="Disable some requests on 3G" >
         </CheckBoxPreference>
     </PreferenceCategory>
     <PreferenceCategory android:title="Interface">

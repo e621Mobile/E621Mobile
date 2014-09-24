@@ -407,6 +407,16 @@ public class E621Middleware extends E621
 		settings.edit().putInt("mostRecentKnownVersion",version.versionCode).commit();
 	}
 	
+	public boolean syncOnlyOnWiFi()
+	{
+		return settings.getBoolean("syncOnlyOnWiFi", true);
+	}
+	
+	public boolean antecipateOnlyOnWiFi()
+	{
+		return settings.getBoolean("antecipateOnlyOnWiFi", true);
+	}
+	
 	@Override
 	public E621Image post__show(Integer id) throws IOException
 	{

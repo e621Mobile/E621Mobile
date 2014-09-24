@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import org.json.JSONObject;
 
@@ -47,7 +48,8 @@ public class E621Comment
 		try
 		{
 			SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT,Locale.US);
-			obj.created_at = dateFormat.parse(json.optString("created_at","0000-01-01 00:00"));
+			dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+0"));
+			obj.created_at = dateFormat.parse(json.optString("created_at","1970-01-01 00:00"));
 		}
 		catch (ParseException e)
 		{
