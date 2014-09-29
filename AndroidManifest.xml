@@ -63,6 +63,11 @@
             android:label="Error"
             android:windowSoftInputMode="stateHidden" >
         </activity>
+        <activity
+            android:name="info.beastarman.e621.frontend.FeedbackActivity"
+            android:label="Feedback"
+            android:windowSoftInputMode="stateHidden" >
+        </activity>
         
         <receiver
             android:name="info.beastarman.e621.middleware.E621SyncReciever"

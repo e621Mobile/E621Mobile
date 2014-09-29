@@ -170,17 +170,20 @@ public class SearchActivity extends BaseActivity
 				
 				E621Search nextSearch = get_results(page+1);
 				
-				nextE621Search = e621.getStorage().rent(nextSearch);
-				
-				for(final E621Image img : nextSearch.images)
+				if(nextSearch != null)
 				{
-					new Thread(new Runnable()
+					nextE621Search = e621.getStorage().rent(nextSearch);
+					
+					for(final E621Image img : nextSearch.images)
 					{
-						public void run()
+						new Thread(new Runnable()
 						{
-							e621.getImage(img,E621Image.PREVIEW);
-						}
-					}).start();
+							public void run()
+							{
+								e621.getImage(img,E621Image.PREVIEW);
+							}
+						}).start();
+					}
 				}
 			}
 		}).start();

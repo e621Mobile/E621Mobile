@@ -25,6 +25,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -118,7 +119,14 @@ public class ErrorReportActivity extends Activity
 	{
 		EditText error_description = (EditText) findViewById(R.id.errorDescription);
 		
-		String text = error_description.getText().toString().trim(); 
+		String text = error_description.getText().toString().trim();
+		
+		CheckBox sendStatistics = (CheckBox) findViewById(R.id.sendStatistics);
+		
+		if(!sendStatistics.isChecked())
+		{
+			log = "";
+		}
 		
 		if(text.length() > 0)
 		{

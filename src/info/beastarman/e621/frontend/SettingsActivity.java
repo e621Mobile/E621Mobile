@@ -16,6 +16,7 @@ import java.util.HashSet;
 
 import org.apache.commons.io.IOUtils;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -32,6 +33,7 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.text.Html;
+import android.util.Log;
 
 public class SettingsActivity extends PreferenceActivity
 {
@@ -45,460 +47,41 @@ public class SettingsActivity extends PreferenceActivity
         e621 = E621Middleware.getInstance(getApplicationContext());
         
         MyPreferenceFragment fragment = new MyPreferenceFragment();
-        fragment.activity = this;
         
         getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
     }
-	
-	protected void donate()
-	{
-		Intent i = new Intent(this,DonateActivity.class);
-		startActivity(i);
-	}
-
-	protected void updateTags()
-	{
-		final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "","Updating tags. This may take an while. Please wait...", true);
-		dialog.setIndeterminate(true);
-		dialog.show();
-		
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				e621.update_tags();
-				
-				dialog.dismiss();
-			}
-		}).start();
-	}
-
-	protected void forceUpdateTags()
-	{
-		AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(this);
-		confirmFullUpdateBuilder.setMessage("Are you sure? This will take an while.");
-		confirmFullUpdateBuilder.setPositiveButton("Continue", new OnClickListener()
-		{
-			@Override
-			public void onClick(DialogInterface dialogInterface, int which)
-			{
-				final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "","Forcing tags update. This will take an while. Please wait...", true);
-				dialog.setIndeterminate(true);
-				dialog.show();
-				
-				new Thread(new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						e621.force_update_tags();
-						
-						dialog.dismiss();
-					}
-				}).start();
-			}
-		});
-		confirmFullUpdateBuilder.setNegativeButton("Cancel", new OnClickListener()
-		{
-			@Override
-			public void onClick(DialogInterface dialog, int which)
-			{
-				
-			}
-		});
-		
-		confirmFullUpdateBuilder.create().show();
-	}
-	
-	protected void clearCache()
-	{
-		final ProgressDialog dialog = ProgressDialog.show(SettingsActivity.this, "","Clearing cache. Please wait...", true);
-		dialog.setIndeterminate(true);
-		dialog.show();
-		
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				e621.clearCache();
-				
-				dialog.dismiss();
-			}
-		}).start();
-	}
-	
-	protected void restoreBackup(final Date date)
-	{
-		AlertDialog.Builder removeNewBuilder = new AlertDialog.Builder(this);
-		removeNewBuilder.setMessage("Keep images not present on backup?");
-		removeNewBuilder.setPositiveButton("Keep", new OnClickListener()
-		{
-			@Override
-			public void onClick(DialogInterface dialog, int which)
-			{
-				restoreBackup(date,true);
-			}
-		});
-		removeNewBuilder.setNegativeButton("Delete", new OnClickListener()
-		{
-			@Override
-			public void onClick(DialogInterface dialog, int which)
-			{
-				restoreBackup(date,false);
-			}
-		});
-		
-		removeNewBuilder.create().show();
-	}
-	
-	private void restoreBackup(final Date date, final boolean keep)
-	{
-		final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
-		dialogWrapper.obj = new StepsProgressDialog(this);
-		dialogWrapper.obj.show();
-		
-		new Thread(new Runnable()
-		{
-			public void run()
-			{
-				final GTFO<String> message = new GTFO<String>();
-				message.obj = "";
-				
-				e621.restoreBackup(date,keep,new EventManager()
-		    	{
-		    		@Override
-					public void onTrigger(Object obj)
-		    		{
-		    			if(obj == E621Middleware.BackupStates.OPENING)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Opening current backup").showStepsMessage();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.CURRENT)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Reading current backup").showStepsMessage();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.CURRENT)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Creating emergency backup").showStepsMessage();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.SEARCHES)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Overriding saved searches").showStepsMessage();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.SEARCHES_COUNT)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Updating saved searches remaining images").showStepsMessage();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.REMOVE_EMERGENCY)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Removing emergency backup").showStepsMessage();
-		    						dialogWrapper.obj.allowDismiss();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.GETTING_IMAGES)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Getting current images").showStepsMessage();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.DELETING_IMAGES)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Removing unnecessary images").showStepsMessage();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.INSERTING_IMAGES)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Inserting images").showStepsMessage();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.DOWNLOADING_IMAGES)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Downloading images").showStepsMessage();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.UPDATE_TAGS)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.addStep("Updating tags").showStepsMessage();
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.SUCCESS)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.setDone("Backup finished!");
-		    					}
-		    				});
-		    			}
-		    			else if(obj == E621Middleware.BackupStates.FAILURE)
-		    			{
-		    				runOnUiThread(new Runnable()
-		    				{
-		    					public void run()
-		    					{
-		    						dialogWrapper.obj.setDone("Backup could not be restored!");
-		    					}
-		    				});
-		    			}
-					}
-		    	});
-			}
-		}).start();
-	}
-	
-	private static class FailException extends Exception
-	{
-		private static final long serialVersionUID = 1615513842090522333L;
-		
-		public int code;
-		
-		public FailException(int code)
-		{
-			this.code = code;
-		}
-	};
-	
-	protected void update()
-	{
-		final AndroidAppUpdater appUpdater = e621.getAndroidAppUpdater();
-		
-		new Thread(new Runnable()
-		{
-			public void run()
-			{
-				PackageInfo pInfo = null;
-				
-				try
-				{
-					try {
-						pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-					} catch (NameNotFoundException e) {
-						e.printStackTrace();
-						throw new FailException(0);
-					}
-					
-					int currentVersion = pInfo.versionCode;
-					final AndroidAppVersion version = appUpdater.getLatestVersionInfo();
-					
-					e621.updateMostRecentVersion(version);
-					
-					if(version == null)
-					{
-						throw new FailException(1);
-					}
-					
-					if(version.versionCode > currentVersion)
-					{
-						final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(SettingsActivity.this).setTitle("New Version Found").setCancelable(true).
-								setMessage(String.format(getResources().getString(R.string.new_version_found),version.versionName));
-						
-						runOnUiThread(new Runnable()
-						{
-							public void run()
-							{
-								final AlertDialog dialog = dialogBuilder.create();
-								
-								dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Update", new OnClickListener()
-								{
-									@Override
-									public void onClick(DialogInterface arg0,int arg1)
-									{
-										dialog.dismiss();
-										
-										final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
-										dialogWrapper.obj = new StepsProgressDialog(SettingsActivity.this);
-										dialogWrapper.obj.show();
-										
-										e621.updateApp(version, new EventManager()
-										{
-											@Override
-											public void onTrigger(Object obj)
-											{
-												if(obj == E621Middleware.UpdateState.START)
-								    			{
-								    				runOnUiThread(new Runnable()
-								    				{
-								    					public void run()
-								    					{
-								    						dialogWrapper.obj.addStep("Retrieving package file").showStepsMessage();
-								    					}
-								    				});
-								    			}
-								    			else if(obj == E621Middleware.UpdateState.DOWNLOADED)
-								    			{
-								    				runOnUiThread(new Runnable()
-								    				{
-								    					public void run()
-								    					{
-								    						dialogWrapper.obj.addStep("Package downloaded").showStepsMessage();
-								    					}
-								    				});
-								    			}
-								    			else if(obj == E621Middleware.UpdateState.SUCCESS)
-								    			{
-								    				runOnUiThread(new Runnable()
-								    				{
-								    					public void run()
-								    					{
-								    						dialogWrapper.obj.setDone("Starting package install");
-								    					}
-								    				});
-								    			}
-								    			else if(obj == E621Middleware.UpdateState.FAILURE)
-								    			{
-								    				runOnUiThread(new Runnable()
-								    				{
-								    					public void run()
-								    					{
-								    						dialogWrapper.obj.setDone("Package could not be retrieved");
-								    					}
-								    				});
-								    			}
-											}
-										});
-									}
-								});
-								
-								dialog.setButton(AlertDialog.BUTTON_NEGATIVE,"Maybe later", new OnClickListener()
-								{
-									@Override
-									public void onClick(DialogInterface arg0,int arg1)
-									{
-										dialog.dismiss();
-									}
-								});
-								
-								dialog.show();
-							}
-						});
-					}
-					else
-					{
-						throw new FailException(2);
-					}
-				}
-				catch(FailException e)
-				{
-					final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(SettingsActivity.this).setTitle("Update").
-							setCancelable(true);
-					
-					switch(e.code)
-					{
-						case 1:
-							dialogBuilder.setMessage("Could not retrieve latest version");
-							break;
-						case 2:
-							dialogBuilder.setMessage("No newer version found");
-							break;
-						default:
-							dialogBuilder.setMessage("Unknown error happened");
-							break;
-					}
-					
-					runOnUiThread(new Runnable()
-					{
-						public void run()
-						{
-							final AlertDialog dialog = dialogBuilder.create();
-							
-							dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Ok", new OnClickListener()
-							{
-								@Override
-								public void onClick(DialogInterface arg0,int arg1)
-								{
-									dialog.dismiss();
-								}
-							});
-							
-							dialog.show();
-						}
-					});
-				}
-			}
-		}).start();
-	}
 
     public static class MyPreferenceFragment extends PreferenceFragment
     {
-    	SettingsActivity activity;
+    	E621Middleware e621;
+    	Activity activity;
+    	
+    	@Override
+        public void onAttach(Activity act)
+        {
+        	super.onAttach(act);
+        	
+        	this.activity = act;
+        	
+        	this.e621 = E621Middleware.getInstance(act);;
+        }
     	
         @Override
         public void onCreate(final Bundle savedInstanceState)
         {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.settings);
+            
             getPreferenceManager().setSharedPreferencesName(E621Middleware.PREFS_NAME);
-
+        	
             CheckBoxPreference hideDownload = (CheckBoxPreference)findPreference("hideDownloadFolder");
             hideDownload.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("hideDownloadFolder", true));
 
             CheckBoxPreference antecipateOnlyOnWiFi = (CheckBoxPreference)findPreference("antecipateOnlyOnWiFi");
-            antecipateOnlyOnWiFi.setChecked(activity.e621.antecipateOnlyOnWiFi());
+            antecipateOnlyOnWiFi.setChecked(e621.antecipateOnlyOnWiFi());
 
             CheckBoxPreference syncOnlyOnWiFi = (CheckBoxPreference)findPreference("syncOnlyOnWiFi");
-            syncOnlyOnWiFi.setChecked(activity.e621.syncOnlyOnWiFi());
+            syncOnlyOnWiFi.setChecked(e621.syncOnlyOnWiFi());
             
             CheckBoxPreference playGifs = (CheckBoxPreference)findPreference("playGifs");
             playGifs.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("playGifs", true));
@@ -525,7 +108,7 @@ public class SettingsActivity extends PreferenceActivity
             clearCache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference arg0) {
-                	activity.clearCache();
+                	clearCache();
                     return true;
                 }
             });
@@ -573,7 +156,7 @@ public class SettingsActivity extends PreferenceActivity
                 }
             });
             
-            ArrayList<Date> backups = activity.e621.getBackups();
+            ArrayList<Date> backups = e621.getBackups();
             CharSequence[] entries = new CharSequence[backups.size()];
             CharSequence[] entriesValues = new CharSequence[backups.size()];
             
@@ -591,7 +174,7 @@ public class SettingsActivity extends PreferenceActivity
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue)
                 {
-                	activity.restoreBackup(new Date(Long.parseLong(newValue.toString())));
+                	restoreBackup(new Date(Long.parseLong(newValue.toString())));
                 	
                     return false;
                 }
@@ -612,7 +195,7 @@ public class SettingsActivity extends PreferenceActivity
             button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference arg0) {
-                	activity.updateTags();
+                	updateTags();
                     return true;
                 }
             });
@@ -621,7 +204,7 @@ public class SettingsActivity extends PreferenceActivity
             updateTagsForce.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference arg0) {
-                	activity.forceUpdateTags();
+                	forceUpdateTags();
                     return true;
                 }
             });
@@ -632,7 +215,7 @@ public class SettingsActivity extends PreferenceActivity
                 public boolean onPreferenceClick(Preference arg0)
                 {
                 	donate.setSummary(Html.fromHtml("Buy me porn"));
-                	activity.donate();
+                	donate();
                     return true;
                 }
             });
@@ -654,7 +237,7 @@ public class SettingsActivity extends PreferenceActivity
                 @Override
                 public boolean onPreferenceClick(Preference arg0)
                 {
-                	activity.update();
+                	update();
                     return true;
                 }
             });
@@ -671,7 +254,7 @@ public class SettingsActivity extends PreferenceActivity
                 	{
                 		public void run()
                 		{
-                			activity.e621.sync();
+                			e621.sync();
                 			
                 			dialog.dismiss();
                 		}
@@ -707,8 +290,8 @@ public class SettingsActivity extends PreferenceActivity
             			process = Runtime.getRuntime().exec(get_log);
             			String log = IOUtils.toString(process.getInputStream());
             			
-            			Intent intent = new Intent(activity.getApplicationContext(), ErrorReportActivity.class);
-            			intent.putExtra(ErrorReportActivity.LOG, log);
+            			Intent intent = new Intent(activity.getApplicationContext(), FeedbackActivity.class);
+            			intent.putExtra(FeedbackActivity.LOG, log);
             			startActivity(intent);
             		} catch (IOException e1)
             		{
@@ -731,5 +314,435 @@ public class SettingsActivity extends PreferenceActivity
         	final Preference donate = (Preference)getPreferenceManager().findPreference("donate");
         	donate.setSummary("Buy me a beer");
         }
+        
+        protected void donate()
+    	{
+    		Intent i = new Intent(activity,DonateActivity.class);
+    		startActivity(i);
+    	}
+
+    	protected void updateTags()
+    	{
+    		final ProgressDialog dialog = ProgressDialog.show(activity, "","Updating tags. This may take an while. Please wait...", true);
+    		dialog.setIndeterminate(true);
+    		dialog.show();
+    		
+    		new Thread(new Runnable()
+    		{
+    			@Override
+    			public void run()
+    			{
+    				e621.update_tags();
+    				
+    				dialog.dismiss();
+    			}
+    		}).start();
+    	}
+
+    	protected void forceUpdateTags()
+    	{
+    		AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(activity);
+    		confirmFullUpdateBuilder.setMessage("Are you sure? This will take an while.");
+    		confirmFullUpdateBuilder.setPositiveButton("Continue", new OnClickListener()
+    		{
+    			@Override
+    			public void onClick(DialogInterface dialogInterface, int which)
+    			{
+    				final ProgressDialog dialog = ProgressDialog.show(activity, "","Forcing tags update. This will take an while. Please wait...", true);
+    				dialog.setIndeterminate(true);
+    				dialog.show();
+    				
+    				new Thread(new Runnable()
+    				{
+    					@Override
+    					public void run()
+    					{
+    						e621.force_update_tags();
+    						
+    						dialog.dismiss();
+    					}
+    				}).start();
+    			}
+    		});
+    		confirmFullUpdateBuilder.setNegativeButton("Cancel", new OnClickListener()
+    		{
+    			@Override
+    			public void onClick(DialogInterface dialog, int which)
+    			{
+    				
+    			}
+    		});
+    		
+    		confirmFullUpdateBuilder.create().show();
+    	}
+    	
+    	protected void clearCache()
+    	{
+    		final ProgressDialog dialog = ProgressDialog.show(activity, "","Clearing cache. Please wait...", true);
+    		dialog.setIndeterminate(true);
+    		dialog.show();
+    		
+    		new Thread(new Runnable()
+    		{
+    			@Override
+    			public void run()
+    			{
+    				e621.clearCache();
+    				
+    				dialog.dismiss();
+    			}
+    		}).start();
+    	}
+    	
+    	protected void restoreBackup(final Date date)
+    	{
+    		AlertDialog.Builder removeNewBuilder = new AlertDialog.Builder(activity);
+    		removeNewBuilder.setMessage("Keep images not present on backup?");
+    		removeNewBuilder.setPositiveButton("Keep", new OnClickListener()
+    		{
+    			@Override
+    			public void onClick(DialogInterface dialog, int which)
+    			{
+    				restoreBackup(date,true);
+    			}
+    		});
+    		removeNewBuilder.setNegativeButton("Delete", new OnClickListener()
+    		{
+    			@Override
+    			public void onClick(DialogInterface dialog, int which)
+    			{
+    				restoreBackup(date,false);
+    			}
+    		});
+    		
+    		removeNewBuilder.create().show();
+    	}
+    	
+    	private void restoreBackup(final Date date, final boolean keep)
+    	{
+    		final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
+    		dialogWrapper.obj = new StepsProgressDialog(activity);
+    		dialogWrapper.obj.show();
+    		
+    		new Thread(new Runnable()
+    		{
+    			public void run()
+    			{
+    				final GTFO<String> message = new GTFO<String>();
+    				message.obj = "";
+    				
+    				e621.restoreBackup(date,keep,new EventManager()
+    		    	{
+    		    		@Override
+    					public void onTrigger(Object obj)
+    		    		{
+    		    			if(obj == E621Middleware.BackupStates.OPENING)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Opening current backup").showStepsMessage();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.CURRENT)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Reading current backup").showStepsMessage();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.CURRENT)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Creating emergency backup").showStepsMessage();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.SEARCHES)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Overriding saved searches").showStepsMessage();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.SEARCHES_COUNT)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Updating saved searches remaining images").showStepsMessage();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.REMOVE_EMERGENCY)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Removing emergency backup").showStepsMessage();
+    		    						dialogWrapper.obj.allowDismiss();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.GETTING_IMAGES)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Getting current images").showStepsMessage();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.DELETING_IMAGES)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Removing unnecessary images").showStepsMessage();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.INSERTING_IMAGES)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Inserting images").showStepsMessage();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.DOWNLOADING_IMAGES)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Downloading images").showStepsMessage();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.UPDATE_TAGS)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.addStep("Updating tags").showStepsMessage();
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.SUCCESS)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.setDone("Backup finished!");
+    		    					}
+    		    				});
+    		    			}
+    		    			else if(obj == E621Middleware.BackupStates.FAILURE)
+    		    			{
+    		    				activity.runOnUiThread(new Runnable()
+    		    				{
+    		    					public void run()
+    		    					{
+    		    						dialogWrapper.obj.setDone("Backup could not be restored!");
+    		    					}
+    		    				});
+    		    			}
+    					}
+    		    	});
+    			}
+    		}).start();
+    	}
+    	
+    	private static class FailException extends Exception
+    	{
+    		private static final long serialVersionUID = 1615513842090522333L;
+    		
+    		public int code;
+    		
+    		public FailException(int code)
+    		{
+    			this.code = code;
+    		}
+    	};
+    	
+    	protected void update()
+    	{
+    		final AndroidAppUpdater appUpdater = e621.getAndroidAppUpdater();
+    		
+    		new Thread(new Runnable()
+    		{
+    			public void run()
+    			{
+    				PackageInfo pInfo = null;
+    				
+    				try
+    				{
+    					try {
+    						pInfo = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
+    					} catch (NameNotFoundException e) {
+    						e.printStackTrace();
+    						throw new FailException(0);
+    					}
+    					
+    					int currentVersion = pInfo.versionCode;
+    					final AndroidAppVersion version = appUpdater.getLatestVersionInfo();
+    					
+    					e621.updateMostRecentVersion(version);
+    					
+    					if(version == null)
+    					{
+    						throw new FailException(1);
+    					}
+    					
+    					if(version.versionCode > currentVersion)
+    					{
+    						final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity).setTitle("New Version Found").setCancelable(true).
+    								setMessage(String.format(getResources().getString(R.string.new_version_found),version.versionName));
+    						
+    						activity.runOnUiThread(new Runnable()
+    						{
+    							public void run()
+    							{
+    								final AlertDialog dialog = dialogBuilder.create();
+    								
+    								dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Update", new OnClickListener()
+    								{
+    									@Override
+    									public void onClick(DialogInterface arg0,int arg1)
+    									{
+    										dialog.dismiss();
+    										
+    										final GTFO<StepsProgressDialog> dialogWrapper = new GTFO<StepsProgressDialog>();
+    										dialogWrapper.obj = new StepsProgressDialog(activity);
+    										dialogWrapper.obj.show();
+    										
+    										e621.updateApp(version, new EventManager()
+    										{
+    											@Override
+    											public void onTrigger(Object obj)
+    											{
+    												if(obj == E621Middleware.UpdateState.START)
+    								    			{
+    													activity.runOnUiThread(new Runnable()
+    								    				{
+    								    					public void run()
+    								    					{
+    								    						dialogWrapper.obj.addStep("Retrieving package file").showStepsMessage();
+    								    					}
+    								    				});
+    								    			}
+    								    			else if(obj == E621Middleware.UpdateState.DOWNLOADED)
+    								    			{
+    								    				activity.runOnUiThread(new Runnable()
+    								    				{
+    								    					public void run()
+    								    					{
+    								    						dialogWrapper.obj.addStep("Package downloaded").showStepsMessage();
+    								    					}
+    								    				});
+    								    			}
+    								    			else if(obj == E621Middleware.UpdateState.SUCCESS)
+    								    			{
+    								    				activity.runOnUiThread(new Runnable()
+    								    				{
+    								    					public void run()
+    								    					{
+    								    						dialogWrapper.obj.setDone("Starting package install");
+    								    					}
+    								    				});
+    								    			}
+    								    			else if(obj == E621Middleware.UpdateState.FAILURE)
+    								    			{
+    								    				activity.runOnUiThread(new Runnable()
+    								    				{
+    								    					public void run()
+    								    					{
+    								    						dialogWrapper.obj.setDone("Package could not be retrieved");
+    								    					}
+    								    				});
+    								    			}
+    											}
+    										});
+    									}
+    								});
+    								
+    								dialog.setButton(AlertDialog.BUTTON_NEGATIVE,"Maybe later", new OnClickListener()
+    								{
+    									@Override
+    									public void onClick(DialogInterface arg0,int arg1)
+    									{
+    										dialog.dismiss();
+    									}
+    								});
+    								
+    								dialog.show();
+    							}
+    						});
+    					}
+    					else
+    					{
+    						throw new FailException(2);
+    					}
+    				}
+    				catch(FailException e)
+    				{
+    					final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity).setTitle("Update").
+    							setCancelable(true);
+    					
+    					switch(e.code)
+    					{
+    						case 1:
+    							dialogBuilder.setMessage("Could not retrieve latest version");
+    							break;
+    						case 2:
+    							dialogBuilder.setMessage("No newer version found");
+    							break;
+    						default:
+    							dialogBuilder.setMessage("Unknown error happened");
+    							break;
+    					}
+    					
+    					activity.runOnUiThread(new Runnable()
+    					{
+    						public void run()
+    						{
+    							final AlertDialog dialog = dialogBuilder.create();
+    							
+    							dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Ok", new OnClickListener()
+    							{
+    								@Override
+    								public void onClick(DialogInterface arg0,int arg1)
+    								{
+    									dialog.dismiss();
+    								}
+    							});
+    							
+    							dialog.show();
+    						}
+    					});
+    				}
+    			}
+    		}).start();
+    	}
     }
 }
