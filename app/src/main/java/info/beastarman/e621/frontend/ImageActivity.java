@@ -1,39 +1,11 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.R;
-import info.beastarman.e621.api.DText;
-import info.beastarman.e621.api.DTextObject;
-import info.beastarman.e621.api.E621Comment;
-import info.beastarman.e621.api.E621Image;
-import info.beastarman.e621.api.E621Search;
-import info.beastarman.e621.api.E621Tag;
-import info.beastarman.e621.api.E621Vote;
-import info.beastarman.e621.backend.EventManager;
-import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.middleware.GIFViewHandler;
-import info.beastarman.e621.middleware.ImageLoadRunnable;
-import info.beastarman.e621.middleware.ImageNavigator;
-import info.beastarman.e621.middleware.ImageViewHandler;
-import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
-import info.beastarman.e621.views.GIFView;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -54,6 +26,33 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
+import info.beastarman.e621.R;
+import info.beastarman.e621.api.DText;
+import info.beastarman.e621.api.DTextObject;
+import info.beastarman.e621.api.E621Comment;
+import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Search;
+import info.beastarman.e621.api.E621Tag;
+import info.beastarman.e621.api.E621Vote;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.GIFViewHandler;
+import info.beastarman.e621.middleware.ImageLoadRunnable;
+import info.beastarman.e621.middleware.ImageNavigator;
+import info.beastarman.e621.middleware.ImageViewHandler;
+import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
+import info.beastarman.e621.views.GIFView;
 
 public class ImageActivity extends BaseActivity implements OnClickListener
 {
@@ -982,8 +981,11 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		for(Integer type : types)
 		{
 			ArrayList<E621Tag> tags = catTags.get(type);
-			if(tags != null && tags.size()>0)
+
+            if(tags != null && tags.size()>0)
 			{
+                Collections.sort(tags);
+
 				ArrayList<TextView> views = createTagViews(type,tags);
 				
 				for(TextView view : views)

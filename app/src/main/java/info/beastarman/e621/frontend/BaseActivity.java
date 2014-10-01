@@ -1,15 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.middleware.E621Middleware;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.Set;
-
-import org.apache.commons.io.IOUtils;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -20,6 +10,19 @@ import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.ImageView;
+
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
+import org.apache.commons.io.IOUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Set;
+
+import info.beastarman.e621.middleware.E621Middleware;
 
 public class BaseActivity extends Activity implements UncaughtExceptionHandler
 {
@@ -49,7 +52,9 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
-		Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onCreate() " + this.getClass().getName());
+        String analyticsPath = this.getClass().getName()+"?";
+
+        Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onCreate() " + this.getClass().getName());
 		
 		Intent intent = getIntent();
 		if(intent != null)
@@ -64,9 +69,17 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 				{
 					Object value = bundle.get(key);
 					Log.i(E621Middleware.LOG_TAG, "\t" + key + ": <" + safeObjToStr(value) + "> from class <" + safeObjToClassName(value) + ">");
+
+                    analyticsPath += key + "=" + safeObjToStr(value) + "&";
 				}
 			}
 		}
+
+        Tracker t = ((E621Application) getApplication()).getTracker();
+
+        t.setScreenName(analyticsPath.substring(0,analyticsPath.length()-2));
+
+        t.send(new HitBuilders.AppViewBuilder().build());
 		
 		super.onCreate(savedInstanceState);
 		

@@ -1,11 +1,11 @@
 package info.beastarman.e621.api;
 
-import java.io.Serializable;
-
 import org.json.JSONObject;
 import org.w3c.dom.Element;
 
-public class E621Tag implements Serializable
+import java.io.Serializable;
+
+public class E621Tag implements Serializable, Comparable<E621Tag>
 {
 	private static final long serialVersionUID = 4310674854388740575L;
 	
@@ -83,4 +83,9 @@ public class E621Tag implements Serializable
 	{
 		return this.getTag();
 	}
+
+    public int compareTo(E621Tag that)
+    {
+        return tag.compareTo(that.tag);
+    }
 }
