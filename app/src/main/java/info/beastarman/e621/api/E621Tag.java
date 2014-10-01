@@ -88,4 +88,20 @@ public class E621Tag implements Serializable, Comparable<E621Tag>
     {
         return tag.compareTo(that.tag);
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(obj instanceof E621Tag)
+        {
+            return equals((E621Tag)obj);
+        }
+
+        return false;
+    }
+
+    public boolean equals (E621Tag that)
+    {
+        return compareTo(that) == 0;
+    }
 }

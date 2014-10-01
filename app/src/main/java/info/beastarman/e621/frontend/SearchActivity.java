@@ -1,21 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.R;
-import info.beastarman.e621.api.E621Image;
-import info.beastarman.e621.api.E621Search;
-import info.beastarman.e621.backend.EventManager;
-import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.middleware.ImageLoadRunnable;
-import info.beastarman.e621.middleware.ImageViewHandler;
-import info.beastarman.e621.middleware.OnlineImageNavigator;
-import info.beastarman.e621.middleware.SearchQuery;
-import info.beastarman.e621.views.LazyRunScrollView;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-
 import android.app.ActionBar;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -23,8 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
@@ -40,6 +22,23 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+import info.beastarman.e621.R;
+import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Search;
+import info.beastarman.e621.api.E621Tag;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.ImageLoadRunnable;
+import info.beastarman.e621.middleware.ImageViewHandler;
+import info.beastarman.e621.middleware.OnlineImageNavigator;
+import info.beastarman.e621.middleware.SearchQuery;
+import info.beastarman.e621.views.LazyRunScrollView;
 
 public class SearchActivity extends BaseActivity
 {
@@ -574,7 +573,7 @@ public class SearchActivity extends BaseActivity
 		
 		if(img.score == 0)
 		{
-			detailsText += "0";
+			detailsText += "↕0";
 		}
 		else if(img.score > 0)
 		{
@@ -590,10 +589,10 @@ public class SearchActivity extends BaseActivity
 			detailsText += " C";
 		}
 		
-		if(img.file_ext.equals("gif") || img.file_ext.equals("swf"))
-		{
-			detailsText += " A";
-		}
+		if(img.tags.contains(new E621Tag("animated",0)))
+        {
+            detailsText += " A";
+        }
 		
 		if(img.rating.equals(E621Image.EXPLICIT))
 		{
