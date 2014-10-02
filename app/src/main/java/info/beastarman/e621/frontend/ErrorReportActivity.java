@@ -1,25 +1,12 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.R;
-import info.beastarman.e621.backend.EventManager;
-import info.beastarman.e621.backend.GTFO;
-import info.beastarman.e621.middleware.AndroidAppUpdater;
-import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
-import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.views.StepsProgressDialog;
-
-import java.util.Collections;
-import java.util.Date;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,14 +17,23 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import java.util.Collections;
+import java.util.Date;
+
+import info.beastarman.e621.R;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.middleware.AndroidAppUpdater;
+import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
+import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.views.StepsProgressDialog;
+
 public class ErrorReportActivity extends Activity
 {
 	public static String LOG = "log";
 	
 	E621Middleware e621;
-	
-	String log;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -45,46 +41,13 @@ public class ErrorReportActivity extends Activity
 		setContentView(R.layout.activity_error_report);
 		
 		e621 = E621Middleware.getInstance(getApplicationContext());
-		
-		log = getIntent().getStringExtra(LOG);
-		
-		if(log != null)
-		{
-			PackageManager manager = this.getPackageManager();
-			PackageInfo info = null;
-			
-			try
-			{
-				info = manager.getPackageInfo (this.getPackageName(), 0);
-			}
-			catch(NameNotFoundException e2)
-			{}
-			
-			String model = Build.MODEL;
-			
-			if (!model.startsWith(Build.MANUFACTURER))
-			{
-				model = Build.MANUFACTURER + " " + model;
-			}
-			
-			log =	"Android version: " +  Build.VERSION.SDK_INT + "\n" + 
-					"Model: " + model + "\n" + 
-					"App version: " + (info == null ? "(null)" : info.versionCode) + "\n" + 
-					log;
-		}
 	}
 	
 	@Override
 	protected void onStart()
 	{
 		super.onStart();
-		
-		if(log != null && !log.trim().equals(""))
-		{
-			TextView logArea = (TextView) findViewById(R.id.logcat);
-			logArea.setText(log.replace("\n", "\n\n").trim());
-		}
-		
+
 		ScrollView parentScrollView = (ScrollView) findViewById(R.id.parent_scroll);
 		ScrollView childScrollView = (ScrollView) findViewById(R.id.child_scroll);
 		
@@ -114,7 +77,35 @@ public class ErrorReportActivity extends Activity
 	{
 		end();
 	}
-	
+
+    public void showStatistics(View v)
+    {
+        v.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // dummy
+            }
+        });
+
+        final TextView logArea = (TextView) v.findViewById(R.id.logcat);
+        logArea.setText("Retrieving log...");
+
+        new Thread(new Runnable() {
+            @Override
+            public void run()
+            {
+                final String log = e621.generateErrorReport();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        logArea.setText(log.trim());
+                    }
+                });
+            }
+        }).start();
+    }
+
 	public void sendReport(View v)
 	{
 		EditText error_description = (EditText) findViewById(R.id.errorDescription);
@@ -123,19 +114,7 @@ public class ErrorReportActivity extends Activity
 		
 		CheckBox sendStatistics = (CheckBox) findViewById(R.id.sendStatistics);
 		
-		if(!sendStatistics.isChecked())
-		{
-			log = "";
-		}
-		
-		if(text.length() > 0)
-		{
-			e621.sendReport(log + "\n\n----------\n\n" + text);
-		}
-		else
-		{
-			e621.sendReport(log);
-		}
+		e621.sendReport(text,sendStatistics.isChecked());
 		
 		end();
 	}

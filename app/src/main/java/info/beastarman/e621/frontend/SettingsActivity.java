@@ -1,21 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.R;
-import info.beastarman.e621.backend.EventManager;
-import info.beastarman.e621.backend.GTFO;
-import info.beastarman.e621.middleware.AndroidAppUpdater;
-import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
-import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.views.SeekBarDialogPreference;
-import info.beastarman.e621.views.StepsProgressDialog;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-
-import org.apache.commons.io.IOUtils;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -33,7 +17,19 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.text.Html;
-import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+
+import info.beastarman.e621.R;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.middleware.AndroidAppUpdater;
+import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
+import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.views.SeekBarDialogPreference;
+import info.beastarman.e621.views.StepsProgressDialog;
 
 public class SettingsActivity extends PreferenceActivity
 {
@@ -269,34 +265,8 @@ public class SettingsActivity extends PreferenceActivity
                 @Override
                 public boolean onPreferenceClick(Preference arg0)
                 {
-                	try {
-            			String[] get_pid = {
-            				"sh",
-            				"-c",
-            				"ps | grep info.beastarman.e621"
-            			};
-            			
-            			Process process = Runtime.getRuntime().exec(get_pid);
-            			String pid = IOUtils.toString(process.getInputStream());
-            			
-            			pid = pid.substring(10,15);
-            			
-            			String[] get_log = {
-            				"sh",
-            				"-c",
-            				"logcat -d -v time | grep -e " + pid + " -e " + E621Middleware.LOG_TAG + " 2> /dev/null"
-            			};
-            			
-            			process = Runtime.getRuntime().exec(get_log);
-            			String log = IOUtils.toString(process.getInputStream());
-            			
-            			Intent intent = new Intent(activity.getApplicationContext(), FeedbackActivity.class);
-            			intent.putExtra(FeedbackActivity.LOG, log);
-            			startActivity(intent);
-            		} catch (IOException e1)
-            		{
-            			e1.printStackTrace();
-            		}
+                    Intent intent = new Intent(activity.getApplicationContext(), FeedbackActivity.class);
+                    startActivity(intent);
                 	
                 	return true;
                 }

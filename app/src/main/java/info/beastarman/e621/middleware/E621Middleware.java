@@ -1,22 +1,48 @@
 package info.beastarman.e621.middleware;
 
-import info.beastarman.e621.R;
-import info.beastarman.e621.api.E621;
-import info.beastarman.e621.api.E621Image;
-import info.beastarman.e621.api.E621Search;
-import info.beastarman.e621.api.E621Tag;
-import info.beastarman.e621.api.E621Vote;
-import info.beastarman.e621.backend.BackupManager;
-import info.beastarman.e621.backend.EventManager;
-import info.beastarman.e621.backend.FileName;
-import info.beastarman.e621.backend.GTFO;
-import info.beastarman.e621.backend.ImageCacheManager;
-import info.beastarman.e621.backend.ObjectStorage;
-import info.beastarman.e621.backend.Pair;
-import info.beastarman.e621.backend.PersistentHttpClient;
-import info.beastarman.e621.backend.ReadWriteLockerWrapper;
-import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
-import info.beastarman.e621.views.StepsProgressDialog;
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.os.FileObserver;
+import android.os.Handler;
+import android.os.Message;
+import android.os.SystemClock;
+import android.util.Log;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -45,46 +71,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.Uri;
-import android.os.Environment;
-import android.os.FileObserver;
-import android.os.Handler;
-import android.os.Message;
-import android.os.SystemClock;
-import android.util.Log;
+import info.beastarman.e621.R;
+import info.beastarman.e621.api.E621;
+import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Search;
+import info.beastarman.e621.api.E621Tag;
+import info.beastarman.e621.api.E621Vote;
+import info.beastarman.e621.backend.BackupManager;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.FileName;
+import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.backend.ImageCacheManager;
+import info.beastarman.e621.backend.ObjectStorage;
+import info.beastarman.e621.backend.Pair;
+import info.beastarman.e621.backend.PersistentHttpClient;
+import info.beastarman.e621.backend.ReadWriteLockerWrapper;
+import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
+import info.beastarman.e621.views.StepsProgressDialog;
 
 public class E621Middleware extends E621
 {
@@ -2024,26 +2027,38 @@ public class E621Middleware extends E621
 		return true;
 	}
 	
-	public void sendReport(final String report)
+	public void sendReport(final String message, final boolean errorReport)
 	{
 		new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				String report_trim = report.trim();
-				
+                String report = "";
+
+                if(errorReport)
+                {
+                    report = generateErrorReport();
+                }
+
+				String message_trim = message.trim();
+
+                if(message_trim.length() > 0)
+                {
+                    report += "\n\n-----------\n\n" + message_trim;
+                }
+
 				try
 				{
-					sendReportOnline(report_trim);
+					sendReportOnline(report);
 				}
 				catch(ClientProtocolException e)
 				{
-					saveReportForLater(report_trim);
+					saveReportForLater(report);
 				}
 				catch (IOException e)
 				{
-					saveReportForLater(report_trim);
+					saveReportForLater(report);
 				}
 			}
 		}).start();
@@ -3061,5 +3076,110 @@ public class E621Middleware extends E621
         ConnectivityManager connManager = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         return ((netInfo != null) && netInfo.isConnected());
+    }
+
+    public String getErrorReportHeader()
+    {
+        String log = "";
+
+        PackageManager manager = ctx.getPackageManager();
+        PackageInfo info = null;
+
+        try
+        {
+            info = manager.getPackageInfo (ctx.getPackageName(), 0);
+        }
+        catch(PackageManager.NameNotFoundException e2)
+        {
+
+        }
+
+        String model = Build.MODEL;
+
+        if (!model.startsWith(Build.MANUFACTURER))
+        {
+            model = Build.MANUFACTURER + " " + model;
+        }
+
+        log +=	"Android version: " +  Build.VERSION.SDK_INT + "\n" +
+                "Model: " + model + "\n" +
+                "App version: " + (info == null ? "(null)" : info.versionCode);
+
+        return log;
+    }
+
+    public String getErrorReportSettings()
+    {
+        String log = "";
+
+        for(String key : settings.getAll().keySet())
+        {
+            if(key.equals("userPasswordHash"))
+            {
+                continue;
+            }
+
+            Object obj = settings.getAll().get(key);
+
+            if(log.length() > 0)
+            {
+                log += "\n";
+            }
+
+            if(obj != null)
+            {
+                log += key + " = " + obj.toString();
+            }
+            else
+            {
+                log += key + " = null";
+            }
+        }
+
+        return log;
+    }
+
+    public String getErrorReportLog()
+    {
+        String log = "";
+
+        try {
+            String[] get_pid = {
+                    "sh",
+                    "-c",
+                    "ps | grep info.beastarman.e621"
+            };
+
+            Process process = Runtime.getRuntime().exec(get_pid);
+            String pid = IOUtils.toString(process.getInputStream());
+
+            pid = pid.substring(10,15);
+
+            String[] get_log = {
+                    "sh",
+                    "-c",
+                    "logcat -d -v time | grep -e " + pid + " -e " + LOG_TAG + " 2> /dev/null"
+            };
+
+            process = Runtime.getRuntime().exec(get_log);
+            log += IOUtils.toString(process.getInputStream());
+        }
+        catch (IOException e1)
+        {
+            e1.printStackTrace();
+        }
+
+        return log;
+    }
+
+    public String generateErrorReport()
+    {
+        String log = getErrorReportHeader() + "\n\n";
+
+        log += getErrorReportSettings() + "\n\n";
+
+        log += getErrorReportLog();
+
+        return log;
     }
 }

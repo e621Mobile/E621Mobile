@@ -48,12 +48,38 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		
 		return obj.getClass().getName();
 	}
+
+    public void sendAnalytics()
+    {
+        String analyticsPath = this.getClass().getName()+"?";
+
+        Intent intent = getIntent();
+        if(intent != null)
+        {
+            Bundle bundle = intent.getExtras();
+
+            if(bundle != null)
+            {
+                Set<String> keys = bundle.keySet();
+
+                for(String key : keys)
+                {
+                    Object value = bundle.get(key);
+                    analyticsPath += key + "=" + safeObjToStr(value) + "&";
+                }
+            }
+        }
+
+        Tracker t = ((E621Application) getApplication()).getTracker();
+
+        t.setScreenName(analyticsPath.substring(0,analyticsPath.length()-2));
+
+        t.send(new HitBuilders.AppViewBuilder().build());
+    }
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
-        String analyticsPath = this.getClass().getName()+"?";
-
         Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onCreate() " + this.getClass().getName());
 		
 		Intent intent = getIntent();
@@ -69,17 +95,9 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 				{
 					Object value = bundle.get(key);
 					Log.i(E621Middleware.LOG_TAG, "\t" + key + ": <" + safeObjToStr(value) + "> from class <" + safeObjToClassName(value) + ">");
-
-                    analyticsPath += key + "=" + safeObjToStr(value) + "&";
 				}
 			}
 		}
-
-        Tracker t = ((E621Application) getApplication()).getTracker();
-
-        t.setScreenName(analyticsPath.substring(0,analyticsPath.length()-2));
-
-        t.send(new HitBuilders.AppViewBuilder().build());
 		
 		super.onCreate(savedInstanceState);
 		
@@ -99,6 +117,8 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onStart()
 	{
+        sendAnalytics();
+
 		Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onStart() " + this.getClass().getName());
 		
 		super.onStart();
@@ -138,38 +158,8 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	
 	public void uncaughtException()
 	{
-		try {
-			String[] get_pid = {
-				"sh",
-				"-c",
-				"ps | grep info.beastarman.e621"
-			};
-			
-			Process process = Runtime.getRuntime().exec(get_pid);
-			String pid = IOUtils.toString(process.getInputStream());
-			
-			pid = pid.substring(10,15);
-			
-			String[] get_log = {
-				"sh",
-				"-c",
-				"logcat -d -v time | grep -e " + pid + " -e " + E621Middleware.LOG_TAG + " 2> /dev/null"
-			};
-			
-			process = Runtime.getRuntime().exec(get_log);
-			String log = IOUtils.toString(process.getInputStream());
-			
-			Intent intent = new Intent(getApplicationContext(), ErrorReportActivity.class);
-			intent.putExtra(ErrorReportActivity.LOG, log);
-			startActivity(intent);
-		} catch (IOException e1)
-		{
-			e1.printStackTrace();
-		}
-		finally
-		{
-			System.exit(0);
-		}
+        Intent intent = new Intent(getApplicationContext(), ErrorReportActivity.class);
+        startActivity(intent);
 	}
 	
 	@Override

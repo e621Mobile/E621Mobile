@@ -44,19 +44,21 @@
                 android:layout_height="200dp"
                 android:layout_margin="12dp"
                 android:background="@color/detailsBackgroundColor"
-                android:visibility="visible" >
+                android:visibility="visible"
+                android:padding="8dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical" >
+                    android:orientation="vertical"
+                    android:onClick="showStatistics">
 
                     <TextView
                         android:id="@+id/logcat"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:lineSpacingExtra="2dp"
-                        android:text="Could not load Log"
+                        android:text="Click here to show statistics"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:textColor="@color/white" />
 
