@@ -53,26 +53,9 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
     {
         String analyticsPath = this.getClass().getName()+"?";
 
-        Intent intent = getIntent();
-        if(intent != null)
-        {
-            Bundle bundle = intent.getExtras();
-
-            if(bundle != null)
-            {
-                Set<String> keys = bundle.keySet();
-
-                for(String key : keys)
-                {
-                    Object value = bundle.get(key);
-                    analyticsPath += key + "=" + safeObjToStr(value) + "&";
-                }
-            }
-        }
-
         Tracker t = ((E621Application) getApplication()).getTracker();
 
-        t.setScreenName(analyticsPath.substring(0,analyticsPath.length()-2));
+        t.setScreenName(analyticsPath);
 
         t.send(new HitBuilders.AppViewBuilder().build());
     }
