@@ -172,7 +172,8 @@ public class SearchActivity extends BaseActivity
 				if(nextSearch != null)
 				{
 					nextE621Search = e621.getStorage().rent(nextSearch);
-					
+
+					/*
 					for(final E621Image img : nextSearch.images)
 					{
 						new Thread(new Runnable()
@@ -183,6 +184,7 @@ public class SearchActivity extends BaseActivity
 							}
 						}).start();
 					}
+					*/
 				}
 			}
 		}).start();
