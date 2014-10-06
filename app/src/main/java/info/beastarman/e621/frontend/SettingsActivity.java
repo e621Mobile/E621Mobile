@@ -259,18 +259,30 @@ public class SettingsActivity extends PreferenceActivity
                     return true;
                 }
             });
-            
-            Preference sendErrorReport = (Preference)getPreferenceManager().findPreference("sendErrorReport");
-            sendErrorReport.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0)
-                {
-                    Intent intent = new Intent(activity.getApplicationContext(), FeedbackActivity.class);
-                    startActivity(intent);
-                	
-                	return true;
-                }
-            });
+
+			Preference sendErrorReport = (Preference)getPreferenceManager().findPreference("sendErrorReport");
+			sendErrorReport.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					Intent intent = new Intent(activity.getApplicationContext(), FeedbackActivity.class);
+					startActivity(intent);
+
+					return true;
+				}
+			});
+
+			Preference alphaFeatures = (Preference)getPreferenceManager().findPreference("alphaFeatures");
+			alphaFeatures.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					Intent intent = new Intent(activity.getApplicationContext(), AlphaSettingsActivity.class);
+					startActivity(intent);
+
+					return true;
+				}
+			});
             
             CheckBoxPreference lazyLoad = (CheckBoxPreference)findPreference("lazyLoad");
             lazyLoad.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("lazyLoad", true));

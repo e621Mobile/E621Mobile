@@ -173,18 +173,19 @@ public class SearchActivity extends BaseActivity
 				{
 					nextE621Search = e621.getStorage().rent(nextSearch);
 
-					/*
-					for(final E621Image img : nextSearch.images)
+					if(e621.alpha().isEnabled("Precaching"))
 					{
-						new Thread(new Runnable()
+						for (final E621Image img : nextSearch.images)
 						{
-							public void run()
+							new Thread(new Runnable()
 							{
-								e621.getImage(img,E621Image.PREVIEW);
-							}
-						}).start();
+								public void run()
+								{
+									e621.getImage(img, E621Image.PREVIEW);
+								}
+							}).start();
+						}
 					}
-					*/
 				}
 			}
 		}).start();

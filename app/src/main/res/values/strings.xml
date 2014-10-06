@@ -78,4 +78,5 @@
         tag base from E621, allowing you to search for your downloads using tags. You can do it whenever you want. 
     </string>
     <string name="look_for_update">Look for update</string>
+    <string name="alpha_settings">Alpha Features</string>
 </resources>

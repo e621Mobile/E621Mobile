@@ -547,7 +547,21 @@ public class E621Middleware extends E621
 		
 		return (int) Math.ceil(((double)count)/((double)results_per_page));
 	}
-	
+
+	private AlphaFeatures alphaFeatures = null;
+	public AlphaFeatures alpha()
+	{
+		if(alphaFeatures == null)
+		{
+			HashMap<String, String> features = new HashMap<String, String>();
+			features.put("Precaching","Tries loading images from next search page in background");
+
+			alphaFeatures = new AlphaFeatures(settings,features);
+		}
+
+		return alphaFeatures;
+	}
+
 	public static enum DownloadStatus
 	{
 		DOWNLOADING,
