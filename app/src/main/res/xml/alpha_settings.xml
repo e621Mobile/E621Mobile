@@ -2,6 +2,8 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="Features">
-
+        <Preference
+            android:summary="Tap to toggle, hold to send feedback."
+            android:selectable="false"/>
     </PreferenceCategory>
 </PreferenceScreen>
