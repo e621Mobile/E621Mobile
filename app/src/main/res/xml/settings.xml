@@ -7,6 +7,13 @@
             android:title="Hide downloads" >
         </CheckBoxPreference>
         <info.beastarman.e621.views.IntListPreference
+            android:key="prefferedFilePreviewSize"
+            android:title="Thumbnail image size"
+            android:summary="Set size of image on search results"
+            android:entries="@array/imageSizes"
+            android:entryValues="@array/imageSizesValues"
+            />
+        <info.beastarman.e621.views.IntListPreference
             android:key="prefferedFileDownloadSize"
             android:title="Download image size"
             android:summary="Set size of image when downloading it"

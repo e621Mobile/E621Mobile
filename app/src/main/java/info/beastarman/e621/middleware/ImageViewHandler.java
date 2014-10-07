@@ -1,18 +1,18 @@
 package info.beastarman.e621.middleware;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.concurrent.Semaphore;
-
-import org.apache.commons.io.IOUtils;
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import org.apache.commons.io.IOUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.Semaphore;
 
 public class ImageViewHandler extends ImageHandler
 {

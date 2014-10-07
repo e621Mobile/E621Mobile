@@ -85,9 +85,12 @@ public class SettingsActivity extends PreferenceActivity
             
             CheckBoxPreference downloadInSearch = (CheckBoxPreference)findPreference("downloadInSearch");
             downloadInSearch.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("downloadInSearch", true));
-            
-            ListPreference downloadSize = (ListPreference)findPreference("prefferedFileDownloadSize");
-            downloadSize.setValue(String.valueOf(getPreferenceManager().getSharedPreferences().getInt("prefferedFileDownloadSize", 2)));
+
+			ListPreference downloadSize = (ListPreference)findPreference("prefferedFileDownloadSize");
+			downloadSize.setValue(String.valueOf(getPreferenceManager().getSharedPreferences().getInt("prefferedFileDownloadSize", 2)));
+
+			ListPreference thumbnailSize = (ListPreference)findPreference("prefferedFilePreviewSize");
+			thumbnailSize.setValue(String.valueOf(getPreferenceManager().getSharedPreferences().getInt("prefferedFilePreviewSize", 1)));
 
 			ListPreference blacklistMethod = (ListPreference)findPreference("blacklistMethod");
 			blacklistMethod.setValue(String.valueOf(e621.blacklistMethod().asInt()));

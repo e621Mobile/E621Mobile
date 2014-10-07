@@ -181,7 +181,7 @@ public class SearchActivity extends BaseActivity
 							{
 								public void run()
 								{
-									e621.getImage(img, E621Image.PREVIEW);
+									e621.getImage(img, e621.getFileThummbnailSize());
 								}
 							}).start();
 						}
@@ -434,7 +434,7 @@ public class SearchActivity extends BaseActivity
 			layout.addView(resultWrapper);
 			ImageViewHandler handler = new ImageViewHandler(imgView, progressBar);
 			
-			scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621,E621Image.PREVIEW)),image_y);
+			scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621,e621.getFileThummbnailSize())),image_y);
 			
 			imageViews.add(imgView);
 			

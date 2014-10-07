@@ -477,7 +477,11 @@ public class E621Middleware extends E621
 	{
 		return settings.getBoolean("lazyLoad", true);
 	}
-	
+
+	public int getFileThummbnailSize()
+	{
+		return settings.getInt("prefferedFilePreviewSize", E621Image.PREVIEW);
+	}
 	public int getFileDownloadSize()
 	{
 		return settings.getInt("prefferedFileDownloadSize", E621Image.SAMPLE);
