@@ -28,6 +28,7 @@ import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.middleware.AndroidAppUpdater;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.views.BlackListDialog;
 import info.beastarman.e621.views.SeekBarDialogPreference;
 import info.beastarman.e621.views.StepsProgressDialog;
 
@@ -88,6 +89,9 @@ public class SettingsActivity extends PreferenceActivity
             ListPreference downloadSize = (ListPreference)findPreference("prefferedFileDownloadSize");
             downloadSize.setValue(String.valueOf(getPreferenceManager().getSharedPreferences().getInt("prefferedFileDownloadSize", 2)));
 
+			ListPreference blacklistMethod = (ListPreference)findPreference("blacklistMethod");
+			blacklistMethod.setValue(String.valueOf(e621.blacklistMethod().asInt()));
+
             SeekBarDialogPreference thumbnailCacheSize = (SeekBarDialogPreference)findPreference("thumbnailCacheSize");
             thumbnailCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("thumbnailCacheSize", 5));
 
@@ -100,14 +104,26 @@ public class SettingsActivity extends PreferenceActivity
             MultiSelectListPreference ratings = (MultiSelectListPreference)findPreference("allowedRatings");
             ratings.setValues(getPreferenceManager().getSharedPreferences().getStringSet("allowedRatings",new HashSet<String>()));
 
-            Preference clearCache = (Preference)getPreferenceManager().findPreference("clearCache");
-            clearCache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0) {
-                	clearCache();
-                    return true;
-                }
-            });
+			Preference blacklist = (Preference)getPreferenceManager().findPreference("blacklist");
+			blacklist.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					BlackListDialog dialog = new BlackListDialog(activity);
+					dialog.show();
+
+					return true;
+				}
+			});
+
+			Preference clearCache = (Preference)getPreferenceManager().findPreference("clearCache");
+			clearCache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+				@Override
+				public boolean onPreferenceClick(Preference arg0) {
+					clearCache();
+					return true;
+				}
+			});
 
             Preference about = (Preference)getPreferenceManager().findPreference("about");
             about.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {

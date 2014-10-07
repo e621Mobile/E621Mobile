@@ -372,6 +372,52 @@ public class E621Middleware extends E621
 		return settings.getBoolean("playGifs", true);
 	}
 
+	public static enum BlacklistMethod
+	{
+		DISABLED(0),
+		FLAG(1),
+		HIDE(2),
+		QUERY(3);
+
+		private final int value;
+
+		public int asInt()
+		{
+			return value;
+		}
+
+		private BlacklistMethod(int value)
+		{
+			this.value = value;
+		}
+	}
+
+	public BlacklistMethod blacklistMethod()
+	{
+		switch(settings.getInt("blacklistMethod",3))
+		{
+			case 0:
+				return BlacklistMethod.DISABLED;
+			case 1:
+				return BlacklistMethod.FLAG;
+			case 2:
+				return BlacklistMethod.HIDE;
+			default:
+				return BlacklistMethod.QUERY;
+		}
+	}
+
+	private BlackList _blacklist = null;
+
+	public BlackList blacklist()
+	{
+		if(_blacklist == null)
+		{
+			_blacklist = new BlackList(settings);
+		}
+
+		return _blacklist;
+	}
 	
 	public boolean downloadInSearch()
 	{

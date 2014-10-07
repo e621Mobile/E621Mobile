@@ -30,13 +30,17 @@
 	        custom:min="1" />
         <info.beastarman.e621.views.SeekBarDialogPreference
             android:key="fullCacheSize"
-	        android:defaultValue="10"
-	        android:dialogMessage="Please select the size of the images cache:"
-	        android:summary="Reserved space for full image cache"
-	        android:max="50"
-	        android:title="Images cache size"
-	        custom:progressTextSuffix=" Mb"
-	        custom:min="1" />
+            android:defaultValue="10"
+            android:dialogMessage="Please select the size of the images cache:"
+            android:summary="Reserved space for full image cache"
+            android:max="50"
+            android:title="Images cache size"
+            custom:progressTextSuffix=" Mb"
+            custom:min="1" />
+        <Preference
+            android:key="blacklist"
+            android:title="Blacklist"
+            android:summary="Manage blacklisted tags" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Data Usage">
         <CheckBoxPreference
@@ -80,6 +84,13 @@
 	        android:title="Results per search page"
 	        custom:progressTextSuffix="0 images"
 	        custom:min="1" />
+        <info.beastarman.e621.views.IntListPreference
+            android:key="blacklistMethod"
+            android:title="Blacklist hide method"
+            android:summary="Select how to hide blacklisted images on search screen"
+            android:entries="@array/blacklistMethods"
+            android:entryValues="@array/blacklistMethodsValues"
+            />
     </PreferenceCategory>
     <PreferenceCategory android:title="Actions">
         <Preference

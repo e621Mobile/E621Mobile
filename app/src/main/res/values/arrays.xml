@@ -20,4 +20,16 @@
         <item name="2">q</item>
         <item name="3">e</item>
     </string-array>
+    <string-array name="blacklistMethods">
+        <item name="0">Ignore blacklist</item>
+        <item name="1">Show blacklist flag on preview</item>
+        <item name="2">Hide post from search</item>
+        <item name="3">Try to send on query (Avoids inconsistent results count)</item>
+    </string-array>
+    <string-array name="blacklistMethodsValues">
+        <item name="0">0</item>
+        <item name="1">1</item>
+        <item name="2">2</item>
+        <item name="3">3</item>
+    </string-array>
 </resources>
