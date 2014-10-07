@@ -1,5 +1,12 @@
 package info.beastarman.e621.backend;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+
+import org.apache.commons.io.IOUtils;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -11,13 +18,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-
-import org.apache.commons.io.IOUtils;
-
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 
 public class ImageCacheManager implements ImageCacheManagerInterface
 {
@@ -186,7 +186,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 				
 				ContentValues values = new ContentValues();
 				values.put("id", id);
-				values.put("file_size", data.length);
+				values.put("file_size", data.length + 4096);
 
 				String[] query_params = new String[]{id};
 				
@@ -355,11 +355,11 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		}
 		
 		final long size = totalSize();
-		long local_max_size = (long) Math.floor(max_size*1.1);
+		long local_max_size = (long) Math.floor(max_size*1.0);
 		
 		if(size > local_max_size)
 		{
-			final long remove_until = (long) Math.floor(max_size*0.9);
+			final long remove_until = (long) Math.floor(max_size*0.8);
 			
 			new Thread(new Runnable()
 			{
