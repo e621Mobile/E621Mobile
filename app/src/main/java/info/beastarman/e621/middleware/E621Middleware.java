@@ -407,16 +407,65 @@ public class E621Middleware extends E621
 		}
 	}
 
+	public boolean isBlacklisted(E621Image image)
+	{
+		Set<String> list = blacklist().getEnabled();
+
+		for(String s : list)
+		{
+			if(mathces(image,new SearchQuery(s)))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private BlackList _blacklist = null;
 
 	public BlackList blacklist()
 	{
 		if(_blacklist == null)
 		{
-			_blacklist = new BlackList(settings);
+			_blacklist = new E621BlackList(settings,this);
 		}
 
 		return _blacklist;
+	}
+
+	public boolean mathces(E621Image image, SearchQuery query)
+	{
+		for(String tag : query.ands)
+		{
+			if(!image.tags.contains(new E621Tag(tag,0)))
+			{
+				return false;
+			}
+		}
+
+		for(String tag : query.nots)
+		{
+			if(image.tags.contains(new E621Tag(tag,0)))
+			{
+				return false;
+			}
+		}
+
+		if(query.ors.size() == 0)
+		{
+			return true;
+		}
+
+		for(String tag : query.ors)
+		{
+			if(image.tags.contains(new E621Tag(tag,0)))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 	
 	public boolean downloadInSearch()
@@ -1316,6 +1365,28 @@ public class E621Middleware extends E621
 				{
 					tags = tags + " -rating:" + E621Image.EXPLICIT;
 				}
+			}
+		}
+
+		if(blacklistMethod() == BlacklistMethod.QUERY)
+		{
+			int query_size = tags.split("\\s+").length;
+
+			for(String tag : blacklist().getEnabled())
+			{
+				if(tag.trim().split("\\s+").length != 1)
+				{
+					continue;
+				}
+
+				if(query_size >= 6)
+				{
+					break;
+				}
+
+				tags += " -" + tag;
+
+				query_size++;
 			}
 		}
 		
@@ -3242,4 +3313,33 @@ public class E621Middleware extends E621
 
         return log;
     }
+
+	public String resolveAlias(String query)
+	{
+		query = query.trim();
+
+		String[] tags = query.split("\\s+");
+
+		query = "";
+
+		for(int i=0; i<tags.length; i++)
+		{
+			if(tags[0].contains(":"))
+			{
+				continue;
+			}
+			else if(tags[0].startsWith("-"))
+			{
+				tags[i] = "-" + download_manager.tags.tryResolveAlias(tags[i].substring(1,tags[0].length()));
+			}
+			else
+			{
+				tags[i] = download_manager.tags.tryResolveAlias(tags[i]);
+			}
+
+			query += " " + tags[i];
+		}
+
+		return query.trim();
+	}
 }

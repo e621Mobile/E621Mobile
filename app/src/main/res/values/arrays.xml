@@ -24,7 +24,7 @@
         <item name="0">Ignore blacklist</item>
         <item name="1">Show blacklist flag on preview</item>
         <item name="2">Hide post from search</item>
-        <item name="3">Try to send on query (Avoids inconsistent results count)</item>
+        <item name="3">Try to remove on query (Avoids inconsistent results count / Longer response time)</item>
     </string-array>
     <string-array name="blacklistMethodsValues">
         <item name="0">0</item>

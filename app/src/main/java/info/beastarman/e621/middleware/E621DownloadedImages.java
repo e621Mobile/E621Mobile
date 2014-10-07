@@ -1,11 +1,10 @@
 package info.beastarman.e621.middleware;
 
-import info.beastarman.e621.api.E621Image;
-import info.beastarman.e621.api.E621Tag;
-import info.beastarman.e621.api.E621TagAlias;
-import info.beastarman.e621.backend.GTFO;
-import info.beastarman.e621.backend.ImageCacheManager;
-import info.beastarman.e621.backend.ReadWriteLockerWrapper;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,18 +14,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.util.Log;
+import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Tag;
+import info.beastarman.e621.api.E621TagAlias;
+import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.backend.ImageCacheManager;
+import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 
 public class E621DownloadedImages
 {
 	File base_path;
 	File image_tag_file;
 	ImageCacheManager images;
-	E621TagDatabase tags;
+	public E621TagDatabase tags;
 	
 	ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
 	

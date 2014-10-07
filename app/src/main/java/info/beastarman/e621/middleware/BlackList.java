@@ -15,10 +15,20 @@ public class BlackList
 		this.settings = settings;
 	}
 
+	public Set<String> getEnabled()
+	{
+		return new HashSet<String>(settings.getStringSet("enabledBlacklist",new HashSet<String>()));
+	}
+
+	public Set<String> getDisabled()
+	{
+		return new HashSet<String>(settings.getStringSet("disabledBlacklist",new HashSet<String>()));
+	}
+
 	public HashMap<String,Boolean> getBlacklist()
 	{
-		Set<String> enabled = settings.getStringSet("enabledBlacklist",new HashSet<String>());
-		Set<String> disabled = settings.getStringSet("disabledBlacklist",new HashSet<String>());
+		Set<String> enabled = getEnabled();
+		Set<String> disabled = getDisabled();
 
 		HashMap<String,Boolean> blacklist = new HashMap<String,Boolean>();
 
@@ -41,14 +51,14 @@ public class BlackList
 
 		SharedPreferences.Editor edit = settings.edit();
 
-		Set<String> disabled = new HashSet<String>(settings.getStringSet("disabledBlacklist",new HashSet<String>()));
+		Set<String> disabled = getDisabled();
 		if(disabled.contains(query))
 		{
 			disabled.remove(query);
 			edit.putStringSet("disabledBlacklist",disabled);
 		}
 
-		Set<String> enabled = new HashSet<String>(settings.getStringSet("enabledBlacklist",new HashSet<String>()));
+		Set<String> enabled = getEnabled();
 		if(!enabled.contains(query))
 		{
 			enabled.add(query);
@@ -64,14 +74,14 @@ public class BlackList
 
 		SharedPreferences.Editor edit = settings.edit();
 
-		Set<String> disabled = new HashSet<String>(settings.getStringSet("disabledBlacklist",new HashSet<String>()));
+		Set<String> disabled = getDisabled();
 		if(!disabled.contains(query))
 		{
 			disabled.add(query);
 			edit.putStringSet("disabledBlacklist",disabled);
 		}
 
-		Set<String> enabled = new HashSet<String>(settings.getStringSet("enabledBlacklist",new HashSet<String>()));
+		Set<String> enabled = getEnabled();
 		if(enabled.contains(query))
 		{
 			enabled.remove(query);
@@ -87,14 +97,14 @@ public class BlackList
 
 		SharedPreferences.Editor edit = settings.edit();
 
-		Set<String> disabled = new HashSet<String>(settings.getStringSet("disabledBlacklist",new HashSet<String>()));
+		Set<String> disabled = getDisabled();
 		if(disabled.contains(query))
 		{
 			disabled.remove(query);
 			edit.putStringSet("disabledBlacklist",disabled);
 		}
 
-		Set<String> enabled = new HashSet<String>(settings.getStringSet("enabledBlacklist",new HashSet<String>()));
+		Set<String> enabled = getEnabled();
 		if(enabled.contains(query))
 		{
 			enabled.remove(query);

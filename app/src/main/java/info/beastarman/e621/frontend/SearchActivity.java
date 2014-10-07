@@ -371,8 +371,26 @@ public class SearchActivity extends BaseActivity
 		
 		int position = e621Search.offset;
 		
-		for (final E621Image img : e621Search.images)
+		for (final E621Image image : e621Search.images)
 		{
+			E621Image img = new E621Image(image);
+
+			if(e621.isBlacklisted(img))
+			{
+				if(e621.blacklistMethod() == E621Middleware.BlacklistMethod.HIDE || e621.blacklistMethod() == E621Middleware.BlacklistMethod.QUERY)
+				{
+					views.add(new View(this));
+
+					continue;
+				}
+				else if(e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG)
+				{
+					img.height = img.width/3;
+					img.sample_height = img.sample_width/3;
+					img.preview_height= img.preview_width/3;
+				}
+			}
+
 			final LinearLayout resultWrapper = getResultWrapper(img,layout_width,position);
 			
 			ImageEventManager event = new ImageEventManager((ImageButton)resultWrapper.findViewById(R.id.downloadButton),img);
@@ -391,11 +409,28 @@ public class SearchActivity extends BaseActivity
 		for(int i=0; i<e621Search.images.size(); i++)
 		{
 			E621Image img = e621Search.images.get(i);
+
+			if(e621.isBlacklisted(img) && (e621.blacklistMethod() == E621Middleware.BlacklistMethod.HIDE || e621.blacklistMethod() == E621Middleware.BlacklistMethod.QUERY))
+			{
+				continue;
+			}
+
 			View resultWrapper = views.get(i);
-			
+
 			ImageView imgView = (ImageView) resultWrapper.findViewById(R.id.imageView);
 			ProgressBar progressBar = (ProgressBar) resultWrapper.findViewById(R.id.progressBar);
-			
+
+			if(e621.isBlacklisted(img) && e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG)
+			{
+				imgView.setImageResource(android.R.drawable.ic_menu_report_image);
+				imgView.setBackgroundColor(getResources().getColor(R.color.gray));
+				progressBar.setVisibility(View.GONE);
+
+				layout.addView(resultWrapper);
+
+				continue;
+			}
+
 			layout.addView(resultWrapper);
 			ImageViewHandler handler = new ImageViewHandler(imgView, progressBar);
 			
@@ -531,7 +566,7 @@ public class SearchActivity extends BaseActivity
 	{
 		final ImageButton download = new ImageButton(getApplicationContext());
 		
-		if(!e621.downloadInSearch())
+		if(!e621.downloadInSearch() || (e621.isBlacklisted(img) && e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG))
 		{
 			download.setVisibility(View.GONE);
 			return download;

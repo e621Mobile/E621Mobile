@@ -1,11 +1,11 @@
 package info.beastarman.e621.api;
 
+import org.json.JSONObject;
+import org.w3c.dom.Element;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import org.json.JSONObject;
-import org.w3c.dom.Element;
 
 public class E621Image implements Serializable
 {
@@ -49,9 +49,32 @@ public class E621Image implements Serializable
 	public int status = ACTIVE;
 	
 	public boolean has_comments = false;
-	
+
 	public E621Image()
 	{
+	}
+
+	public E621Image(E621Image that)
+	{
+		preview_url = that.preview_url;
+		sample_url = that.sample_url;
+		file_url = that.file_url;
+		id = that.id;
+		file_ext = that.file_ext;
+		parent_id = that.parent_id;
+		rating = that.rating;
+		tags = that.tags;
+		children = that.children;
+		has_children = that.has_children;
+		score = that.score;
+		preview_width = that.preview_width;
+		preview_height = that.preview_height;
+		sample_width = that.sample_width;
+		sample_height = that.sample_height;
+		width = that.width;
+		height = that.height;
+		status = that.status;
+		has_comments = that.has_comments;
 	}
 	
 	public static E621Image fromJSON(JSONObject json)
