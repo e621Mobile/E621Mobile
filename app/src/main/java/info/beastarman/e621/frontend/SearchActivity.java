@@ -187,6 +187,8 @@ public class SearchActivity extends BaseActivity
 		}
 	}
 
+	Integer lastScrollY = null;
+
 	@Override
 	public void onStart() {
 		super.onStart();
@@ -206,6 +208,9 @@ public class SearchActivity extends BaseActivity
 	@Override
 	public void onStop() {
 		super.onStop();
+
+		LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
+		lastScrollY = scroll.getScrollY();
 
 		for (ImageView img : imageViews) {
 			Drawable drawable = img.getDrawable();
@@ -483,6 +488,20 @@ public class SearchActivity extends BaseActivity
 
 										image_y += resultWrapper.getMeasuredHeight() + resultWrapper.getPaddingBottom();
 									}
+								}
+
+								if(lastScrollY != null)
+								{
+									final LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
+
+									scroll.post(new Runnable()
+									{
+										@Override
+										public void run()
+										{
+											scroll.scrollTo(0,lastScrollY);
+										}
+									});
 								}
 							}
 						});
