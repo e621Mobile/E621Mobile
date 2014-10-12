@@ -574,10 +574,12 @@ public class E621DownloadedImages
 		if(max != null) max_id = max.getId();
 		
 		int page = 0;
-		ArrayList<E621Tag> tags = null;
+		ArrayList<E621Tag> tags;
 		
 		do
 		{
+			tags = null;
+
 			while(tags == null)
 			{
 				tags = e621.tag__index(10000, page, null, null, max_id, null, null);
@@ -586,8 +588,6 @@ public class E621DownloadedImages
 			this.tags.addTag((E621Tag[])tags.toArray(new E621Tag[tags.size()]));
 			
 			page++;
-
-			tags = null;
 		}
 		while(tags.size() == 10000);
 	}

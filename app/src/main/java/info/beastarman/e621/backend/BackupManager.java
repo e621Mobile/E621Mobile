@@ -1,5 +1,6 @@
 package info.beastarman.e621.backend;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -247,14 +248,14 @@ public class BackupManager
 		try {
 			data = IOUtils.toByteArray(in);
 
-			dataMD5 = DigestUtils.md5Hex(data);
+			dataMD5 = new String(Hex.encodeHex(DigestUtils.md5(data)));
 
 			File mostRecentBackupFile = new File(backup_folder,String.valueOf(versionManager.getMostRecentVersion()));
 
 			try
 			{
 				InputStream fin = new BufferedInputStream(new FileInputStream(mostRecentBackupFile));
-				backupMD5 = DigestUtils.md5Hex(fin);
+				backupMD5 = new String(Hex.encodeHex(DigestUtils.md5(fin)));
 			}
 			catch (IOException e3)
 			{

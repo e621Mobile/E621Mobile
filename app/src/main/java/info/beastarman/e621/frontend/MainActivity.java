@@ -1,7 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.R;
-import info.beastarman.e621.middleware.E621Middleware.Mascot;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -14,6 +12,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621Middleware.Mascot;
 
 public class MainActivity extends SlideMenuBaseActivity
 {
@@ -43,7 +44,7 @@ public class MainActivity extends SlideMenuBaseActivity
 			
 			confirmFullUpdateBuilder.create().show();
 		}
-    }
+	}
 	
 	protected void onStart()
 	{
