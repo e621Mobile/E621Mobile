@@ -87,7 +87,7 @@
 	        android:defaultValue="2"
 	        android:dialogMessage="Please select how much images should appear on each search page. Higher values require more memory."
 	        android:summary="How much images should appear on each search page."
-	        android:max="5"
+	        android:max="10"
 	        android:title="Results per search page"
 	        custom:progressTextSuffix="0 images"
 	        custom:min="1" />

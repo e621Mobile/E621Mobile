@@ -47,7 +47,6 @@ import org.json.JSONObject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -78,10 +77,11 @@ import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.backend.BackupManager;
+import info.beastarman.e621.backend.DirectImageCacheManager;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.FileName;
 import info.beastarman.e621.backend.GTFO;
-import info.beastarman.e621.backend.ImageCacheManager;
+import info.beastarman.e621.backend.ImageCacheManagerInterface;
 import info.beastarman.e621.backend.ObjectStorage;
 import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.backend.PersistentHttpClient;
@@ -114,8 +114,8 @@ public class E621Middleware extends E621
 	
 	HashSet<String> allowedRatings = new HashSet<String>(); 
 	
-	ImageCacheManager thumb_cache;
-	ImageCacheManager full_cache;
+	ImageCacheManagerInterface thumb_cache;
+	ImageCacheManagerInterface full_cache;
 	E621DownloadedImages download_manager;
 	
 	BackupManager backupManager;
@@ -204,10 +204,30 @@ public class E621Middleware extends E621
 		{
 			cache_path.mkdirs();
 		}
+		else
+		{
+			if(new File(cache_path,".cache.sqlite3").exists())
+			{
+				for(File f : cache_path.listFiles())
+				{
+					f.delete();
+				}
+			}
+		}
 		
 		if(!full_cache_path.exists())
 		{
 			full_cache_path.mkdirs();
+		}
+		else
+		{
+			if(new File(full_cache_path,".cache.sqlite3").exists())
+			{
+				for(File f : full_cache_path.listFiles())
+				{
+					f.delete();
+				}
+			}
 		}
 
 		if(!sd_path.exists())
@@ -260,18 +280,18 @@ public class E621Middleware extends E621
 		
 		if(thumb_cache == null)
 		{
-			thumb_cache = new ImageCacheManager(cache_path,0);
+			thumb_cache = new DirectImageCacheManager(cache_path,0);
 		}
 		
-		thumb_cache.max_size = 1024L*1024*settings.getInt("thumbnailCacheSize", 5);
+		thumb_cache.setMaxSize(1024L*1024*settings.getInt("thumbnailCacheSize", 5));
 		thumb_cache.clean();
 		
 		if(full_cache == null)
 		{
-			full_cache = new ImageCacheManager(full_cache_path,0);
+			full_cache = new DirectImageCacheManager(full_cache_path,0);
 		}
 		
-		full_cache.max_size = 1024L*1024*settings.getInt("fullCacheSize", 10);
+		full_cache.setMaxSize(1024L*1024*settings.getInt("fullCacheSize", 10));
 		full_cache.clean();
 		
 		if(download_manager == null)
@@ -478,8 +498,10 @@ public class E621Middleware extends E621
 		return settings.getBoolean("lazyLoad", true);
 	}
 
-	public int getFileThummbnailSize()
+	public int getFileThummbnailSize(E621Image img)
 	{
+		if(!img.file_ext.equals("png") && !img.file_ext.equals("jpg")) return E621Image.PREVIEW;
+
 		return settings.getInt("prefferedFilePreviewSize", E621Image.PREVIEW);
 	}
 	public int getFileDownloadSize()
@@ -653,7 +675,6 @@ public class E621Middleware extends E621
 		if(alphaFeatures == null)
 		{
 			HashMap<String, String> features = new HashMap<String, String>();
-			features.put("Precaching","Tries loading images from next search page in background");
 
 			alphaFeatures = new AlphaFeatures(settings,features);
 		}
@@ -1039,7 +1060,7 @@ public class E621Middleware extends E621
 	
 	Semaphore getImageSemaphore = new Semaphore(10);
 	
-	private byte[] getImageFromInternet(String url)
+	private InputStream getImageFromInternet(String url)
 	{
 		try
 		{
@@ -1059,17 +1080,16 @@ public class E621Middleware extends E621
 		    StatusLine statusLine = response.getStatusLine();
 		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
 		    {
-		        ByteArrayOutputStream out = new ByteArrayOutputStream();
-		        try {
-		        	response.getEntity().writeTo(out);
-					out.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				try
+				{
+					return response.getEntity().getContent();
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+
 					return null;
 				}
-		        
-		        return out.toByteArray();
 		    }
 		    else
 		    {
@@ -1101,6 +1121,11 @@ public class E621Middleware extends E621
 		{
 			public void run()
 			{
+				if(true)
+				{
+					return;
+				}
+
 				InputStream inTemp = download_manager.getFile(img);
 				
 				if(inTemp != null)
@@ -1157,62 +1182,69 @@ public class E621Middleware extends E621
 			}));
 		}
 		
-		//TODO Preemptive loading
-		if(true)
-		{
-			threads.add(new Thread(new Runnable()
-			{
-				public void run()
-				{
-					String url;
-					
-					switch(size)
-					{
-						case E621Image.PREVIEW:
-							url = img.preview_url;
-							break;
-						case E621Image.SAMPLE:
-							url = img.sample_url;
-							break;
-						case E621Image.FULL:
-						default:
-							url = img.file_url;
-							break;
-					}
-					
-					byte[] raw_file = getImageFromInternet(url);
-					
-					if(raw_file == null) return;
-					
-					if(size == E621Image.PREVIEW)
-					{
-						thumb_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
-					}
-					else
-					{
-						full_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
-					}
-					
-					InputStream inTemp = new ByteArrayInputStream(raw_file);
-					
-					if(inTemp != null)
-					{
-						synchronized(lock)
-						{
-							if(in.obj == null)
-							{
-								in.obj = inTemp;
-							}
-						}
-					}
-				}
-			}));
-		}
-		
 		if(size == E621Image.FULL && getFileDownloadSize() == E621Image.SAMPLE)
 		{
 			threads.clear();
 		}
+
+		threads.add(new Thread(new Runnable()
+		{
+			public void run()
+			{
+				String url;
+
+				switch(size)
+				{
+					case E621Image.PREVIEW:
+						url = img.preview_url;
+						break;
+					case E621Image.SAMPLE:
+						url = img.sample_url;
+						break;
+					case E621Image.FULL:
+					default:
+						url = img.file_url;
+						break;
+				}
+
+				InputStream inputStream = getImageFromInternet(url);
+
+				if(in == null) return;
+
+				File f;
+
+				if(size == E621Image.PREVIEW)
+				{
+					f = thumb_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+				}
+				else
+				{
+					f = full_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+				}
+
+				InputStream inTemp = null;
+
+				try
+				{
+					inTemp = new BufferedInputStream(new FileInputStream(f));
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+
+				if(inTemp != null)
+				{
+					synchronized(lock)
+					{
+						if(in.obj == null)
+						{
+							in.obj = inTemp;
+						}
+					}
+				}
+			}
+		}));
 		
 		for(Thread t : threads)
 		{
@@ -1237,46 +1269,7 @@ public class E621Middleware extends E621
 			}
 		}
 		
-		if(in.obj != null)
-		{
-			return in.obj;
-		}
-		else
-		{
-			String url;
-			
-			switch(size)
-			{
-				case E621Image.PREVIEW:
-					url = img.preview_url;
-					break;
-				case E621Image.SAMPLE:
-					url = img.sample_url;
-					break;
-				case E621Image.FULL:
-				default:
-					url = img.file_url;
-					break;
-			}
-			
-			byte[] raw_file = getImageFromInternet(url);
-			
-			if(raw_file == null)
-			{
-				return null; 
-			}
-	        
-			if(size == E621Image.PREVIEW)
-			{
-				thumb_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
-			}
-			else
-			{
-				full_cache.createOrUpdate(String.valueOf(img.id), new ByteArrayInputStream(raw_file));
-			}
-	        
-	        return new ByteArrayInputStream(raw_file);
-		}
+		return in.obj;
 	}
 	
 	public InputStream getDownloadedImage(Integer id)
@@ -1895,7 +1888,7 @@ public class E621Middleware extends E621
 			    		{
 			    			Log.d(LOG_TAG+"_Backup",String.valueOf(obj));
 			    			
-			    			if(obj == E621Middleware.BackupStates.SUCCESS || obj == E621Middleware.BackupStates.FAILURE)
+			    			if(obj == BackupStates.SUCCESS || obj == BackupStates.FAILURE)
 			    			{
 			    				Message msg = handler.obtainMessage();
 			    				handler.sendMessage(msg);
@@ -2697,10 +2690,21 @@ public class E621Middleware extends E621
 			
 			db.setVersion(0);
 		}
+
+		Semaphore s = new Semaphore(1);
 		
 		private synchronized SQLiteDatabase get_db()
 		{
 			SQLiteDatabase db;
+
+			try
+			{
+				s.acquire();
+			}
+			catch (InterruptedException e)
+			{
+				Thread.currentThread().interrupt();
+			}
 			
 			File db_path = new File(path,"db.sqlite3");
 			
@@ -2710,6 +2714,7 @@ public class E621Middleware extends E621
 			}
 			catch(SQLiteException e)
 			{
+				e.printStackTrace();
 				db = SQLiteDatabase.openOrCreateDatabase(db_path, null);
 				new_db(db);
 			}
@@ -2720,6 +2725,8 @@ public class E621Middleware extends E621
 				
 				db.setVersion(db.getVersion()+1);
 			}
+
+			s.release();
 			
 			return db;
 		}

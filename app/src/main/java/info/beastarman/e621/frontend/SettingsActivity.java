@@ -302,6 +302,10 @@ public class SettingsActivity extends PreferenceActivity
 					return true;
 				}
 			});
+			if(e621.alpha().getFeatures().size()==0)
+			{
+				alphaFeatures.setEnabled(false);
+			}
             
             CheckBoxPreference lazyLoad = (CheckBoxPreference)findPreference("lazyLoad");
             lazyLoad.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("lazyLoad", true));

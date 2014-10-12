@@ -173,18 +173,15 @@ public class SearchActivity extends BaseActivity
 				{
 					nextE621Search = e621.getStorage().rent(nextSearch);
 
-					if(e621.alpha().isEnabled("Precaching"))
+					for (final E621Image img : nextSearch.images)
 					{
-						for (final E621Image img : nextSearch.images)
+						new Thread(new Runnable()
 						{
-							new Thread(new Runnable()
+							public void run()
 							{
-								public void run()
-								{
-									e621.getImage(img, e621.getFileThummbnailSize());
-								}
-							}).start();
-						}
+								e621.getImage(img, e621.getFileThummbnailSize(img));
+							}
+						}).start();
 					}
 				}
 			}
@@ -434,7 +431,7 @@ public class SearchActivity extends BaseActivity
 			layout.addView(resultWrapper);
 			ImageViewHandler handler = new ImageViewHandler(imgView, progressBar);
 			
-			scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621,e621.getFileThummbnailSize())),image_y);
+			scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621,e621.getFileThummbnailSize(img))),image_y);
 			
 			imageViews.add(imgView);
 			

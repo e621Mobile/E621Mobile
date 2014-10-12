@@ -1,5 +1,8 @@
 package info.beastarman.e621.backend;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -10,10 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-
-import org.apache.commons.io.IOUtils;
 
 public class BackupManager
 {
@@ -238,20 +238,23 @@ public class BackupManager
 		versionManager = getVersionManager();
 		
 		long now = System.currentTimeMillis();
-		
+
 		byte[] data = null;
-		byte[] backup = null;
-		
+
+		String dataMD5 = null;
+		String backupMD5 = null;
+
 		try {
 			data = IOUtils.toByteArray(in);
-			
+
+			dataMD5 = DigestUtils.md5Hex(data);
+
 			File mostRecentBackupFile = new File(backup_folder,String.valueOf(versionManager.getMostRecentVersion()));
-			
+
 			try
 			{
 				InputStream fin = new BufferedInputStream(new FileInputStream(mostRecentBackupFile));
-				backup = IOUtils.toByteArray(fin);
-				fin.close();
+				backupMD5 = DigestUtils.md5Hex(fin);
 			}
 			catch (IOException e3)
 			{
@@ -263,12 +266,21 @@ public class BackupManager
 			e2.printStackTrace();
 			return;
 		}
-	
-		if(backup != null && Arrays.equals(data,backup))
+
+		if(backupMD5 != null && backupMD5.equals(dataMD5))
 		{
 			return;
 		}
-		
+
+		try
+		{
+			in.reset();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+
+		}
+
 		if(versionManager.addVersion(now))
 		{
 			try {

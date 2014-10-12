@@ -16,10 +16,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
 }
 
 dependencies {
     compile files('libs/core-2.2.jar')
     compile files('libs/commons-io-2.4.jar')
     compile 'com.google.android.gms:play-services:5.+'
+    compile files('libs/commons-codec-1.9.jar')
 }

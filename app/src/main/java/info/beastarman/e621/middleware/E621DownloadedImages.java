@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Tag;
@@ -37,10 +38,21 @@ public class E621DownloadedImages
 		this.images = new ImageCacheManager(base_path,0);
 		this.tags = new E621TagDatabase(new File(base_path,".tags.sqlite3"));
 	}
-	
+
+	static Semaphore s = new Semaphore(1);
+
 	private synchronized SQLiteDatabase getDB()
 	{
 		SQLiteDatabase db;
+
+		try
+		{
+			s.acquire();
+		}
+		catch (InterruptedException e)
+		{
+			Thread.currentThread().interrupt();
+		}
 		
 		try
 		{
@@ -52,6 +64,8 @@ public class E621DownloadedImages
 			db = SQLiteDatabase.openOrCreateDatabase(image_tag_file, null);
 			newDB(db);
 		}
+
+		s.release();
 		
 		return db;
 	}
@@ -561,15 +575,20 @@ public class E621DownloadedImages
 		if(max != null) max_id = max.getId();
 		
 		int page = 0;
-		ArrayList<E621Tag> tags;
+		ArrayList<E621Tag> tags = null;
 		
 		do
 		{
-			tags = e621.tag__index(10000,page,null,null,max_id,null,null);
+			while(tags == null)
+			{
+				tags = e621.tag__index(10000, page, null, null, max_id, null, null);
+			}
 			
 			this.tags.addTag((E621Tag[])tags.toArray(new E621Tag[tags.size()]));
 			
 			page++;
+
+			tags = null;
 		}
 		while(tags.size() == 10000);
 	}

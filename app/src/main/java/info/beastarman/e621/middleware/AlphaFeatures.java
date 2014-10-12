@@ -42,7 +42,7 @@ public class AlphaFeatures
 
 	public boolean isEnabled(String feature)
 	{
-		return settings.getBoolean(prepareKey(feature),false);
+		return registeredFeatures.containsKey(feature) && settings.getBoolean(prepareKey(feature),false);
 	}
 
 	public void enable(String feature)
@@ -63,6 +63,11 @@ public class AlphaFeatures
 		{
 			if(feature.startsWith("AlphaFeature__"))
 			{
+				if(!registeredFeatures.containsKey(prepareName(feature)))
+				{
+					continue;
+				}
+
 				features.put(prepareName(feature), new Pair(registeredFeatures.get(prepareName(feature)),isEnabled(feature)));
 			}
 		}

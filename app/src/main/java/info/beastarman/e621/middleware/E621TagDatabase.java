@@ -1,19 +1,20 @@
 package info.beastarman.e621.middleware;
 
-import info.beastarman.e621.api.E621Tag;
-import info.beastarman.e621.api.E621TagAlias;
-import info.beastarman.e621.backend.GTFO;
-import info.beastarman.e621.backend.ReadWriteLockerWrapper;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.Semaphore;
+
+import info.beastarman.e621.api.E621Tag;
+import info.beastarman.e621.api.E621TagAlias;
+import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 
 public class E621TagDatabase
 {
@@ -26,10 +27,21 @@ public class E621TagDatabase
 		
 		getDB().close();
 	}
+
+	static Semaphore s = new Semaphore(1);
 	
 	private synchronized SQLiteDatabase getDB()
 	{
 		SQLiteDatabase db;
+
+		try
+		{
+			s.acquire();
+		}
+		catch (InterruptedException e)
+		{
+			Thread.currentThread().interrupt();
+		}
 		
 		try
 		{
@@ -37,9 +49,12 @@ public class E621TagDatabase
 		}
 		catch(SQLiteException e)
 		{
+			e.printStackTrace();
 			db = SQLiteDatabase.openOrCreateDatabase(file_path, null);
 			newDB(db);
 		}
+
+		s.release();
 		
 		return db;
 	}

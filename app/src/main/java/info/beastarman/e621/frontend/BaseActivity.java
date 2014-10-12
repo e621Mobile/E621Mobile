@@ -155,36 +155,74 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	
 	private Bitmap decodeFile(InputStream in, int width, int height)
 	{
-		byte[] data;
-		
-		try {
-			data = IOUtils.toByteArray(in);
-		} catch (IOException e) {
+	byte[] bytes = null;
+
+		try
+		{
+			bytes = IOUtils.toByteArray(in);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+
 			return null;
 		}
-		
-        //Decode image size
-        BitmapFactory.Options o = new BitmapFactory.Options();
-        o.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(new ByteArrayInputStream(data),null,o);
 
-        //Find the correct scale value. It should be the power of 2.
-        int scale=1;
-        while(o.outWidth/scale/2>=width && o.outHeight/scale/2>=height)
-        {
-        	scale*=2;
-        }
-        
-        //Decode with inSampleSize
-        BitmapFactory.Options o2 = new BitmapFactory.Options();
-        o2.inSampleSize=scale;
-        Bitmap bitmap_temp = BitmapFactory.decodeStream(new ByteArrayInputStream(data), null, o2);
-        
-        Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
-        
-        bitmap_temp.recycle();
-        
-        return ret;
+		in = new ByteArrayInputStream(bytes);
+
+		//Decode image size
+		BitmapFactory.Options o = new BitmapFactory.Options();
+		o.inJustDecodeBounds = true;
+		BitmapFactory.decodeStream(in,null,o);
+
+		try
+		{
+			in.close();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+
+			return null;
+		}
+
+		//Find the correct scale value. It should be the power of 2.
+		int scale=1;
+		while(o.outWidth/scale/2>=width && o.outHeight/scale/2>=height)
+		{
+			scale*=2;
+		}
+
+		in = new ByteArrayInputStream(bytes);
+
+		//Decode with inSampleSize
+		BitmapFactory.Options o2 = new BitmapFactory.Options();
+		o2.inSampleSize=scale;
+		Bitmap bitmap_temp = BitmapFactory.decodeStream(in, null, o2);
+
+		try
+		{
+			in.close();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		bytes = null;
+		System.gc();
+
+		if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())
+		{
+			return bitmap_temp;
+		}
+		else
+		{
+			Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+
+			bitmap_temp.recycle();
+
+			return ret;
+		}
 	}
 	
 	private Bitmap decodeFile(Bitmap bmp, int width, int height)

@@ -10,19 +10,19 @@ public interface ImageCacheManagerInterface {
 	public static final SimpleDateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 
-	public abstract File get_cache_file();
-
 	public abstract boolean hasFile(String id);
 
 	public abstract InputStream getFile(String id);
 
-	public abstract void createOrUpdate(String id, InputStream in);
+	public abstract File createOrUpdate(String id, InputStream in);
 
 	public abstract void removeFile(String id);
 
 	public abstract void clean();
 
 	public abstract long totalSize();
+
+	public void setMaxSize(long maxSize);
 
 	void removeFiles(String[] ids);
 
