@@ -21,32 +21,42 @@ import java.util.HashMap;
 import java.util.Map;
 
 import info.beastarman.e621.R;
-import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.BlackList;
 
 public class BlackListDialog extends AlertDialog implements DialogInterface.OnClickListener
 {
-	E621Middleware e621;
+	BlackList blacklist;
 
 	ArrayList<String> queriesToRemove = new ArrayList<String>();
 
-	public BlackListDialog(final Context context)
+	protected String getAddTitle()
+	{
+		return "New blacklist query";
+	}
+
+	protected String getAddHint()
+	{
+		return "Type query to blacklist...";
+	}
+
+	public BlackListDialog(final Context context, BlackList blacklist)
 	{
 		super(context);
 
 		setTitle("Blacklist");
 
-		e621 = E621Middleware.getInstance(context);
+		this.blacklist = blacklist;
 
 		LinearLayout wrapper = new LinearLayout(context);
 		wrapper.setId(R.id.linearLayout1);
 		wrapper.setOrientation(LinearLayout.VERTICAL);
 		wrapper.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-		Map<String,Boolean> blacklist = e621.blacklist().getBlacklist();
+		Map<String,Boolean> blacklistMap = blacklist.getBlacklist();
 
-		for(String key : blacklist.keySet())
+		for(String key : blacklistMap.keySet())
 		{
-			wrapper.addView(getView(key,blacklist.get(key)));
+			wrapper.addView(getView(key,blacklistMap.get(key)));
 		}
 
 		View blackListAdd = getLayoutInflater().inflate(R.layout.blacklist_add,null);
@@ -56,9 +66,9 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 			public void onClick(View view)
 			{
 				final EditText edit = new EditText(context);
-				edit.setHint("Type query to blacklist...");
+				edit.setHint(getAddHint());
 
-				(new AlertDialog.Builder(context)).setTitle("New blacklist query")
+				(new AlertDialog.Builder(context)).setTitle(getAddTitle())
 						.setView(edit).setCancelable(false)
 						.setPositiveButton("Add",new OnClickListener()
 						{
@@ -207,18 +217,18 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 			{
 				for(String query : queriesToRemove)
 				{
-					e621.blacklist().remove(query);
+					blacklist.remove(query);
 				}
 
 				for(String query : list.keySet())
 				{
 					if(list.get(query))
 					{
-						e621.blacklist().enable(query);
+						blacklist.enable(query);
 					}
 					else
 					{
-						e621.blacklist().disable(query);
+						blacklist.disable(query);
 					}
 				}
 			}

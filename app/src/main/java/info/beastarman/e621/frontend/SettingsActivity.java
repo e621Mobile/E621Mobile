@@ -29,6 +29,7 @@ import info.beastarman.e621.middleware.AndroidAppUpdater;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.BlackListDialog;
+import info.beastarman.e621.views.HighlightDialog;
 import info.beastarman.e621.views.SeekBarDialogPreference;
 import info.beastarman.e621.views.StepsProgressDialog;
 
@@ -112,7 +113,19 @@ public class SettingsActivity extends PreferenceActivity
 				@Override
 				public boolean onPreferenceClick(Preference arg0)
 				{
-					BlackListDialog dialog = new BlackListDialog(activity);
+					BlackListDialog dialog = new BlackListDialog(activity,e621.blacklist());
+					dialog.show();
+
+					return true;
+				}
+			});
+
+			Preference highlight = (Preference)getPreferenceManager().findPreference("highlight");
+			highlight.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					HighlightDialog dialog = new HighlightDialog(activity,e621.highlight());
 					dialog.show();
 
 					return true;

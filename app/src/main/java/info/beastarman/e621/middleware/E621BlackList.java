@@ -9,7 +9,12 @@ public class E621BlackList extends BlackList
 	public E621BlackList(SharedPreferences settings, E621Middleware e621)
 	{
 		super(settings);
+		this.e621 = e621;
+	}
 
+	public E621BlackList(SharedPreferences settings, String enabledName, String disabledName, E621Middleware e621)
+	{
+		super(settings, enabledName, disabledName);
 		this.e621 = e621;
 	}
 

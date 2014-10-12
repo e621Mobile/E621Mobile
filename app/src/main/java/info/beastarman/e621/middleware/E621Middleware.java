@@ -427,23 +427,23 @@ public class E621Middleware extends E621
 		}
 	}
 
-	public boolean isBlacklisted(E621Image image)
+	public ArrayList<String> isBlacklisted(E621Image image)
 	{
 		Set<String> list = blacklist().getEnabled();
+		ArrayList<String> matches = new ArrayList<String>();
 
 		for(String s : list)
 		{
 			if(mathces(image,new SearchQuery(s)))
 			{
-				return true;
+				matches.add(s);
 			}
 		}
 
-		return false;
+		return matches;
 	}
 
 	private BlackList _blacklist = null;
-
 	public BlackList blacklist()
 	{
 		if(_blacklist == null)
@@ -452,6 +452,40 @@ public class E621Middleware extends E621
 		}
 
 		return _blacklist;
+	}
+
+	public ArrayList<String> isHighlighted(E621Image image)
+	{
+		Set<String> list = highlight().getEnabled();
+		ArrayList<String> matches = new ArrayList<String>();
+
+		for(String s : list)
+		{
+			if(mathces(image,new SearchQuery(s)))
+			{
+				matches.add(s);
+			}
+		}
+
+		return matches;
+	}
+
+	private BlackList _highlight= null;
+	public BlackList highlight()
+	{
+		if(_highlight == null)
+		{
+			_highlight = new E621BlackList(settings,"enabledHighlight","disabledHighlight",this);
+
+			if(settings.getBoolean("firstHighlight",true))
+			{
+				_highlight.enable("animated");
+			}
+
+			settings.edit().putBoolean("firstHighlight",false).commit();
+		}
+
+		return _highlight;
 	}
 
 	public boolean mathces(E621Image image, SearchQuery query)

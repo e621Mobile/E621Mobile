@@ -25,13 +25,14 @@ import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
-import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
@@ -145,22 +146,6 @@ public class SearchActivity extends BaseActivity
 						}
 					});
 				}
-				else
-				{
-					runOnUiThread(new Runnable()
-					{
-						public void run()
-						{
-							getWindow().getDecorView().post(new Runnable()
-							{
-								public void run()
-								{
-									update_results();
-								}
-							});
-						}
-					});
-				}
 				
 				if(e621.antecipateOnlyOnWiFi() && !e621.isWifiConnected())
 				{
@@ -208,7 +193,13 @@ public class SearchActivity extends BaseActivity
 
 		if (e621Search != null)
 		{
-			update_results();
+			getWindow().getDecorView().post(new Runnable()
+			{
+				public void run()
+				{
+					update_results();
+				}
+			});
 		}
 	}
 
@@ -310,45 +301,48 @@ public class SearchActivity extends BaseActivity
 		startActivity(intent);
 	}
 
-	public void update_results()
+	public void update_results_retry()
 	{
 		final LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
 
-		if (e621Search == null)
+		TextView t = new TextView(getApplicationContext());
+		t.setText(R.string.no_internet_no_results);
+		t.setGravity(Gravity.CENTER_HORIZONTAL);
+		t.setPadding(0, dpToPx(24), 0, dpToPx(24));
+
+		layout.addView(t);
+
+		Button b = new Button(getApplicationContext());
+		b.setText("Try Again");
+		b.setGravity(Gravity.CENTER_HORIZONTAL);
+
+		b.setOnClickListener(new OnClickListener()
 		{
-			TextView t = new TextView(getApplicationContext());
-			t.setText(R.string.no_internet_no_results);
-			t.setGravity(Gravity.CENTER_HORIZONTAL);
-			t.setPadding(0, dpToPx(24), 0, dpToPx(24));
-
-			layout.addView(t);
-
-			Button b = new Button(getApplicationContext());
-			b.setText("Try Again");
-			b.setGravity(Gravity.CENTER_HORIZONTAL);
-			
-			b.setOnClickListener(new OnClickListener()
+			@Override
+			public void onClick(View v)
 			{
-				@Override
-				public void onClick(View v)
-				{
-					trySearch();
-				}
-			});
+				trySearch();
+			}
+		});
 
-			layout.addView(b);
-			
-			return;
-		}
-		
+		layout.addView(b);
+
+		return;
+	}
+
+	public void update_results_empty()
+	{
+		final LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
+		layout.removeAllViews();
+
 		Resources res = getResources();
 		String text = String.format(res.getString(R.string.page_counter),
 				String.valueOf(e621Search.current_page() + 1), String.valueOf(e621Search.total_pages()));
 
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
-		
+
 		if (e621Search.images.size() == 0) {
 			TextView t = new TextView(getApplicationContext());
 			t.setText(R.string.no_results);
@@ -359,86 +353,162 @@ public class SearchActivity extends BaseActivity
 
 			return;
 		}
+	}
 
-		final int layout_width = layout.getWidth();
-		
-		final LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
+	public void update_results_full()
+	{
+		Resources res = getResources();
+		String text = String.format(res.getString(R.string.page_counter),
+				String.valueOf(e621Search.current_page() + 1), String.valueOf(e621Search.total_pages()));
 
-		final ArrayList<View> views = new ArrayList<View>();
-		
-		int position = e621Search.offset;
-		
-		for (final E621Image image : e621Search.images)
+		TextView page_counter = (TextView) findViewById(R.id.page_counter);
+		page_counter.setText(text);
+
+		final LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
+
+		layout.post(new Runnable()
 		{
-			E621Image img = new E621Image(image);
-
-			if(e621.isBlacklisted(img))
+			@Override
+			public void run()
 			{
-				if(e621.blacklistMethod() == E621Middleware.BlacklistMethod.HIDE || e621.blacklistMethod() == E621Middleware.BlacklistMethod.QUERY)
+				new Thread(new Runnable()
 				{
-					views.add(new View(this));
+					@Override
+					public void run()
+					{
+						final int layout_width = layout.getWidth();
 
-					continue;
-				}
-				else if(e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG)
-				{
-					img.height = img.width/3;
-					img.sample_height = img.sample_width/3;
-					img.preview_height= img.preview_width/3;
-				}
+						final LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
+
+						final ArrayList<View> views = new ArrayList<View>();
+
+						int position = e621Search.offset;
+
+						for (final E621Image image : e621Search.images)
+						{
+							E621Image img = new E621Image(image);
+
+							if(!e621.isBlacklisted(img).isEmpty())
+							{
+								if(e621.blacklistMethod() == E621Middleware.BlacklistMethod.HIDE || e621.blacklistMethod() == E621Middleware.BlacklistMethod.QUERY)
+								{
+									views.add(new View(SearchActivity.this));
+
+									continue;
+								}
+								else if(e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG)
+								{
+									img.height = img.width/3;
+									img.sample_height = img.sample_width/3;
+									img.preview_height= img.preview_width/3;
+								}
+							}
+
+							final LinearLayout resultWrapper = getResultWrapper(img,layout_width,position);
+
+							ImageEventManager event = new ImageEventManager((ImageButton)resultWrapper.findViewById(R.id.downloadButton),img);
+
+							e621.bindDownloadState(img.id, event);
+
+							events.add(event);
+
+							position++;
+
+							views.add(resultWrapper);
+						}
+
+						for(int i=0; i<e621Search.images.size(); i++)
+						{
+							E621Image img = e621Search.images.get(i);
+
+							if(!e621.isBlacklisted(img).isEmpty() && (e621.blacklistMethod() == E621Middleware.BlacklistMethod.HIDE || e621.blacklistMethod() == E621Middleware.BlacklistMethod.QUERY))
+							{
+								continue;
+							}
+
+							View resultWrapper = views.get(i);
+
+							ImageView imgView = (ImageView) resultWrapper.findViewById(R.id.imageView);
+							ProgressBar progressBar = (ProgressBar) resultWrapper.findViewById(R.id.progressBar);
+
+							if(!e621.isBlacklisted(img).isEmpty() && e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG)
+							{
+								imgView.setImageResource(android.R.drawable.ic_menu_report_image);
+								imgView.setBackgroundColor(getResources().getColor(R.color.gray));
+								progressBar.setVisibility(View.GONE);
+
+								continue;
+							}
+							else
+							{
+								imageViews.add(imgView);
+							}
+						}
+
+						runOnUiThread(new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								layout.removeAllViews();
+
+								int image_y = 0;
+
+								for(int i=0; i<e621Search.images.size(); i++)
+								{
+									E621Image img = e621Search.images.get(i);
+
+									if(!e621.isBlacklisted(img).isEmpty() && (e621.blacklistMethod() == E621Middleware.BlacklistMethod.HIDE || e621.blacklistMethod() == E621Middleware.BlacklistMethod.QUERY))
+									{
+										continue;
+									}
+
+									View resultWrapper = views.get(i);
+
+									layout.addView(resultWrapper);
+
+									if(!(!e621.isBlacklisted(img).isEmpty() && e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG))
+									{
+										ImageView imgView = (ImageView) resultWrapper.findViewById(R.id.imageView);
+										ProgressBar progressBar = (ProgressBar) resultWrapper.findViewById(R.id.progressBar);
+
+										ImageViewHandler handler = new ImageViewHandler(imgView, progressBar);
+
+										scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621, e621.getFileThummbnailSize(img))), image_y);
+									}
+
+									if (e621.lazyLoad())
+									{
+										resultWrapper.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+										image_y += resultWrapper.getMeasuredHeight() + resultWrapper.getPaddingBottom();
+									}
+								}
+							}
+						});
+					}
+				}).start();
 			}
+		});
+	}
 
-			final LinearLayout resultWrapper = getResultWrapper(img,layout_width,position);
-			
-			ImageEventManager event = new ImageEventManager((ImageButton)resultWrapper.findViewById(R.id.downloadButton),img);
-			
-			e621.bindDownloadState(img.id, event);
-			
-			events.add(event);
-			
-			position++;
-			
-			views.add(resultWrapper);
-		}
-		
-		int image_y = 0;
-		
-		for(int i=0; i<e621Search.images.size(); i++)
+	public void update_results()
+	{
+		if (e621Search == null)
 		{
-			E621Image img = e621Search.images.get(i);
-
-			if(e621.isBlacklisted(img) && (e621.blacklistMethod() == E621Middleware.BlacklistMethod.HIDE || e621.blacklistMethod() == E621Middleware.BlacklistMethod.QUERY))
-			{
-				continue;
-			}
-
-			View resultWrapper = views.get(i);
-
-			ImageView imgView = (ImageView) resultWrapper.findViewById(R.id.imageView);
-			ProgressBar progressBar = (ProgressBar) resultWrapper.findViewById(R.id.progressBar);
-
-			if(e621.isBlacklisted(img) && e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG)
-			{
-				imgView.setImageResource(android.R.drawable.ic_menu_report_image);
-				imgView.setBackgroundColor(getResources().getColor(R.color.gray));
-				progressBar.setVisibility(View.GONE);
-
-				layout.addView(resultWrapper);
-
-				continue;
-			}
-
-			layout.addView(resultWrapper);
-			ImageViewHandler handler = new ImageViewHandler(imgView, progressBar);
+			update_results_retry();
 			
-			scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621,e621.getFileThummbnailSize(img))),image_y);
-			
-			imageViews.add(imgView);
-			
-			resultWrapper.measure(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-			
-			if(e621.lazyLoad()) image_y += resultWrapper.getMeasuredHeight() + dpToPx(10);
+			return;
 		}
+
+		if (e621Search.images.isEmpty())
+		{
+			update_results_empty();
+
+			return;
+		}
+
+		update_results_full();
 	}
 	
 	private LinearLayout getResultWrapper(E621Image img, int layout_width, int position)
@@ -482,8 +552,7 @@ public class SearchActivity extends BaseActivity
 		RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
 				RelativeLayout.LayoutParams.WRAP_CONTENT, 
 				RelativeLayout.LayoutParams.WRAP_CONTENT);
-		layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT,
-				RelativeLayout.TRUE);
+		layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 		bar.setLayoutParams(layoutParams);
 		
 		return bar;
@@ -502,9 +571,11 @@ public class SearchActivity extends BaseActivity
 		imgView.setTag(R.id.imageObject, img);
 		imgView.setTag(R.id.imagePosition, position);
 
-		imgView.setOnClickListener(new View.OnClickListener() {
+		imgView.setOnClickListener(new View.OnClickListener()
+		{
 			@Override
-			public void onClick(View v) {
+			public void onClick(View v)
+			{
 				imageClick(v);
 			}
 		});
@@ -546,6 +617,7 @@ public class SearchActivity extends BaseActivity
 		
 		ProgressBar bar = generateProgressBar();
 		ImageView imgView = generateImageView(img,layout_width,position);
+		LinearLayout highlights = generateHighlights(img);
 		ImageButton download = generateDownloadButton(img);
 		
 		imgView.setId(R.id.imageView);
@@ -554,16 +626,70 @@ public class SearchActivity extends BaseActivity
 		
 		imageWrapper.addView(bar);
 		imageWrapper.addView(imgView);
+		imageWrapper.addView(highlights);
 		imageWrapper.addView(download);
 		
 		return imageWrapper;
+	}
+
+	private LinearLayout generateHighlights(final E621Image img)
+	{
+		LinearLayout layout = new LinearLayout(this);
+		layout.setOrientation(LinearLayout.VERTICAL);
+
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+				ViewGroup.LayoutParams.WRAP_CONTENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT);
+		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+		params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
+		layout.setLayoutParams(params);
+
+		ArrayList<String> highlights = e621.isBlacklisted(img);
+
+		if(highlights.isEmpty())
+		{
+			highlights = e621.isHighlighted(img);
+		}
+
+		if(highlights.isEmpty())
+		{
+			return layout;
+		}
+
+		Collections.sort(highlights,new Comparator<String>()
+		{
+			@Override
+			public int compare(String s, String s2)
+			{
+				return s.length() - s2.length();
+			}
+		});
+
+		for(String query : highlights)
+		{
+			layout.addView(generateHighlightQuery(query));
+		}
+
+		return layout;
+	}
+
+	private View generateHighlightQuery(String query)
+	{
+		TextView t = new TextView(this);
+
+		t.setBackgroundColor(getResources().getColor(R.color.gray));
+		t.setTextColor(getResources().getColor(R.color.white));
+		t.setText(query);
+		t.setAlpha(0.5f);
+
+		return t;
 	}
 
 	private ImageButton generateDownloadButton(final E621Image img)
 	{
 		final ImageButton download = new ImageButton(getApplicationContext());
 		
-		if(!e621.downloadInSearch() || (e621.isBlacklisted(img) && e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG))
+		if(!e621.downloadInSearch() || ((!e621.isBlacklisted(img).isEmpty()) && e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG))
 		{
 			download.setVisibility(View.GONE);
 			return download;
@@ -623,12 +749,7 @@ public class SearchActivity extends BaseActivity
 		{
 			detailsText += " C";
 		}
-		
-		if(img.tags.contains(new E621Tag("animated",0)))
-        {
-            detailsText += " A";
-        }
-		
+
 		if(img.rating.equals(E621Image.EXPLICIT))
 		{
 			detailsText += " <font color=#FF0000>E</font>";

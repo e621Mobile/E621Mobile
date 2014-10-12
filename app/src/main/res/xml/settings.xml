@@ -48,6 +48,10 @@
             android:key="blacklist"
             android:title="Blacklist"
             android:summary="Manage blacklisted tags" />
+        <Preference
+            android:key="highlight"
+            android:title="Highlighted tags"
+            android:summary="Select tags that appear on each search result's post" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Data Usage">
         <CheckBoxPreference
