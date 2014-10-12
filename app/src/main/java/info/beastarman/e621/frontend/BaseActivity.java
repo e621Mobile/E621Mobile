@@ -77,7 +77,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 				for(String key : keys)
 				{
 					Object value = bundle.get(key);
-					Log.i(E621Middleware.LOG_TAG, "\t" + key + ": <" + safeObjToStr(value) + "> from class <" + safeObjToClassName(value) + ">");
+					Log.i(E621Middleware.LOG_TAG + "_Browsing", "\t" + key + ": <" + safeObjToStr(value) + "> from class <" + safeObjToClassName(value) + ">");
 				}
 			}
 		}

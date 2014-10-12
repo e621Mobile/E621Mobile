@@ -2,13 +2,10 @@ package info.beastarman.e621.views;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.HorizontalScrollView;
 
 import java.util.Calendar;
-
-import info.beastarman.e621.middleware.E621Middleware;
 
 public class NoHorizontalScrollView extends HorizontalScrollView
 {
@@ -45,8 +42,6 @@ public class NoHorizontalScrollView extends HorizontalScrollView
 
 				if(clickDuration < MAX_CLICK_DURATION)
 				{
-					Log.d(E621Middleware.LOG_TAG,"123123123123213213");
-
 					this.performClick();
 				}
 		}

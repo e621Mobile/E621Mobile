@@ -100,13 +100,7 @@ public class ImageViewHandler extends ImageHandler
 		{
 			s.release();
 
-			Log.d(E621Middleware.LOG_TAG,"ERROR: "+ bytes.length);
-
 			return null;
-		}
-		else
-		{
-			Log.d(E621Middleware.LOG_TAG,"OOOOK: "+ bytes.length);
 		}
 
         if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())

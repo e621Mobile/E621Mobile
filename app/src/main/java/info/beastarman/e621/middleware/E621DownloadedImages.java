@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -763,8 +762,6 @@ public class E621DownloadedImages
 				{
 					for(E621Image img : images)
 					{
-						Log.d(E621Middleware.LOG_TAG,"Image: " + img.id);
-						
 						for(E621Tag tag : img.tags)
 						{
 							if(!tag_map.containsKey(tag.getTag()))
