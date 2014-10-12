@@ -1221,64 +1221,67 @@ public class E621Middleware extends E621
 			threads.clear();
 		}
 
-		threads.add(new Thread(new Runnable()
+		if(!(antecipateOnlyOnWiFi() && !isWifiConnected()))
 		{
-			public void run()
+			threads.add(new Thread(new Runnable()
 			{
-				String url;
-
-				switch(size)
+				public void run()
 				{
-					case E621Image.PREVIEW:
-						url = img.preview_url;
-						break;
-					case E621Image.SAMPLE:
-						url = img.sample_url;
-						break;
-					case E621Image.FULL:
-					default:
-						url = img.file_url;
-						break;
-				}
+					String url;
 
-				InputStream inputStream = getImageFromInternet(url);
-
-				if(in == null) return;
-
-				File f;
-
-				if(size == E621Image.PREVIEW)
-				{
-					f = thumb_cache.createOrUpdate(String.valueOf(img.id), inputStream);
-				}
-				else
-				{
-					f = full_cache.createOrUpdate(String.valueOf(img.id), inputStream);
-				}
-
-				InputStream inTemp = null;
-
-				try
-				{
-					inTemp = new BufferedInputStream(new FileInputStream(f));
-				}
-				catch (IOException e)
-				{
-					e.printStackTrace();
-				}
-
-				if(inTemp != null)
-				{
-					synchronized(lock)
+					switch (size)
 					{
-						if(in.obj == null)
+						case E621Image.PREVIEW:
+							url = img.preview_url;
+							break;
+						case E621Image.SAMPLE:
+							url = img.sample_url;
+							break;
+						case E621Image.FULL:
+						default:
+							url = img.file_url;
+							break;
+					}
+
+					InputStream inputStream = getImageFromInternet(url);
+
+					if (in == null)
+						return;
+
+					File f;
+
+					if (size == E621Image.PREVIEW)
+					{
+						f = thumb_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+					}
+					else
+					{
+						f = full_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+					}
+
+					InputStream inTemp = null;
+
+					try
+					{
+						inTemp = new BufferedInputStream(new FileInputStream(f));
+					} catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+
+					if (inTemp != null)
+					{
+						synchronized (lock)
 						{
-							in.obj = inTemp;
+							if (in.obj == null)
+							{
+								in.obj = inTemp;
+							}
 						}
 					}
 				}
-			}
-		}));
+			}));
+		}
 		
 		for(Thread t : threads)
 		{
@@ -1300,6 +1303,53 @@ public class E621Middleware extends E621
 			if(threads.size() == 0)
 			{
 				break;
+			}
+		}
+
+		if(in.obj == null)
+		{
+			String url;
+
+			switch (size)
+			{
+				case E621Image.PREVIEW:
+					url = img.preview_url;
+					break;
+				case E621Image.SAMPLE:
+					url = img.sample_url;
+					break;
+				case E621Image.FULL:
+				default:
+					url = img.file_url;
+					break;
+			}
+
+			InputStream inputStream = getImageFromInternet(url);
+
+			if (in == null)
+				return null;
+
+			File f;
+
+			if (size == E621Image.PREVIEW)
+			{
+				f = thumb_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+			}
+			else
+			{
+				f = full_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+			}
+
+			InputStream inTemp = null;
+
+			try
+			{
+				inTemp = new BufferedInputStream(new FileInputStream(f));
+				in.obj = new ByteArrayInputStream(IOUtils.toByteArray(inTemp));
+			} catch (IOException e)
+			{
+				e.printStackTrace();
+				return null;
 			}
 		}
 		
