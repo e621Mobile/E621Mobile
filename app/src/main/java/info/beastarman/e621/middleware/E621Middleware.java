@@ -1155,11 +1155,6 @@ public class E621Middleware extends E621
 		{
 			public void run()
 			{
-				if(true)
-				{
-					return;
-				}
-
 				InputStream inTemp = download_manager.getFile(img);
 				
 				if(inTemp != null)
