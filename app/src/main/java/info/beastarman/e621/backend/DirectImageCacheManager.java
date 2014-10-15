@@ -26,7 +26,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 
 	private HashMap<String,ReadWriteLockerWrapper> locks = new HashMap<String,ReadWriteLockerWrapper>();
 
-	private ReadWriteLockerWrapper getLock(String id)
+	private synchronized ReadWriteLockerWrapper getLock(String id)
 	{
 		if(!locks.containsKey(id))
 		{
