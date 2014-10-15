@@ -1521,6 +1521,11 @@ public class E621Middleware extends E621
 						File f = new File(path,image.filename);
 						
 						InputStream in = download_manager.getFile(image.id);
+
+						if(in == null)
+						{
+							return;
+						}
 						
 						try {
 							BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(f));
