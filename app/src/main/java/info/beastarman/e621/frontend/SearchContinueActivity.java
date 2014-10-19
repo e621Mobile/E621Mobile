@@ -1,16 +1,16 @@
 package info.beastarman.e621.frontend;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+
+import java.io.IOException;
+
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
 import info.beastarman.e621.middleware.OnlineContinueImageNavigator;
-
-import java.io.IOException;
-
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.View;
 
 public class SearchContinueActivity extends SearchActivity
 {
@@ -66,74 +66,24 @@ public class SearchContinueActivity extends SearchActivity
 			return null;
 		}
 	}
-	
-	@Override
-	public void prev(View view)
-	{
-		if (page > 0)
-		{
-			if(e621Search == null) return;
-			
-			if(e621Search != null && !e621Search.has_prev_page())
-			{
-				return;
-			}
-			
-			if(previous_page!=null && previous_page == page-1)
-			{
-				finish();
-			}
-			else
-			{
-				Intent intent = new Intent(this, SearchContinueActivity.class);
-				intent.putExtra(SearchContinueActivity.SEARCH, search);
-				intent.putExtra(SearchContinueActivity.PAGE, page - 1);
-				intent.putExtra(SearchContinueActivity.LIMIT, limit);
-				intent.putExtra(SearchContinueActivity.MIN_ID, cur_min_id);
-				intent.putExtra(SearchContinueActivity.MAX_ID, cur_max_id);
-				intent.putExtra(SearchContinueActivity.PREVIOUS_PAGE, page);
-
-				if(nextE621Search != null)
-				{
-					intent.putExtra(SearchContinueActivity.PRELOADED_SEARCH, nextE621Search);
-				}
-				
-				startActivity(intent);
-			}
-		}
-	}
 
 	@Override
-	public void next(View view)
+	protected void goToPage(int newPage)
 	{
-		if(e621Search == null) return;
-		
-		if(e621Search != null && !e621Search.has_next_page())
-		{
-			return;
-		}
-		
-		if(previous_page!=null && previous_page == page+1)
-		{
-			finish();
-		}
-		else
-		{
-			Intent intent = new Intent(this, SearchContinueActivity.class);
-			intent.putExtra(SearchContinueActivity.SEARCH, search);
-			intent.putExtra(SearchContinueActivity.PAGE, page + 1);
-			intent.putExtra(SearchContinueActivity.LIMIT, limit);
-			intent.putExtra(SearchContinueActivity.MIN_ID, cur_min_id);
-			intent.putExtra(SearchContinueActivity.MAX_ID, cur_max_id);
-			intent.putExtra(SearchContinueActivity.PREVIOUS_PAGE, page);
+		Intent intent = new Intent(this, SearchContinueActivity.class);
+		intent.putExtra(SearchContinueActivity.SEARCH, search);
+		intent.putExtra(SearchContinueActivity.PAGE, newPage);
+		intent.putExtra(SearchContinueActivity.LIMIT, limit);
+		intent.putExtra(SearchContinueActivity.MIN_ID, cur_min_id);
+		intent.putExtra(SearchContinueActivity.MAX_ID, cur_max_id);
+		intent.putExtra(SearchContinueActivity.PREVIOUS_PAGE, page);
 
-			if(nextE621Search != null)
-			{
-				intent.putExtra(SearchContinueActivity.PRELOADED_SEARCH, nextE621Search);
-			}
-			
-			startActivity(intent);
+		if(nextE621Search != null && newPage==page+1)
+		{
+			intent.putExtra(SearchContinueActivity.PRELOADED_SEARCH, nextE621Search);
 		}
+
+		startActivity(intent);
 	}
 
 	public void imageClick(View view) {

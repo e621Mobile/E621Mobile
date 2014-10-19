@@ -1,6 +1,7 @@
 package info.beastarman.e621.frontend;
 
 import android.app.ActionBar;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -838,20 +839,7 @@ public class SearchActivity extends BaseActivity
 			}
 			else
 			{
-				Intent intent = new Intent(this, SearchActivity.class);
-				intent.putExtra(SearchActivity.SEARCH, search);
-				intent.putExtra(SearchActivity.PAGE, page - 1);
-				intent.putExtra(SearchActivity.LIMIT, limit);
-				intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
-				intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
-				intent.putExtra(SearchActivity.PREVIOUS_PAGE, page);
-				
-				if(nextE621Search != null)
-				{
-					intent.putExtra(SearchActivity.PRELOADED_SEARCH, nextE621Search);
-				}
-				
-				startActivity(intent);
+				goToPage(page-1);
 			}
 		}
 	}
@@ -871,21 +859,26 @@ public class SearchActivity extends BaseActivity
 		}
 		else
 		{
-			Intent intent = new Intent(this, SearchActivity.class);
-			intent.putExtra(SearchActivity.SEARCH, search);
-			intent.putExtra(SearchActivity.PAGE, page + 1);
-			intent.putExtra(SearchActivity.LIMIT, limit);
-			intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
-			intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
-			intent.putExtra(SearchActivity.PREVIOUS_PAGE, page);
-			
-			if(nextE621Search != null)
-			{
-				intent.putExtra(SearchActivity.PRELOADED_SEARCH, nextE621Search);
-			}
-			
-			startActivity(intent);
+			goToPage(page+1);
 		}
+	}
+
+	protected void goToPage(int newPage)
+	{
+		Intent intent = new Intent(this, SearchActivity.class);
+		intent.putExtra(SearchActivity.SEARCH, search);
+		intent.putExtra(SearchActivity.PAGE, newPage);
+		intent.putExtra(SearchActivity.LIMIT, limit);
+		intent.putExtra(SearchActivity.MIN_ID, cur_min_id);
+		intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
+		intent.putExtra(SearchActivity.PREVIOUS_PAGE, page);
+
+		if(nextE621Search != null && newPage==page+1)
+		{
+			intent.putExtra(SearchActivity.PRELOADED_SEARCH, nextE621Search);
+		}
+
+		startActivity(intent);
 	}
 	
 	@Override
@@ -894,7 +887,33 @@ public class SearchActivity extends BaseActivity
 		getMenuInflater().inflate(R.menu.search, menu);
 		return true;
 	}
-	
+
+	public void skipToPage(View view)
+	{
+		if(e621Search != null)
+		{
+			final PageSelectorDialog dialog = new PageSelectorDialog(this, e621Search.total_pages());
+
+			dialog.setButton(DialogInterface.BUTTON_NEGATIVE,"Cancel",new DialogInterface.OnClickListener()
+			{
+				@Override
+				public void onClick(DialogInterface dialogInterface, int i)
+				{
+				}
+			});
+			dialog.setButton(DialogInterface.BUTTON_POSITIVE,"Jump",new DialogInterface.OnClickListener()
+			{
+				@Override
+				public void onClick(DialogInterface dialogInterface, int i)
+				{
+					goToPage(dialog.getValue() - 1);
+				}
+			});
+
+			dialog.show();
+		}
+	}
+
 	private class ImageEventManager extends EventManager
 	{
 		private ImageButton button;

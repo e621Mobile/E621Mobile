@@ -1,20 +1,8 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.R;
-import info.beastarman.e621.backend.EventManager;
-import info.beastarman.e621.backend.GTFO;
-import info.beastarman.e621.middleware.E621DownloadedImage;
-import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.middleware.ImageViewHandler;
-import info.beastarman.e621.middleware.OfflineImageNavigator;
-import info.beastarman.e621.views.LazyRunScrollView;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-
 import android.app.ActionBar;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -34,6 +22,19 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+
+import info.beastarman.e621.R;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.middleware.E621DownloadedImage;
+import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.ImageViewHandler;
+import info.beastarman.e621.middleware.OfflineImageNavigator;
+import info.beastarman.e621.views.LazyRunScrollView;
 
 public class DownloadsActivity extends BaseActivity
 {
@@ -323,15 +324,37 @@ public class DownloadsActivity extends BaseActivity
 		startActivity(intent);
 	}
 
+	public void skipToPage(View view)
+	{
+		if(downloads != null)
+		{
+			final PageSelectorDialog dialog = new PageSelectorDialog(this, total_pages);
+
+			dialog.setButton(DialogInterface.BUTTON_NEGATIVE,"Cancel",new DialogInterface.OnClickListener()
+			{
+				@Override
+				public void onClick(DialogInterface dialogInterface, int i)
+				{
+				}
+			});
+			dialog.setButton(DialogInterface.BUTTON_POSITIVE,"Jump",new DialogInterface.OnClickListener()
+			{
+				@Override
+				public void onClick(DialogInterface dialogInterface, int i)
+				{
+					goToPage(dialog.getValue()-1);
+				}
+			});
+
+			dialog.show();
+		}
+	}
+
 	public void prev(View view)
 	{
 		if (page > 0)
 		{
-			Intent intent = new Intent(this, DownloadsActivity.class);
-			intent.putExtra(DownloadsActivity.SEARCH, search);
-			intent.putExtra(DownloadsActivity.PAGE, page - 1);
-			intent.putExtra(DownloadsActivity.LIMIT, limit);
-			startActivity(intent);
+			goToPage(page - 1);
 		}
 	}
 
@@ -339,12 +362,17 @@ public class DownloadsActivity extends BaseActivity
 	{
 		if(page + 1 < total_pages)
 		{
-			Intent intent = new Intent(this, DownloadsActivity.class);
-			intent.putExtra(DownloadsActivity.SEARCH, search);
-			intent.putExtra(DownloadsActivity.PAGE, page + 1);
-			intent.putExtra(DownloadsActivity.LIMIT, limit);
-			startActivity(intent);
+			goToPage(page+1);
 		}
+	}
+
+	protected void goToPage(int newPage)
+	{
+		Intent intent = new Intent(this, DownloadsActivity.class);
+		intent.putExtra(DownloadsActivity.SEARCH, search);
+		intent.putExtra(DownloadsActivity.PAGE, newPage);
+		intent.putExtra(DownloadsActivity.LIMIT, limit);
+		startActivity(intent);
 	}
 	
 	private class ImageLoadRunnable implements Runnable

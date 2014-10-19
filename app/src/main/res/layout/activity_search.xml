@@ -9,7 +9,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".SearchActivity" >
+    tools:context=".frontend.SearchActivity" >
 
     <LinearLayout
         android:id="@+id/linearLayout1"
@@ -97,7 +97,9 @@
             android:gravity="center"
             android:text="@string/page_counter"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            android:onClick="skipToPage"
+            android:clickable="true" />
 
     </RelativeLayout>
 
