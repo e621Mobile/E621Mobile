@@ -47,6 +47,7 @@ import org.json.JSONObject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -1142,7 +1143,300 @@ public class E621Middleware extends E621
 			getImageSemaphore.release();
 		}
 	}
-	
+
+	private static Bitmap decodeFile(InputStream in, int width, int height)
+	{
+		byte[] bytes = null;
+
+		try
+		{
+			bytes = IOUtils.toByteArray(in);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+
+			return null;
+		}
+
+		in = new ByteArrayInputStream(bytes);
+
+		//Decode image size
+		BitmapFactory.Options o = new BitmapFactory.Options();
+		o.inJustDecodeBounds = true;
+		BitmapFactory.decodeStream(in,null,o);
+
+		try
+		{
+			in.close();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+
+			return null;
+		}
+
+		if(o.outWidth == width && o.outHeight == height)
+		{
+			in = new ByteArrayInputStream(bytes);
+
+			Bitmap ret = BitmapFactory.decodeStream(in);
+
+			try
+			{
+				in.close();
+			} catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+
+			return ret;
+		}
+
+		//Find the correct scale value. It should be the power of 2.
+		int scale=1;
+		while(o.outWidth/scale/2>=width && o.outHeight/scale/2>=height)
+		{
+			scale*=2;
+		}
+
+		in = new ByteArrayInputStream(bytes);
+
+		//Decode with inSampleSize
+		BitmapFactory.Options o2 = new BitmapFactory.Options();
+		o2.inSampleSize=scale;
+		Bitmap bitmap_temp = BitmapFactory.decodeStream(in, null, o2);
+
+		try
+		{
+			in.close();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		bytes = null;
+		System.gc();
+
+		if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())
+		{
+			return bitmap_temp;
+		}
+		else
+		{
+			Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+
+			bitmap_temp.recycle();
+
+			return ret;
+		}
+	}
+
+	public Bitmap getThumbnail(final int id, final int width, final int height)
+	{
+		final GTFO<Bitmap> in = new GTFO<Bitmap>();
+		final GTFO<Boolean> storeInCache = new GTFO<Boolean>();
+		storeInCache.obj = true;
+
+		final Object lock = new Object();
+
+		List<Thread> threads = Collections.synchronizedList(new ArrayList<Thread>());
+
+		threads.add(new Thread(new Runnable()
+		{
+			public void run()
+			{
+				InputStream inTemp = download_manager.getFile(id);
+
+				Bitmap bmp = decodeFile(inTemp, width, height);
+
+				if(inTemp != null)
+				{
+					synchronized(lock)
+					{
+						if(in.obj == null)
+						{
+							in.obj = bmp;
+						}
+					}
+				}
+			}
+		}));
+
+		threads.add(new Thread(new Runnable()
+		{
+			public void run()
+			{
+				InputStream inTemp = full_cache.getFile(String.valueOf(id));
+
+				Bitmap bmp = decodeFile(inTemp, width, height);
+
+				if(inTemp != null)
+				{
+					synchronized(lock)
+					{
+						if(in.obj == null)
+						{
+							in.obj = bmp;
+						}
+					}
+				}
+			}
+		}));
+
+		threads.add(new Thread(new Runnable()
+		{
+			public void run()
+			{
+				InputStream inTemp = thumb_cache.getFile(String.valueOf(id));
+
+				Bitmap bmp = decodeFile(inTemp, width, height);
+
+				if(inTemp != null)
+				{
+					synchronized(lock)
+					{
+						if(in.obj == null)
+						{
+							storeInCache.obj = false;
+							in.obj = bmp;
+						}
+					}
+				}
+			}
+		}));
+
+		if(!(antecipateOnlyOnWiFi() && !isWifiConnected()))
+		{
+			threads.add(new Thread(new Runnable()
+			{
+				public void run()
+				{
+					try
+					{
+						Thread.sleep(3000);
+
+						synchronized (lock)
+						{
+							if (in.obj != null)
+							{
+								return;
+							}
+						}
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+						Thread.currentThread().interrupt();
+					}
+
+					String url;
+
+					E621Image img = null;
+
+					try
+					{
+						img = post__show(id);
+					} catch (IOException e)
+					{
+						e.printStackTrace();
+						return;
+					}
+
+					int size = getFileThummbnailSize(img);
+
+					switch (size)
+					{
+						case E621Image.PREVIEW:
+							url = img.preview_url;
+							break;
+						case E621Image.SAMPLE:
+							url = img.sample_url;
+							break;
+						case E621Image.FULL:
+						default:
+							url = img.file_url;
+							break;
+					}
+
+					InputStream inputStream = getImageFromInternet(url);
+
+					if (in == null)
+					{
+						return;
+					}
+
+					Bitmap bmp = decodeFile(inputStream,width,height);
+
+					synchronized (lock)
+					{
+						if (in.obj == null)
+						{
+							in.obj = bmp;
+						}
+					}
+				}
+			}));
+		}
+
+		if(in.obj != null)
+		{
+			if(storeInCache.obj)
+			{
+				ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				in.obj.compress(Bitmap.CompressFormat.JPEG, 90, bos);
+				byte[] bitmapdata = bos.toByteArray();
+				ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+
+				thumb_cache.createOrUpdate(String.valueOf(id),bs);
+			}
+
+			return in.obj;
+		}
+		else
+		{
+			String url;
+
+			E621Image img = null;
+
+			try
+			{
+				img = post__show(id);
+			} catch (IOException e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+
+			int size = getFileThummbnailSize(img);
+
+			switch (size)
+			{
+				case E621Image.PREVIEW:
+					url = img.preview_url;
+					break;
+				case E621Image.SAMPLE:
+					url = img.sample_url;
+					break;
+				case E621Image.FULL:
+				default:
+					url = img.file_url;
+					break;
+			}
+
+			InputStream inputStream = getImageFromInternet(url);
+
+			if (in == null)
+			{
+				return null;
+			}
+
+			Bitmap bmp = decodeFile(inputStream,width,height);
+
+			return bmp;
+		}
+	}
+
 	public InputStream getImage(final E621Image img, final int size)
 	{
 		final GTFO<InputStream> in = new GTFO<InputStream>();
@@ -1222,6 +1516,23 @@ public class E621Middleware extends E621
 			{
 				public void run()
 				{
+					try
+					{
+						Thread.sleep(3000);
+
+						synchronized (lock)
+						{
+							if (in.obj != null)
+							{
+								return;
+							}
+						}
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+						Thread.currentThread().interrupt();
+					}
+
 					String url;
 
 					switch (size)

@@ -153,9 +153,9 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		uncaughtException();
 	}
 	
-	private Bitmap decodeFile(InputStream in, int width, int height)
+	public Bitmap decodeFile(InputStream in, int width, int height)
 	{
-	byte[] bytes = null;
+		byte[] bytes = null;
 
 		try
 		{
@@ -286,5 +286,15 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 			this.imgView.setBackgroundResource(0);
 			this.imgView.setImageBitmap((Bitmap)msg.obj);
 		}
+	}
+
+	public int getWidth()
+	{
+		return getWindow().getDecorView().getWidth();
+	}
+
+	public int getHeight()
+	{
+		return getWindow().getDecorView().getHeight();
 	}
 }

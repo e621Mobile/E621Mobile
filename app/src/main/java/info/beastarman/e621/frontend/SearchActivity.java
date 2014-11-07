@@ -15,6 +15,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -36,8 +38,6 @@ import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.middleware.ImageLoadRunnable;
-import info.beastarman.e621.middleware.ImageViewHandler;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
 import info.beastarman.e621.middleware.SearchQuery;
 import info.beastarman.e621.views.LazyRunScrollView;
@@ -462,7 +462,7 @@ public class SearchActivity extends BaseActivity
 
 								for(int i=0; i<e621Search.images.size(); i++)
 								{
-									E621Image img = e621Search.images.get(i);
+									final E621Image img = e621Search.images.get(i);
 
 									if(!e621.isBlacklisted(img).isEmpty() && (e621.blacklistMethod() == E621Middleware.BlacklistMethod.HIDE || e621.blacklistMethod() == E621Middleware.BlacklistMethod.QUERY))
 									{
@@ -475,12 +475,39 @@ public class SearchActivity extends BaseActivity
 
 									if(!(!e621.isBlacklisted(img).isEmpty() && e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG))
 									{
-										ImageView imgView = (ImageView) resultWrapper.findViewById(R.id.imageView);
-										ProgressBar progressBar = (ProgressBar) resultWrapper.findViewById(R.id.progressBar);
+										final ImageView imgView = (ImageView) resultWrapper.findViewById(R.id.imageView);
+										final ProgressBar progressBar = (ProgressBar) resultWrapper.findViewById(R.id.progressBar);
 
-										ImageViewHandler handler = new ImageViewHandler(imgView, progressBar);
+										final int _image_y = image_y;
 
-										scroll.addThread(new Thread(new ImageLoadRunnable(handler, img, e621, e621.getFileThummbnailSize(img))), image_y);
+										imgView.post(new Runnable()
+										{
+											@Override
+											public void run()
+											{
+												scroll.addThread(new Thread(new Runnable()
+												{
+
+													@Override
+													public void run()
+													{
+														final Bitmap bmp = e621.getThumbnail(img.id, imgView.getWidth(), imgView.getHeight());
+
+														runOnUiThread(new Runnable()
+														{
+															@Override
+															public void run()
+															{
+																imgView.setImageBitmap(bmp);
+																progressBar.setVisibility(View.GONE);
+
+																fadeInImage(imgView);
+															}
+														});
+													}
+												}), _image_y);
+											}
+										});
 									}
 
 									if (e621.lazyLoad())
@@ -510,6 +537,22 @@ public class SearchActivity extends BaseActivity
 				}).start();
 			}
 		});
+	}
+
+	private void fadeInImage(final ImageView img)
+	{
+		Animation a = new Animation()
+		{
+			@Override
+			protected void applyTransformation(float interpolatedTime, Transformation t)
+			{
+				img.setAlpha(interpolatedTime);
+			}
+		};
+
+		a.setDuration(300);
+		img.startAnimation(a);
+		((View)img.getParent()).invalidate();
 	}
 
 	public void update_results()
@@ -597,6 +640,16 @@ public class SearchActivity extends BaseActivity
 			public void onClick(View v)
 			{
 				imageClick(v);
+			}
+		});
+		imgView.setOnLongClickListener(new View.OnLongClickListener()
+		{
+			@Override
+			public boolean onLongClick(View v)
+			{
+				imageClick2(v);
+
+				return true;
 			}
 		});
 		
@@ -795,8 +848,22 @@ public class SearchActivity extends BaseActivity
 		return details;
 	}
 
-	public void imageClick(View view) {
+	public void imageClick(View view)
+	{
 		Intent intent = new Intent(this, ImageActivity.class);
+		intent.putExtra(ImageActivity.NAVIGATOR, new OnlineImageNavigator(
+				(E621Image) view.getTag(R.id.imageObject),
+				(Integer) view.getTag(R.id.imagePosition),
+				search,
+				limit,
+				e621Search));
+		intent.putExtra(ImageActivity.INTENT,getIntent());
+		startActivity(intent);
+	}
+
+	public void imageClick2(View view)
+	{
+		Intent intent = new Intent(this, ImageFullScreenActivity.class);
 		intent.putExtra(ImageActivity.NAVIGATOR, new OnlineImageNavigator(
 				(E621Image) view.getTag(R.id.imageObject),
 				(Integer) view.getTag(R.id.imagePosition),

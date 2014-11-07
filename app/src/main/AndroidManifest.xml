@@ -51,6 +51,13 @@
             android:windowSoftInputMode="stateHidden" >
         </activity>
         <activity
+            android:name="info.beastarman.e621.frontend.ImageFullScreenActivity"
+            android:label="@string/title_activity_image"
+            android:parentActivityName="info.beastarman.e621.frontend.MainActivity"
+            android:windowSoftInputMode="stateHidden"
+            android:theme="@style/CustomActionBarTheme">
+        </activity>
+        <activity
             android:name="info.beastarman.e621.frontend.SettingsActivity"
             android:parentActivityName="info.beastarman.e621.frontend.MainActivity"
             android:label="@string/title_activity_settings" >
