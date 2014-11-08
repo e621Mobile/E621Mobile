@@ -63,8 +63,8 @@ public class E621Image implements Serializable
 		file_ext = that.file_ext;
 		parent_id = that.parent_id;
 		rating = that.rating;
-		tags = that.tags;
-		children = that.children;
+		tags = new ArrayList<E621Tag>(that.tags);
+		children = new ArrayList<String>(that.children);
 		has_children = that.has_children;
 		score = that.score;
 		preview_width = that.preview_width;

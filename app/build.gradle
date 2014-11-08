@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "info.beastarman.e621"
-        minSdkVersion 11
+        minSdkVersion 12
         targetSdkVersion 19
     }
 

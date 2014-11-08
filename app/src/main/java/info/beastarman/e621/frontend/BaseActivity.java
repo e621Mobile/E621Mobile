@@ -114,11 +114,20 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		
 		super.onStop();
 	}
+
+	private boolean alive = false;
+
+	public boolean isAlive()
+	{
+		return alive;
+	}
 	
 	@Override
 	protected void onResume()
 	{
 		Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onResume() " + this.getClass().getName());
+
+		alive = true;
 		
 		super.onResume();
 	}
@@ -127,7 +136,9 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	protected void onPause()
 	{
 		Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onPause() " + this.getClass().getName());
-		
+
+		alive = false;
+
 		super.onPause();
 	}
 	

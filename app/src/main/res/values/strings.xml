@@ -81,4 +81,6 @@
     </string>
     <string name="look_for_update">Look for update</string>
     <string name="alpha_settings">Alpha Features</string>
+    <string name="post_id_format">id: %1$s</string>
+    <string name="post_id_loading">...</string>
 </resources>

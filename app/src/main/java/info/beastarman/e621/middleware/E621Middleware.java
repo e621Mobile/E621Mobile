@@ -1144,7 +1144,7 @@ public class E621Middleware extends E621
 		}
 	}
 
-	private static Bitmap decodeFile(InputStream in, int width, int height)
+	public static Bitmap decodeFile(InputStream in, int width, int height)
 	{
 		byte[] bytes = null;
 

@@ -213,7 +213,7 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	{
 		ImageView imageWrapper = (ImageView) findViewById(R.id.imageWrapper);
 		View progressBarLoader = findViewById(R.id.progressBarLoader);
-		
+
 		//imageWrapper.setBackgroundResource(0);
 		progressBarLoader.setVisibility(View.VISIBLE);
 		
@@ -275,9 +275,9 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 	        	
 	        	View v = findViewById(R.id.content_wrapper);
 	        	
-	        	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(new RelativeLayout.LayoutParams(
+	        	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
 	        			v.getWidth(),
-	        			(int) (v.getWidth() * (((double)e621Image.height) / e621Image.width))));
+	        			(int) (v.getWidth() * (((double)e621Image.height) / e621Image.width)));
 				
 	        	if(
 	        			e621Image.file_ext.equals("jpg") ||

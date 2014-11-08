@@ -462,6 +462,11 @@ public class SearchActivity extends BaseActivity
 
 								for(int i=0; i<e621Search.images.size(); i++)
 								{
+									if(!isAlive())
+									{
+										return;
+									}
+
 									final E621Image img = e621Search.images.get(i);
 
 									if(!e621.isBlacklisted(img).isEmpty() && (e621.blacklistMethod() == E621Middleware.BlacklistMethod.HIDE || e621.blacklistMethod() == E621Middleware.BlacklistMethod.QUERY))
@@ -491,7 +496,17 @@ public class SearchActivity extends BaseActivity
 													@Override
 													public void run()
 													{
+														if(imgView.getWidth() == 0 || imgView.getHeight() == 0)
+														{
+															return;
+														}
+
 														final Bitmap bmp = e621.getThumbnail(img.id, imgView.getWidth(), imgView.getHeight());
+
+														if(!isAlive())
+														{
+															return;
+														}
 
 														runOnUiThread(new Runnable()
 														{

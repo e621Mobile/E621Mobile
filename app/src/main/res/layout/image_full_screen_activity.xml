@@ -31,4 +31,167 @@
 
     </info.beastarman.e621.views.ZoomableRelativeLayout>
 
+    <TabHost
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/tabHost"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:background="@color/BackgroundColorTransparent">
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical">
+
+            <TabWidget
+                android:id="@android:id/tabs"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true">
+            </TabWidget>
+
+            <FrameLayout
+                android:id="@android:id/tabcontent"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+                <RelativeLayout
+                    android:id="@+id/info"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:orientation="vertical">
+
+                    <ScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/scrollView"
+                        android:layout_above="@+id/buttonArea"
+                        android:layout_alignParentTop="true">
+
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:layout_width="fill_parent"
+                            android:layout_height="fill_parent"
+                            android:padding="12dp">
+
+                            <RelativeLayout
+                                android:layout_width="fill_parent"
+                                android:layout_height="fill_parent"
+                                android:background="@color/detailsBackgroundColor"
+                                android:padding="12dp"
+                                android:id="@+id/parentWrapper"
+                                android:onClick="goToParent"
+                                android:clickable="true">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textAppearance="?android:attr/textAppearanceMedium"
+                                    android:text="Go to parent post"
+                                    android:id="@+id/textView5"/>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textAppearance="?android:attr/textAppearanceSmall"
+                                    android:id="@+id/parent_id"
+                                    android:layout_toRightOf="@+id/textView5"
+                                    android:layout_toEndOf="@+id/textView5"
+                                    android:paddingStart="8dp"
+                                    android:paddingLeft="8dp"
+                                    android:textColor="@color/lightGray"
+                                    android:layout_alignBaseline="@+id/textView5"/>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textAppearance="?android:attr/textAppearanceSmall"
+                                    android:id="@+id/parentTags"
+                                    android:layout_alignParentLeft="true"
+                                    android:layout_below="@+id/textView5"
+                                    android:layout_toLeftOf="@+id/parentThumbnail"
+                                    android:layout_marginLeft="8dp"
+                                    android:visibility="gone"
+                                    android:ellipsize="none"
+                                    android:scrollHorizontally="false"/>
+
+                                <ImageView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:id="@+id/parentThumbnail"
+                                    android:layout_centerVertical="true"
+                                    android:layout_alignParentRight="true"
+                                    android:layout_alignParentEnd="true"/>
+                            </RelativeLayout>
+
+                            <RelativeLayout
+                                android:layout_width="fill_parent"
+                                android:layout_height="fill_parent"
+                                android:background="@color/detailsBackgroundColor"
+                                android:layout_marginTop="12dp"
+                                android:padding="12dp"
+                                android:id="@+id/childrenWrapper"
+                                android:clickable="true">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textAppearance="?android:attr/textAppearanceMedium"
+                                    android:text="Search for children posts"
+                                    android:id="@+id/childrenLabel"
+                                    android:onClick="searchChildren"
+                                    android:padding="4dp"
+                                    android:clickable="true"/>
+
+                                <LinearLayout
+                                    android:orientation="vertical"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@+id/childrenLabel"
+                                    android:id="@+id/childrenGroup">
+                                </LinearLayout>
+
+                            </RelativeLayout>
+                        </LinearLayout>
+                    </ScrollView>
+
+                    <RelativeLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentBottom="true"
+                        android:id="@+id/buttonArea"
+                        android:layout_margin="18dp"
+                        android:paddingBottom="18dp"
+                        >
+
+                        <ImageButton
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:id="@+id/favButton"
+                            android:adjustViewBounds="true"
+                            android:cropToPadding="false"
+                            android:background="@drawable/fav_star_disabled"
+                            android:onClick="fav"
+                            android:alpha="0.5"/>
+                    </RelativeLayout>
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@+id/tags"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:orientation="vertical">
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/comments"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:orientation="vertical">
+                </LinearLayout>
+            </FrameLayout>
+        </LinearLayout>
+    </TabHost>
+
 </RelativeLayout>
