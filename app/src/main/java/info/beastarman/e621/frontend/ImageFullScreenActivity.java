@@ -2,6 +2,7 @@ package info.beastarman.e621.frontend;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
@@ -61,7 +62,7 @@ public class ImageFullScreenActivity extends BaseActivity
 
 	boolean scaling = false;
 
-	int IMAGE_CHUNK_SIZE = 128;
+	int IMAGE_CHUNK_SIZE = 512;
 	float TABS_HEIGHT = 0.7f;
 
 	@Override
@@ -110,6 +111,19 @@ public class ImageFullScreenActivity extends BaseActivity
 				return true;
 			}
 		});
+	}
+
+	@Override
+	protected void onStop()
+	{
+		final TableLayout tableLayout = (TableLayout) findViewById(R.id.imageViewTable);
+
+		if(tableLayout != null)
+		{
+			tableLayout.removeAllViews();
+		}
+
+		super.onStop();
 	}
 
 	SearchView searchView = null;
@@ -819,12 +833,25 @@ public class ImageFullScreenActivity extends BaseActivity
 		int w = decoder.getWidth();
 		int h = decoder.getHeight();
 
+		int sscale = 1;
+
+		while(w*h > sscale*sscale*5000000)
+		{
+			sscale *= 2;
+		}
+
+		w/=sscale;
+		h/=sscale;
+
+		BitmapFactory.Options o = new BitmapFactory.Options();
+		o.inSampleSize=sscale;
+
 		int w_parts = (int)Math.ceil(w/(double)IMAGE_CHUNK_SIZE);
 		int h_parts = (int)Math.ceil(h/(double)IMAGE_CHUNK_SIZE);
 
 		final float scale = getImageScale();
-		final int hh = h;
-		final int ww = w;
+		final int hh = h * sscale;
+		final int ww = w * sscale;
 
 		final ZoomableRelativeLayout zoomableRelativeLayout = (ZoomableRelativeLayout) findViewById(R.id.imageWrapper);
 
@@ -833,12 +860,7 @@ public class ImageFullScreenActivity extends BaseActivity
 			@Override
 			public void run()
 			{
-				zoomableRelativeLayout.setPivotPadding(
-						(int)(getWidth() - (ww/scale))/2,
-						(int)(getHeight() - (hh/scale))/2,
-						(int)(getWidth() - (ww/scale))/2,
-						(int)(getHeight() - (hh/scale))/2
-				);
+				zoomableRelativeLayout.setPivotPadding((int) (getWidth() - (ww / scale)) / 2, (int) (getHeight() - (hh / scale)) / 2, (int) (getWidth() - (ww / scale)) / 2, (int) (getHeight() - (hh / scale)) / 2);
 			}
 		});
 
@@ -850,15 +872,15 @@ public class ImageFullScreenActivity extends BaseActivity
 
 			for(int i=0; i<w_parts; i++)
 			{
-				ImageView iv = new ImageView(this);
+				ImageView iv = gimmeRecyclableImageView();
 
-				int wa = i*IMAGE_CHUNK_SIZE;
-				int ha = j*IMAGE_CHUNK_SIZE;
+				int wa = i*IMAGE_CHUNK_SIZE*sscale;
+				int ha = j*IMAGE_CHUNK_SIZE*sscale;
 
-				int wz = (i+1 == w_parts? w :(i+1)*IMAGE_CHUNK_SIZE);
-				int hz = (j+1 == h_parts? h :(j+1)*IMAGE_CHUNK_SIZE);
+				int wz = (i+1 == w_parts? w :(i+1)*IMAGE_CHUNK_SIZE)*sscale;
+				int hz = (j+1 == h_parts? h :(j+1)*IMAGE_CHUNK_SIZE)*sscale;
 
-				iv.setImageBitmap(decoder.decodeRegion(new Rect(wa, ha, wz, hz), null));
+				iv.setImageBitmap(decoder.decodeRegion(new Rect(wa, ha, wz, hz), o));
 
 				iv.setLayoutParams(new TableRow.LayoutParams((int)Math.ceil((wz - wa) / scale), (int)Math.ceil((hz - ha) / scale)));
 

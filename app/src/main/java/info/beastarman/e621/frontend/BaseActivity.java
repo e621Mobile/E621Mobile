@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.ArrayList;
 import java.util.Set;
 
 import info.beastarman.e621.middleware.E621Middleware;
@@ -27,6 +30,17 @@ import info.beastarman.e621.middleware.E621Middleware;
 public class BaseActivity extends Activity implements UncaughtExceptionHandler
 {
 	public E621Middleware e621;
+
+	ArrayList<ImageView> recyclableImageViews = new ArrayList<ImageView>();
+
+	public ImageView gimmeRecyclableImageView()
+	{
+		ImageView iv = new ImageView(this);
+
+		recyclableImageViews.add(iv);
+
+		return iv;
+	}
 	
 	protected int dpToPx(int dp)
 	{
@@ -111,6 +125,23 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	protected void onStop()
 	{
 		Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onStop() " + this.getClass().getName());
+
+		for(ImageView iv : recyclableImageViews)
+		{
+			Drawable drawable = iv.getDrawable();
+			if (drawable instanceof BitmapDrawable)
+			{
+				BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+				Bitmap bitmap = bitmapDrawable.getBitmap();
+
+				if(bitmap != null && !bitmap.isRecycled())
+				{
+					bitmap.recycle();
+				}
+			}
+		}
+
+		recyclableImageViews.clear();
 		
 		super.onStop();
 	}
