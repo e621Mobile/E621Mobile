@@ -448,6 +448,8 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 		}
 		catch (java.lang.Throwable e)
 		{
+			e.printStackTrace();
+
 			fail = true;
 		}
 		finally

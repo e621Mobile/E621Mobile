@@ -63,5 +63,7 @@ public class DTextTestCase extends InstrumentationTestCase
 		inputTest("\"Quote\"\n",new Class[]{W,N});
 		inputTest("\"Quotes are soooo soo soooooo kool\"\n",new Class[]{W,S,W,S,W,S,W,S,W,S,W,N});
 		inputTest("death’s",new Class[]{W});
+		inputTest("@ass666",new Class[]{U});
+		inputTest("original #213.",new Class[]{PL,W});
 	}
 }

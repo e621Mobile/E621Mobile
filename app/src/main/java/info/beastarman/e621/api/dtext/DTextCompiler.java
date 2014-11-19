@@ -8,12 +8,16 @@ public class DTextCompiler implements DTextCompilerConstants {
 
     public DTextToken getToken() throws ParseException
     {
+        DTextToken t;
+
         if(!tokenStack.isEmpty())
         {
-            return tokenStack.remove(0);
+            t = tokenStack.remove(0);
         }
-
-        DTextToken t =  getNextDToken();
+        else
+        {
+            t =  getNextDToken();
+        }
 
         if(t instanceof DTextTokenWord)
         {
@@ -56,7 +60,7 @@ public class DTextCompiler implements DTextCompilerConstants {
       break;
     default:
       jj_la1[0] = jj_gen;
-      if (jj_2_1(2)) {
+      if (jj_2_1(99999)) {
         token = getUser();
         {if (true) return token;}
       } else if (jj_2_2(2)) {
@@ -74,7 +78,10 @@ public class DTextCompiler implements DTextCompilerConstants {
       } else if (jj_2_6(99999)) {
         token = getTag();
         {if (true) return token;}
-      } else if (jj_2_7(99999)) {
+      } else if (jj_2_7(3)) {
+        token = getHeader();
+        {if (true) return token;}
+      } else if (jj_2_8(99999)) {
         token = getLink();
         {if (true) return token;}
       } else {
@@ -107,11 +114,55 @@ public class DTextCompiler implements DTextCompilerConstants {
     throw new Error("Missing return statement in function");
   }
 
+  final public DTextToken getHeader() throws ParseException {
+    Token h;
+    Token num;
+    Token r;
+    h = jj_consume_token(TAGNAME);
+    num = jj_consume_token(NUMBER);
+    r = jj_consume_token(TAGNAME);
+        if(h.toString().equals("h") && Integer.parseInt(num.toString()) >= 1 && Integer.parseInt(num.toString()) <= 6 && r.toString().startsWith("."))
+        {
+            if(r.toString().length() > 1)
+            {
+                tokenStack.add(new DTextTokenWord(r.toString().substring(1)));
+            }
+
+            {if (true) return new DTextTokenHeader(Integer.parseInt(num.toString()));}
+        }
+        else
+        {
+            {if (true) return new DTextTokenWord(h.toString() + num.toString() +r.toString());}
+        }
+    throw new Error("Missing return statement in function");
+  }
+
   final public DTextTokenUser getUser() throws ParseException {
-    Token t;
+    String t;
     jj_consume_token(AT);
-    t = jj_consume_token(TAGNAME);
-        {if (true) return new DTextTokenUser(t.toString());}
+    t = getUserName();
+        {if (true) return new DTextTokenUser(t);}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public String getUserName() throws ParseException {
+    Token t;
+    String s;
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case TAGNAME:
+      t = jj_consume_token(TAGNAME);
+      s = getUserName();
+        {if (true) return t.toString() + s;}
+      break;
+    case NUMBER:
+      t = jj_consume_token(NUMBER);
+      s = getUserName();
+        {if (true) return t.toString() + s;}
+      break;
+    default:
+      jj_la1[2] = jj_gen;
+        {if (true) return "";}
+    }
     throw new Error("Missing return statement in function");
   }
 
@@ -168,7 +219,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return "";}
       break;
     default:
-      jj_la1[2] = jj_gen;
+      jj_la1[3] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -178,7 +229,7 @@ public class DTextCompiler implements DTextCompilerConstants {
   final public DTextTokenWiki getWiki() throws ParseException {
     String page = "";
     String title = "";
-    if (jj_2_8(99999)) {
+    if (jj_2_9(99999)) {
       jj_consume_token(TAGOPEN);
       jj_consume_token(TAGOPEN);
       page = getWikiPage();
@@ -195,7 +246,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return new DTextTokenWiki(title.toString().trim());}
         break;
       default:
-        jj_la1[3] = jj_gen;
+        jj_la1[4] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -227,7 +278,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return "";}
       break;
     default:
-      jj_la1[4] = jj_gen;
+      jj_la1[5] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -258,7 +309,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return "";}
       break;
     default:
-      jj_la1[5] = jj_gen;
+      jj_la1[6] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -267,7 +318,7 @@ public class DTextCompiler implements DTextCompilerConstants {
 
   final public DTextTokenNewline getNewline() throws ParseException {
     DTextTokenNewline space;
-    if (jj_2_9(99999)) {
+    if (jj_2_10(99999)) {
       jj_consume_token(NEWLINE);
       space = getNewline();
         {if (true) return space;}
@@ -278,7 +329,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return new DTextTokenNewline();}
         break;
       default:
-        jj_la1[6] = jj_gen;
+        jj_la1[7] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -288,7 +339,7 @@ public class DTextCompiler implements DTextCompilerConstants {
 
   final public DTextTokenSpace getSpace() throws ParseException {
     DTextTokenSpace space;
-    if (jj_2_10(2)) {
+    if (jj_2_11(2)) {
       jj_consume_token(SPACE);
       space = getSpace();
         {if (true) return space;}
@@ -299,7 +350,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return new DTextTokenSpace();}
         break;
       default:
-        jj_la1[7] = jj_gen;
+        jj_la1[8] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -329,21 +380,7 @@ public class DTextCompiler implements DTextCompilerConstants {
       break;
     case TAGNAME:
       s = jj_consume_token(TAGNAME);
-        String str = s.toString();
-
-        if(str.length() >=3 && str.substring(0,3).matches("h[1-6]\u005c\u005c."))
-        {
-            if(str.length() > 3)
-            {
-                tokenStack.add(new DTextTokenWord(str.substring(3)));
-            }
-
-            {if (true) return new DTextTokenHeader(Integer.parseInt(str.substring(1,2)));}
-        }
-        else
-        {
-            {if (true) return new DTextTokenWord(str);}
-        }
+        {if (true) return new DTextTokenWord(s.toString());}
       break;
     case PIPE:
       s = jj_consume_token(PIPE);
@@ -370,8 +407,8 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return new DTextTokenWord(s.toString());}
       break;
     default:
-      jj_la1[8] = jj_gen;
-      if (jj_2_11(2)) {
+      jj_la1[9] = jj_gen;
+      if (jj_2_12(2)) {
         s = jj_consume_token(BACKSLASH);
         t = getTag();
         {if (true) return new DTextTokenWord(s.toString() + t.toString());}
@@ -394,7 +431,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return new DTextTokenWord(s.toString());}
           break;
         default:
-          jj_la1[9] = jj_gen;
+          jj_la1[10] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -406,7 +443,7 @@ public class DTextCompiler implements DTextCompilerConstants {
   final public DTextTokenLink getLink() throws ParseException {
     String title;
     Token link;
-    if (jj_2_12(99999)) {
+    if (jj_2_13(99999)) {
       jj_consume_token(QUOTE);
       title = getLinkTitle();
       jj_consume_token(TWODOTS);
@@ -419,7 +456,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return new DTextTokenLink(link.toString());}
         break;
       default:
-        jj_la1[10] = jj_gen;
+        jj_la1[11] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -451,7 +488,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return "";}
       break;
     default:
-      jj_la1[11] = jj_gen;
+      jj_la1[12] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -461,17 +498,8 @@ public class DTextCompiler implements DTextCompilerConstants {
   final public DTextTokenTag getTag() throws ParseException {
     Token tag;
     String value;
-    if (jj_2_13(99999)) {
+    if (jj_2_14(99999)) {
       jj_consume_token(TAGOPEN);
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        getSpace();
-        break;
-      default:
-        jj_la1[12] = jj_gen;
-        ;
-      }
-      tag = jj_consume_token(TAGNAME);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SPACE:
         getSpace();
@@ -480,11 +508,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         jj_la1[13] = jj_gen;
         ;
       }
-      jj_consume_token(TAGCLOSE);
-        {if (true) return new DTextTokenTag(tag.toString());}
-    } else if (jj_2_14(99999)) {
-      jj_consume_token(TAGOPEN);
-      jj_consume_token(SLASH);
+      tag = jj_consume_token(TAGNAME);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SPACE:
         getSpace();
@@ -493,7 +517,11 @@ public class DTextCompiler implements DTextCompilerConstants {
         jj_la1[14] = jj_gen;
         ;
       }
-      tag = jj_consume_token(TAGNAME);
+      jj_consume_token(TAGCLOSE);
+        {if (true) return new DTextTokenTag(tag.toString());}
+    } else if (jj_2_15(99999)) {
+      jj_consume_token(TAGOPEN);
+      jj_consume_token(SLASH);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SPACE:
         getSpace();
@@ -502,10 +530,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         jj_la1[15] = jj_gen;
         ;
       }
-      jj_consume_token(TAGCLOSE);
-        {if (true) return new DTextTokenTag(tag.toString(),false);}
-    } else if (jj_2_15(99999)) {
-      jj_consume_token(TAGOPEN);
+      tag = jj_consume_token(TAGNAME);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SPACE:
         getSpace();
@@ -514,7 +539,10 @@ public class DTextCompiler implements DTextCompilerConstants {
         jj_la1[16] = jj_gen;
         ;
       }
-      tag = jj_consume_token(TAGNAME);
+      jj_consume_token(TAGCLOSE);
+        {if (true) return new DTextTokenTag(tag.toString(),false);}
+    } else if (jj_2_16(99999)) {
+      jj_consume_token(TAGOPEN);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SPACE:
         getSpace();
@@ -523,12 +551,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         jj_la1[17] = jj_gen;
         ;
       }
-      jj_consume_token(EQUAL);
-      value = getTagValue();
-        {if (true) return new DTextTokenTag(tag.toString(),true,value);}
-    } else if (jj_2_16(99999)) {
-      jj_consume_token(TAGOPEN);
-      jj_consume_token(SLASH);
+      tag = jj_consume_token(TAGNAME);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SPACE:
         getSpace();
@@ -537,13 +560,27 @@ public class DTextCompiler implements DTextCompilerConstants {
         jj_la1[18] = jj_gen;
         ;
       }
-      tag = jj_consume_token(TAGNAME);
+      jj_consume_token(EQUAL);
+      value = getTagValue();
+        {if (true) return new DTextTokenTag(tag.toString(),true,value);}
+    } else if (jj_2_17(99999)) {
+      jj_consume_token(TAGOPEN);
+      jj_consume_token(SLASH);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SPACE:
         getSpace();
         break;
       default:
         jj_la1[19] = jj_gen;
+        ;
+      }
+      tag = jj_consume_token(TAGNAME);
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case SPACE:
+        getSpace();
+        break;
+      default:
+        jj_la1[20] = jj_gen;
         ;
       }
       jj_consume_token(EQUAL);
@@ -585,7 +622,7 @@ public class DTextCompiler implements DTextCompilerConstants {
         {if (true) return "";}
       break;
     default:
-      jj_la1[20] = jj_gen;
+      jj_la1[21] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -704,74 +741,313 @@ public class DTextCompiler implements DTextCompilerConstants {
     finally { jj_save(15, xla); }
   }
 
-  private boolean jj_3_14() {
+  private boolean jj_2_17(int xla) {
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return !jj_3_17(); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(16, xla); }
+  }
+
+  private boolean jj_3R_26() {
+    if (jj_scan_token(URL)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_24() {
     if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_scan_token(SLASH)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_15()) jj_scanpos = xsp;
-    if (jj_scan_token(TAGNAME)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_16()) jj_scanpos = xsp;
+    if (jj_scan_token(TAGOPEN)) return true;
+    if (jj_3R_10()) return true;
     if (jj_scan_token(TAGCLOSE)) return true;
     return false;
   }
 
-  private boolean jj_3R_32() {
+  private boolean jj_3R_15() {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_1() {
+    if (jj_scan_token(AT)) return true;
+    if (jj_3R_23()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_21() {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3_9() {
+    if (jj_scan_token(TAGOPEN)) return true;
+    if (jj_scan_token(TAGOPEN)) return true;
+    if (jj_3R_9()) return true;
+    if (jj_3R_10()) return true;
     if (jj_scan_token(TAGCLOSE)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_4() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_9()) {
+    jj_scanpos = xsp;
+    if (jj_3R_24()) return true;
+    }
     return false;
   }
 
   private boolean jj_3_13() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_13()) jj_scanpos = xsp;
-    if (jj_scan_token(TAGNAME)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_14()) jj_scanpos = xsp;
-    if (jj_scan_token(TAGCLOSE)) return true;
+    if (jj_scan_token(QUOTE)) return true;
+    if (jj_3R_13()) return true;
+    if (jj_scan_token(TWODOTS)) return true;
+    if (jj_scan_token(URL)) return true;
     return false;
   }
 
-  private boolean jj_3R_6() {
+  private boolean jj_3R_8() {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3_13()) {
     jj_scanpos = xsp;
-    if (jj_3_14()) {
+    if (jj_3R_26()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3R_45() {
+    if (jj_scan_token(TAGCLOSE)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_36() {
+    if (jj_scan_token(SPACE)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_44() {
+    if (jj_scan_token(HASHTAG)) return true;
+    if (jj_3R_20()) return true;
+    return false;
+  }
+
+  private boolean jj_3_11() {
+    if (jj_scan_token(SPACE)) return true;
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_12() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_11()) {
     jj_scanpos = xsp;
-    if (jj_3_15()) {
+    if (jj_3R_36()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3R_16() {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_52() {
+    if (jj_scan_token(BRACESCLOSE)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_43() {
+    if (jj_scan_token(NUMBER)) return true;
+    if (jj_3R_20()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_18() {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_51() {
+    if (jj_scan_token(NUMBER)) return true;
+    if (jj_3R_25()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_42() {
+    if (jj_scan_token(TAGNAME)) return true;
+    if (jj_3R_20()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_35() {
+    if (jj_scan_token(NEWLINE)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_50() {
+    if (jj_scan_token(TAGNAME)) return true;
+    if (jj_3R_25()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_7() {
+    if (jj_scan_token(TAGNAME)) return true;
+    if (jj_scan_token(NUMBER)) return true;
+    if (jj_scan_token(TAGNAME)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_41() {
+    if (jj_scan_token(SPACE)) return true;
+    if (jj_3R_20()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_20() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_41()) {
     jj_scanpos = xsp;
-    if (jj_3_16()) return true;
+    if (jj_3R_42()) {
+    jj_scanpos = xsp;
+    if (jj_3R_43()) {
+    jj_scanpos = xsp;
+    if (jj_3R_44()) {
+    jj_scanpos = xsp;
+    if (jj_3R_45()) return true;
     }
     }
     }
+    }
+    return false;
+  }
+
+  private boolean jj_3R_14() {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3_10() {
+    if (jj_scan_token(NEWLINE)) return true;
+    if (jj_3R_11()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_11() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_10()) {
+    jj_scanpos = xsp;
+    if (jj_3R_35()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3R_49() {
+    if (jj_scan_token(SPACE)) return true;
+    if (jj_3R_25()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_25() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_49()) {
+    jj_scanpos = xsp;
+    if (jj_3R_50()) {
+    jj_scanpos = xsp;
+    if (jj_3R_51()) {
+    jj_scanpos = xsp;
+    if (jj_3R_52()) return true;
+    }
+    }
+    }
+    return false;
+  }
+
+  private boolean jj_3_12() {
+    if (jj_scan_token(BACKSLASH)) return true;
+    if (jj_3R_6()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_34() {
+    if (jj_scan_token(TAGCLOSE)) return true;
+    return false;
+  }
+
+  private boolean jj_3_17() {
+    if (jj_scan_token(TAGOPEN)) return true;
+    if (jj_scan_token(SLASH)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_21()) jj_scanpos = xsp;
+    if (jj_scan_token(TAGNAME)) return true;
+    xsp = jj_scanpos;
+    if (jj_3R_22()) jj_scanpos = xsp;
+    if (jj_scan_token(EQUAL)) return true;
+    if (jj_3R_20()) return true;
     return false;
   }
 
   private boolean jj_3R_5() {
     if (jj_scan_token(BRACESOPEN)) return true;
     if (jj_scan_token(BRACESOPEN)) return true;
-    if (jj_3R_23()) return true;
+    if (jj_3R_25()) return true;
     if (jj_scan_token(BRACESCLOSE)) return true;
     return false;
   }
 
-  private boolean jj_3R_31() {
+  private boolean jj_3_8() {
+    if (jj_3R_8()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_33() {
     if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_9()) return true;
+    if (jj_3R_10()) return true;
     return false;
   }
 
-  private boolean jj_3R_30() {
+  private boolean jj_3_16() {
+    if (jj_scan_token(TAGOPEN)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_18()) jj_scanpos = xsp;
     if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_9()) return true;
+    xsp = jj_scanpos;
+    if (jj_3R_19()) jj_scanpos = xsp;
+    if (jj_scan_token(EQUAL)) return true;
+    if (jj_3R_20()) return true;
     return false;
   }
 
-  private boolean jj_3R_38() {
-    if (jj_scan_token(QUOTE)) return true;
+  private boolean jj_3_7() {
+    if (jj_3R_7()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_32() {
+    if (jj_scan_token(TAGNAME)) return true;
+    if (jj_3R_10()) return true;
+    return false;
+  }
+
+  private boolean jj_3_15() {
+    if (jj_scan_token(TAGOPEN)) return true;
+    if (jj_scan_token(SLASH)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_16()) jj_scanpos = xsp;
+    if (jj_scan_token(TAGNAME)) return true;
+    xsp = jj_scanpos;
+    if (jj_3R_17()) jj_scanpos = xsp;
+    if (jj_scan_token(TAGCLOSE)) return true;
+    return false;
+  }
+
+  private boolean jj_3_6() {
+    if (jj_3R_6()) return true;
     return false;
   }
 
@@ -782,42 +1058,63 @@ public class DTextCompiler implements DTextCompilerConstants {
     return false;
   }
 
-  private boolean jj_3R_29() {
+  private boolean jj_3R_31() {
     if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_9()) return true;
+    if (jj_3R_10()) return true;
     return false;
   }
 
-  private boolean jj_3R_9() {
+  private boolean jj_3R_10() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_29()) {
-    jj_scanpos = xsp;
-    if (jj_3R_30()) {
-    jj_scanpos = xsp;
     if (jj_3R_31()) {
     jj_scanpos = xsp;
-    if (jj_3R_32()) return true;
+    if (jj_3R_32()) {
+    jj_scanpos = xsp;
+    if (jj_3R_33()) {
+    jj_scanpos = xsp;
+    if (jj_3R_34()) return true;
     }
     }
     }
     return false;
   }
 
-  private boolean jj_3R_21() {
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_37() {
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_36() {
+  private boolean jj_3_14() {
+    if (jj_scan_token(TAGOPEN)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_14()) jj_scanpos = xsp;
     if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_12()) return true;
+    xsp = jj_scanpos;
+    if (jj_3R_15()) jj_scanpos = xsp;
+    if (jj_scan_token(TAGCLOSE)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_6() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_14()) {
+    jj_scanpos = xsp;
+    if (jj_3_15()) {
+    jj_scanpos = xsp;
+    if (jj_3_16()) {
+    jj_scanpos = xsp;
+    if (jj_3_17()) return true;
+    }
+    }
+    }
+    return false;
+  }
+
+  private boolean jj_3_5() {
+    if (jj_3R_5()) return true;
+    return false;
+  }
+
+  private boolean jj_3_4() {
+    if (jj_3R_4()) return true;
     return false;
   }
 
@@ -827,249 +1124,13 @@ public class DTextCompiler implements DTextCompilerConstants {
     return false;
   }
 
-  private boolean jj_3R_28() {
-    if (jj_scan_token(PIPE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_16() {
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_35() {
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_12() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_35()) {
-    jj_scanpos = xsp;
-    if (jj_3R_36()) {
-    jj_scanpos = xsp;
-    if (jj_3R_37()) {
-    jj_scanpos = xsp;
-    if (jj_3R_38()) return true;
-    }
-    }
-    }
-    return false;
-  }
-
-  private boolean jj_3R_18() {
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_27() {
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_8()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_26() {
-    if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_8()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_1() {
-    if (jj_scan_token(AT)) return true;
-    if (jj_scan_token(TAGNAME)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_24() {
-    if (jj_scan_token(URL)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_14() {
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_25() {
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_8()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_8() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_25()) {
-    jj_scanpos = xsp;
-    if (jj_3R_26()) {
-    jj_scanpos = xsp;
-    if (jj_3R_27()) {
-    jj_scanpos = xsp;
-    if (jj_3R_28()) return true;
-    }
-    }
-    }
-    return false;
-  }
-
-  private boolean jj_3R_20() {
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3_12() {
-    if (jj_scan_token(QUOTE)) return true;
-    if (jj_3R_12()) return true;
-    if (jj_scan_token(TWODOTS)) return true;
-    if (jj_scan_token(URL)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_7() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_12()) {
-    jj_scanpos = xsp;
-    if (jj_3R_24()) return true;
-    }
-    return false;
-  }
-
-  private boolean jj_3R_43() {
-    if (jj_scan_token(TAGCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_42() {
-    if (jj_scan_token(HASHTAG)) return true;
-    if (jj_3R_19()) return true;
-    return false;
-  }
-
-  private boolean jj_3_7() {
-    if (jj_3R_7()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_22() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(TAGCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_15() {
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_41() {
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_19()) return true;
-    return false;
-  }
-
-  private boolean jj_3_6() {
-    if (jj_3R_6()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_17() {
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3_8() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_3R_8()) return true;
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(TAGCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_4() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_8()) {
-    jj_scanpos = xsp;
-    if (jj_3R_22()) return true;
-    }
-    return false;
-  }
-
   private boolean jj_3R_40() {
-    if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_19()) return true;
+    if (jj_scan_token(QUOTE)) return true;
     return false;
   }
 
-  private boolean jj_3R_34() {
-    if (jj_scan_token(SPACE)) return true;
-    return false;
-  }
-
-  private boolean jj_3_5() {
-    if (jj_3R_5()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_39() {
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_19()) return true;
-    return false;
-  }
-
-  private boolean jj_3_4() {
-    if (jj_3R_4()) return true;
-    return false;
-  }
-
-  private boolean jj_3_10() {
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_11() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_10()) {
-    jj_scanpos = xsp;
-    if (jj_3R_34()) return true;
-    }
-    return false;
-  }
-
-  private boolean jj_3R_13() {
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_19() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_39()) {
-    jj_scanpos = xsp;
-    if (jj_3R_40()) {
-    jj_scanpos = xsp;
-    if (jj_3R_41()) {
-    jj_scanpos = xsp;
-    if (jj_3R_42()) {
-    jj_scanpos = xsp;
-    if (jj_3R_43()) return true;
-    }
-    }
-    }
-    }
-    return false;
-  }
-
-  private boolean jj_3R_47() {
-    if (jj_scan_token(BRACESCLOSE)) return true;
+  private boolean jj_3R_30() {
+    if (jj_scan_token(PIPE)) return true;
     return false;
   }
 
@@ -1078,15 +1139,20 @@ public class DTextCompiler implements DTextCompilerConstants {
     return false;
   }
 
-  private boolean jj_3R_46() {
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_23()) return true;
+  private boolean jj_3R_22() {
+    if (jj_3R_12()) return true;
     return false;
   }
 
-  private boolean jj_3_11() {
-    if (jj_scan_token(BACKSLASH)) return true;
-    if (jj_3R_6()) return true;
+  private boolean jj_3R_39() {
+    if (jj_scan_token(NUMBER)) return true;
+    if (jj_3R_13()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_29() {
+    if (jj_scan_token(NUMBER)) return true;
+    if (jj_3R_9()) return true;
     return false;
   }
 
@@ -1095,28 +1161,19 @@ public class DTextCompiler implements DTextCompilerConstants {
     return false;
   }
 
-  private boolean jj_3R_33() {
-    if (jj_scan_token(NEWLINE)) return true;
+  private boolean jj_3R_48() {
     return false;
   }
 
-  private boolean jj_3R_45() {
+  private boolean jj_3R_38() {
     if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_23()) return true;
+    if (jj_3R_13()) return true;
     return false;
   }
 
-  private boolean jj_3_16() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_scan_token(SLASH)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_20()) jj_scanpos = xsp;
+  private boolean jj_3R_28() {
     if (jj_scan_token(TAGNAME)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_21()) jj_scanpos = xsp;
-    if (jj_scan_token(EQUAL)) return true;
-    if (jj_3R_19()) return true;
+    if (jj_3R_9()) return true;
     return false;
   }
 
@@ -1125,24 +1182,68 @@ public class DTextCompiler implements DTextCompilerConstants {
     return false;
   }
 
-  private boolean jj_3_9() {
-    if (jj_scan_token(NEWLINE)) return true;
-    if (jj_3R_10()) return true;
+  private boolean jj_3R_47() {
+    if (jj_scan_token(NUMBER)) return true;
+    if (jj_3R_23()) return true;
     return false;
   }
 
-  private boolean jj_3R_10() {
+  private boolean jj_3R_17() {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_37() {
+    if (jj_scan_token(SPACE)) return true;
+    if (jj_3R_13()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_27() {
+    if (jj_scan_token(SPACE)) return true;
+    if (jj_3R_9()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_9() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_9()) {
+    if (jj_3R_27()) {
     jj_scanpos = xsp;
-    if (jj_3R_33()) return true;
+    if (jj_3R_28()) {
+    jj_scanpos = xsp;
+    if (jj_3R_29()) {
+    jj_scanpos = xsp;
+    if (jj_3R_30()) return true;
+    }
+    }
     }
     return false;
   }
 
-  private boolean jj_3R_44() {
-    if (jj_scan_token(SPACE)) return true;
+  private boolean jj_3R_13() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_37()) {
+    jj_scanpos = xsp;
+    if (jj_3R_38()) {
+    jj_scanpos = xsp;
+    if (jj_3R_39()) {
+    jj_scanpos = xsp;
+    if (jj_3R_40()) return true;
+    }
+    }
+    }
+    return false;
+  }
+
+  private boolean jj_3R_19() {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_46() {
+    if (jj_scan_token(TAGNAME)) return true;
     if (jj_3R_23()) return true;
     return false;
   }
@@ -1150,29 +1251,13 @@ public class DTextCompiler implements DTextCompilerConstants {
   private boolean jj_3R_23() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_44()) {
-    jj_scanpos = xsp;
-    if (jj_3R_45()) {
-    jj_scanpos = xsp;
     if (jj_3R_46()) {
     jj_scanpos = xsp;
-    if (jj_3R_47()) return true;
+    if (jj_3R_47()) {
+    jj_scanpos = xsp;
+    if (jj_3R_48()) return true;
     }
     }
-    }
-    return false;
-  }
-
-  private boolean jj_3_15() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_17()) jj_scanpos = xsp;
-    if (jj_scan_token(TAGNAME)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_18()) jj_scanpos = xsp;
-    if (jj_scan_token(EQUAL)) return true;
-    if (jj_3R_19()) return true;
     return false;
   }
 
@@ -1187,15 +1272,15 @@ public class DTextCompiler implements DTextCompilerConstants {
   private Token jj_scanpos, jj_lastpos;
   private int jj_la;
   private int jj_gen;
-  final private int[] jj_la1 = new int[21];
+  final private int[] jj_la1 = new int[22];
   static private int[] jj_la1_0;
   static {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0xc001,0x63ffe,0x64010,0x2,0x64100,0x64004,0x8000,0x4000,0x439be,0x20640,0x10000,0x64200,0x4000,0x4000,0x4000,0x4000,0x4000,0x4000,0x4000,0x4000,0x64804,};
+      jj_la1_0 = new int[] {0xc001,0x63ffe,0x60000,0x64010,0x2,0x64100,0x64004,0x8000,0x4000,0x439be,0x20640,0x10000,0x64200,0x4000,0x4000,0x4000,0x4000,0x4000,0x4000,0x4000,0x4000,0x64804,};
    }
-  final private JJCalls[] jj_2_rtns = new JJCalls[16];
+  final private JJCalls[] jj_2_rtns = new JJCalls[17];
   private boolean jj_rescan = false;
   private int jj_gc = 0;
 
@@ -1210,7 +1295,7 @@ public class DTextCompiler implements DTextCompilerConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 21; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1225,7 +1310,7 @@ public class DTextCompiler implements DTextCompilerConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 21; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1236,7 +1321,7 @@ public class DTextCompiler implements DTextCompilerConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 21; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1247,7 +1332,7 @@ public class DTextCompiler implements DTextCompilerConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 21; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1257,7 +1342,7 @@ public class DTextCompiler implements DTextCompilerConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 21; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1267,7 +1352,7 @@ public class DTextCompiler implements DTextCompilerConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 21; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1387,7 +1472,7 @@ public class DTextCompiler implements DTextCompilerConstants {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 21; i++) {
+    for (int i = 0; i < 22; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -1423,7 +1508,7 @@ public class DTextCompiler implements DTextCompilerConstants {
 
   private void jj_rescan_token() {
     jj_rescan = true;
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 17; i++) {
     try {
       JJCalls p = jj_2_rtns[i];
       do {
@@ -1446,6 +1531,7 @@ public class DTextCompiler implements DTextCompilerConstants {
             case 13: jj_3_14(); break;
             case 14: jj_3_15(); break;
             case 15: jj_3_16(); break;
+            case 16: jj_3_17(); break;
           }
         }
         p = p.next;

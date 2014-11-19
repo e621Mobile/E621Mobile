@@ -16,12 +16,16 @@ public class DTextCompiler
 
     public DTextToken getToken() throws ParseException
     {
+        DTextToken t;
+
         if(!tokenStack.isEmpty())
         {
-            return tokenStack.remove(0);
+            t = tokenStack.remove(0);
         }
-
-        DTextToken t =  getNextDToken();
+        else
+        {
+            t =  getNextDToken();
+        }
 
         if(t instanceof DTextTokenWord)
         {
@@ -69,7 +73,7 @@ TOKEN :
     | < NEWLINE: ("\n"|"\r") >
     | < URL : "http" ("s")? "://" (~[" ","\t","\n","\r"])+ >
     | <NUMBER: (["0"-"9"])+>
-    | < TAGNAME: (~[" ","\t","\n","\r","[","]","=","/","\"","|","{","}","#","*","@","\\",":"])+ >
+    | < TAGNAME: (~[" ","\t","\n","\r","[","]","=","/","\"","|","{","}","#","*","@","\\",":","0"-"9"])+ >
 }
 
 public DTextToken getNextDToken() :
@@ -92,7 +96,7 @@ public DTextToken getNextDToken() :
         return token;
     }
     |
-    LOOKAHEAD(2) token=getUser()
+    LOOKAHEAD(99999) token=getUser()
     {
         return token;
     }
@@ -122,6 +126,11 @@ public DTextToken getNextDToken() :
         return token;
     }
     |
+    LOOKAHEAD(3) token=getHeader()
+    {
+        return token;
+    }
+    |
     LOOKAHEAD(99999) token=getLink()
     {
         return token;
@@ -133,14 +142,60 @@ public DTextToken getNextDToken() :
     }
 }
 
-DTextTokenUser getUser() :
+DTextToken getHeader() :
 {
-    Token t;
+    Token h;
+    Token num;
+    Token r;
 }
 {
-    <AT> t=<TAGNAME>
+    h=<TAGNAME> num=<NUMBER> r=<TAGNAME>
     {
-        return new DTextTokenUser(t.toString());
+        if(h.toString().equals("h") && Integer.parseInt(num.toString()) >= 1 && Integer.parseInt(num.toString()) <= 6 && r.toString().startsWith("."))
+        {
+            if(r.toString().length() > 1)
+            {
+                tokenStack.add(new DTextTokenWord(r.toString().substring(1)));
+            }
+
+            return new DTextTokenHeader(Integer.parseInt(num.toString()));
+        }
+        else
+        {
+            return new DTextTokenWord(h.toString() + num.toString() +r.toString());
+        }
+    }
+}
+
+DTextTokenUser getUser() :
+{
+    String t;
+}
+{
+    <AT> t=getUserName()
+    {
+        return new DTextTokenUser(t);
+    }
+}
+
+String getUserName() :
+{
+    Token t;
+    String s;
+}
+{
+    t=<TAGNAME> s=getUserName()
+    {
+        return t.toString() + s;
+    }
+    |
+    t=<NUMBER> s=getUserName()
+    {
+        return t.toString() + s;
+    }
+    |
+    {
+        return "";
     }
 }
 
@@ -336,21 +391,7 @@ DTextToken getWord() :
     |
     s=<TAGNAME>
     {
-        String str = s.toString();
-
-        if(str.length() >=3 && str.substring(0,3).matches("h[1-6]\\."))
-        {
-            if(str.length() > 3)
-            {
-                tokenStack.add(new DTextTokenWord(str.substring(3)));
-            }
-
-            return new DTextTokenHeader(Integer.parseInt(str.substring(1,2)));
-        }
-        else
-        {
-            return new DTextTokenWord(str);
-        }
+        return new DTextTokenWord(s.toString());
     }
     |
     s=<PIPE>
