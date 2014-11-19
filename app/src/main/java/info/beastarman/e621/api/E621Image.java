@@ -6,14 +6,19 @@ import org.json.JSONObject;
 import org.w3c.dom.Element;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 import info.beastarman.e621.api.dtext.DText;
 
 public class E621Image implements Serializable
 {
 	private static final long serialVersionUID = 4972427634331752322L;
+
+	public static final SimpleDateFormat DATE_FORMAT_XML = new SimpleDateFormat("EEE MMM d HH:mm:ss ZZZ yyyy");
 	
 	public static final int PREVIEW = 1;
 	public static final int SAMPLE = 2;
@@ -27,7 +32,8 @@ public class E621Image implements Serializable
 	public static String EXPLICIT = "e";
 	public static String QUESTIONABLE = "q";
 	public static String SAFE = "s";
-	
+
+	public Date created_at = null;
 	public String preview_url = "";
 	public String sample_url = "";
 	public String file_url = "";
@@ -153,6 +159,14 @@ public class E621Image implements Serializable
 			img.children = new ArrayList<String>();
 		}
 
+		try
+		{
+			img.created_at = new Date(json.getJSONObject("created_at").optLong("s",0)*1000);
+		} catch (JSONException e)
+		{
+			e.printStackTrace();
+		}
+
 		JSONArray sources = json.optJSONArray("sources");
 		img.sources = new ArrayList<String>();
 
@@ -203,6 +217,14 @@ public class E621Image implements Serializable
 		else
 		{
 			img.children = new ArrayList<String>();
+		}
+
+		try
+		{
+			img.created_at = DATE_FORMAT_XML.parse(xml.getAttribute("created_at"));
+		} catch (ParseException e)
+		{
+			e.printStackTrace();
 		}
 
 		String sources = xml.getAttribute("sources");
