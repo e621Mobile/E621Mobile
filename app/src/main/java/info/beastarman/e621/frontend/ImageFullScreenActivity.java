@@ -399,12 +399,6 @@ public class ImageFullScreenActivity extends BaseActivity
 		{
 			description.addView(new ProgressBar(this));
 
-			description.setDText(new DText("The color balance on this one is different.  Compare the sky/savannah to the right of the subject and the edge of the tree.  In this version of the picture, Zen has defocused the background, adjusted the color towards yellows, and added color bloom.\n" +
-					"\n" +
-					"(It would probably be appropriate to have this version as a child of the original #581.)"));
-
-			if(true) return;
-
 			new Thread(new Runnable()
 			{
 				@Override

@@ -443,6 +443,12 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 
 						objects.add(lastObj);
 					}
+					else
+					{
+						lastObj = new DTextString(((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
+
+						objects.add(lastObj);
+					}
 				}
 			}
 		}
