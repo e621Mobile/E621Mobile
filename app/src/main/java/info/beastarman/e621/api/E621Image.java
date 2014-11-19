@@ -1,11 +1,15 @@
 package info.beastarman.e621.api;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Element;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import info.beastarman.e621.api.dtext.DText;
 
 public class E621Image implements Serializable
 {
@@ -31,8 +35,10 @@ public class E621Image implements Serializable
 	public String file_ext = "";
 	public String parent_id = null;
 	public String rating = SAFE;
+	public String description = "";
 	public ArrayList<E621Tag> tags = new ArrayList<E621Tag>();
 	public ArrayList<String> children = new ArrayList<String>();
+	public ArrayList<String> sources = new ArrayList<String>();
 	public boolean has_children = false;
 	
 	public int score = 0;
@@ -59,12 +65,15 @@ public class E621Image implements Serializable
 		preview_url = that.preview_url;
 		sample_url = that.sample_url;
 		file_url = that.file_url;
+		description = that.description;
+
 		id = that.id;
 		file_ext = that.file_ext;
 		parent_id = that.parent_id;
 		rating = that.rating;
 		tags = new ArrayList<E621Tag>(that.tags);
 		children = new ArrayList<String>(that.children);
+		sources = new ArrayList<String>(that.sources);
 		has_children = that.has_children;
 		score = that.score;
 		preview_width = that.preview_width;
@@ -86,7 +95,9 @@ public class E621Image implements Serializable
 		img.sample_url = json.optString("sample_url","");
 		
 		img.file_url = json.optString("file_url","");
-		
+
+		img.description = json.optString("description","").trim();
+
 		img.id = json.optInt("id",666);
 		
 		img.rating = json.optString("rating",EXPLICIT);
@@ -137,6 +148,21 @@ public class E621Image implements Serializable
 		{
 			img.children = new ArrayList<String>(Arrays.asList(children.split(",")));
 		}
+		else
+		{
+			img.children = new ArrayList<String>();
+		}
+
+		JSONArray sources = json.optJSONArray("sources");
+		img.sources = new ArrayList<String>();
+
+		if(sources != null)
+		{
+			for(int i=0; i<sources.length(); i++)
+			{
+				img.sources.add(sources.optString(i,"").trim());
+			}
+		}
 		
 		for(String tag : json.optString("tags","").split("\\s"))
 		{
@@ -154,8 +180,11 @@ public class E621Image implements Serializable
 
 		img.preview_url = xml.getAttribute("preview_url"); 
 		img.sample_url = xml.getAttribute("sample_url"); 
-		img.file_url = xml.getAttribute("file_url"); 
-		img.id = Integer.parseInt(xml.getAttribute("id"));  
+		img.file_url = xml.getAttribute("file_url");
+
+		img.description = xml.getAttribute("description").trim();
+
+		img.id = Integer.parseInt(xml.getAttribute("id"));
 		img.rating = xml.getAttribute("rating"); 
 		img.file_ext = xml.getAttribute("file_ext");
 		img.has_comments = xml.getAttribute("has_comments").equals("true");
@@ -170,6 +199,30 @@ public class E621Image implements Serializable
 		if(children.length() > 0)
 		{
 			img.children = new ArrayList<String>(Arrays.asList(children.split(",")));
+		}
+		else
+		{
+			img.children = new ArrayList<String>();
+		}
+
+		String sources = xml.getAttribute("sources");
+		img.sources = new ArrayList<String>();
+
+		if(sources.length() > 0)
+		{
+			try
+			{
+				JSONArray sourcesArray = new JSONArray(sources);
+
+				for(int i=0; i<sourcesArray.length(); i++)
+				{
+					img.sources.add(sourcesArray.optString(i,"").trim());
+				}
+			}
+			catch (JSONException e)
+			{
+				e.printStackTrace();
+			}
 		}
 		
 		String status = xml.getAttribute("status");
@@ -218,6 +271,11 @@ public class E621Image implements Serializable
 		}
 		
 		return img;
+	}
+
+	public DText getDescriptionAsDText()
+	{
+		return new DText(description);
 	}
 	
 	@Override

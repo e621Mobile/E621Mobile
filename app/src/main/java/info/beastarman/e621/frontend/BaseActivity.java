@@ -45,7 +45,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	protected int dpToPx(int dp)
 	{
 	    DisplayMetrics displayMetrics = getApplicationContext().getResources().getDisplayMetrics();
-	    int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));       
+	    int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
 	    return px;
 	}
 	

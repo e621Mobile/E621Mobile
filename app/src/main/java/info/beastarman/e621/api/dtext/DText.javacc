@@ -1,0 +1,514 @@
+options
+{
+    STATIC = false;
+    UNICODE_INPUT = true;
+}
+
+PARSER_BEGIN(DTextCompiler)
+
+package info.beastarman.e621.api.dtext;
+
+import java.util.ArrayList;
+
+public class DTextCompiler
+{
+    public ArrayList<DTextToken> tokenStack= new ArrayList<DTextToken>();
+
+    public DTextToken getToken() throws ParseException
+    {
+        if(!tokenStack.isEmpty())
+        {
+            return tokenStack.remove(0);
+        }
+
+        DTextToken t =  getNextDToken();
+
+        if(t instanceof DTextTokenWord)
+        {
+            DTextToken t2 = getToken();
+
+            if(t2 == null)
+            {
+                return t;
+            }
+            else if(t2 instanceof DTextTokenWord)
+            {
+                return new DTextTokenWord(
+                    ((DTextTokenWord)t).word +
+                    ((DTextTokenWord)t2).word
+                );
+            }
+            else
+            {
+                tokenStack.add(t2);
+            }
+        }
+
+        return t;
+    }
+}
+
+PARSER_END(DTextCompiler)
+
+TOKEN :
+{
+    < TAGOPEN: "[" >
+    | < TAGCLOSE: "]" >
+    | < BRACESOPEN: "{" >
+    | < BRACESCLOSE: "}" >
+    | < SLASH: "/" >
+    | < BACKSLASH: "\\" >
+    | < EQUAL: "=" >
+    | < PIPE: "|" >
+    | < QUOTE: "\"" >
+    | < TWODOTS: ":" >
+    | < HASHTAG: "#" >
+    | < AT: "@" >
+    | < ASTERISKS: ("*")+ >
+    | < SPACE: (" "|"\t") >
+    | < NEWLINE: ("\n"|"\r") >
+    | < URL : "http" ("s")? "://" (~[" ","\t","\n","\r"])+ >
+    | <NUMBER: (["0"-"9"])+>
+    | < TAGNAME: (~[" ","\t","\n","\r","[","]","=","/","\"","|","{","}","#","*","@","\\",":"])+ >
+}
+
+public DTextToken getNextDToken() :
+{
+    DTextToken token;
+}
+{
+    <EOF>
+    {
+        return null;
+    }
+    |
+    token=getSpace()
+    {
+        return token;
+    }
+    |
+    token=getNewline()
+    {
+        return token;
+    }
+    |
+    LOOKAHEAD(2) token=getUser()
+    {
+        return token;
+    }
+    |
+    LOOKAHEAD(2) token=getList()
+    {
+        return token;
+    }
+    |
+    LOOKAHEAD(3) token=getPageLink()
+    {
+        return token;
+    }
+    |
+    LOOKAHEAD(99999) token=getWiki()
+    {
+        return token;
+    }
+    |
+    LOOKAHEAD(99999) token=getSearchTag()
+    {
+        return token;
+    }
+    |
+    LOOKAHEAD(99999) token=getTag()
+    {
+        return token;
+    }
+    |
+    LOOKAHEAD(99999) token=getLink()
+    {
+        return token;
+    }
+    |
+    token=getWord()
+    {
+        return token;
+    }
+}
+
+DTextTokenUser getUser() :
+{
+    Token t;
+}
+{
+    <AT> t=<TAGNAME>
+    {
+        return new DTextTokenUser(t.toString());
+    }
+}
+
+DTextTokenList getList() :
+{
+    Token t;
+}
+{
+    t=<ASTERISKS> <SPACE>
+    {
+        return new DTextTokenList(t.toString().length());
+    }
+}
+
+DTextTokenPageLink getPageLink() :
+{
+    Token page;
+    Token link;
+}
+{
+    page=<TAGNAME> <SPACE> <HASHTAG> link=<NUMBER>
+    {
+        return new DTextTokenPageLink(page.toString(),Integer.parseInt(link.toString()));
+    }
+}
+
+DTextTokenSearchTag getSearchTag() :
+{
+    String tag;
+}
+{
+    <BRACESOPEN> <BRACESOPEN> tag=getSearchTagName() <BRACESCLOSE>
+    {
+        return new DTextTokenSearchTag(tag);
+    }
+}
+
+String getSearchTagName() :
+{
+    String s;
+    Token t;
+}
+{
+    <SPACE> s=getSearchTagName()
+    {
+        return " " + s;
+    }
+    |
+    t=<TAGNAME> s=getSearchTagName()
+    {
+        return t.toString() + s;
+    }
+    |
+    t=<NUMBER> s=getSearchTagName()
+    {
+        return t.toString() + s;
+    }
+    |
+    <BRACESCLOSE>
+    {
+        return "";
+    }
+}
+
+DTextTokenWiki getWiki() :
+{
+    String page = "";
+    String title = "";
+}
+{
+    LOOKAHEAD(99999) <TAGOPEN> <TAGOPEN> page=getWikiPage() title=getWikiTitle() <TAGCLOSE>
+    {
+        return new DTextTokenWiki(page.toString().trim(),title.toString().trim());
+    }
+    |
+    <TAGOPEN> <TAGOPEN> title=getWikiTitle() <TAGCLOSE>
+    {
+        return new DTextTokenWiki(title.toString().trim());
+    }
+}
+
+String getWikiPage() :
+{
+    Token t;
+    String s = "";
+}
+{
+    <SPACE> s=getWikiPage()
+    {
+        return " " + s;
+    }
+    |
+    t=<TAGNAME> s=getWikiPage()
+    {
+        return t.toString() + s;
+    }
+    |
+    t=<NUMBER> s=getWikiPage()
+    {
+        return t.toString() + s;
+    }
+    |
+    <PIPE>
+    {
+        return "";
+    }
+}
+
+String getWikiTitle() :
+{
+    Token t;
+    String s = "";
+}
+{
+    <SPACE> s=getWikiTitle()
+    {
+        return " " + s;
+    }
+    |
+    t=<TAGNAME> s=getWikiTitle()
+    {
+        return t.toString() + s;
+    }
+    |
+    t=<NUMBER> s=getWikiTitle()
+    {
+        return t.toString() + s;
+    }
+    |
+    <TAGCLOSE>
+    {
+        return "";
+    }
+}
+
+DTextTokenNewline getNewline() :
+{
+    DTextTokenNewline space;
+}
+{
+    LOOKAHEAD(99999) <NEWLINE> space=getNewline()
+    {
+        return space;
+    }
+    |
+    <NEWLINE>
+    {
+        return new DTextTokenNewline();
+    }
+}
+
+DTextTokenSpace getSpace() :
+{
+    DTextTokenSpace space;
+}
+{
+    LOOKAHEAD(2) <SPACE> space=getSpace()
+    {
+        return space;
+    }
+    |
+    <SPACE>
+    {
+        return new DTextTokenSpace();
+    }
+}
+
+DTextToken getWord() :
+{
+    Token s;
+    DTextTokenTag t;
+}
+{
+    s=<TAGOPEN>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<TAGCLOSE>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<SLASH>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<EQUAL>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<TAGNAME>
+    {
+        String str = s.toString();
+
+        if(str.length() >=3 && str.substring(0,3).matches("h[1-6]\\."))
+        {
+            if(str.length() > 3)
+            {
+                tokenStack.add(new DTextTokenWord(str.substring(3)));
+            }
+
+            return new DTextTokenHeader(Integer.parseInt(str.substring(1,2)));
+        }
+        else
+        {
+            return new DTextTokenWord(str);
+        }
+    }
+    |
+    s=<PIPE>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<BRACESOPEN>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<BRACESCLOSE>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<HASHTAG>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<ASTERISKS>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<AT>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    LOOKAHEAD(2) s=<BACKSLASH> t=getTag()
+    {
+        return new DTextTokenWord(s.toString() + t.toString());
+    }
+    |
+    s=<BACKSLASH>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<NUMBER>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<QUOTE>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+    |
+    s=<TWODOTS>
+    {
+        return new DTextTokenWord(s.toString());
+    }
+}
+
+DTextTokenLink getLink() :
+{
+    String title;
+    Token link;
+}
+{
+    LOOKAHEAD(99999) <QUOTE> title=getLinkTitle() <TWODOTS> link=<URL>
+    {
+        return new DTextTokenLink(link.toString(),title.toString());
+    }
+    |
+    link=<URL>
+    {
+        return new DTextTokenLink(link.toString());
+    }
+}
+
+String getLinkTitle() :
+{
+    Token t;
+    String s = "";
+}
+{
+    <SPACE> s=getLinkTitle()
+    {
+        return " " + s;
+    }
+    |
+    t=<TAGNAME> s=getLinkTitle()
+    {
+        return t.toString() + s;
+    }
+    |
+    t=<NUMBER> s=getLinkTitle()
+    {
+        return t.toString() + s;
+    }
+    |
+    <QUOTE>
+    {
+        return "";
+    }
+}
+
+DTextTokenTag getTag() :
+{
+    Token tag;
+    String value;
+}
+{
+    LOOKAHEAD(99999) <TAGOPEN> (getSpace())? tag=<TAGNAME> (getSpace())? <TAGCLOSE>
+    {
+        return new DTextTokenTag(tag.toString());
+    }
+    |
+    LOOKAHEAD(99999) <TAGOPEN> <SLASH> (getSpace())? tag=<TAGNAME> (getSpace())? <TAGCLOSE>
+    {
+        return new DTextTokenTag(tag.toString(),false);
+    }
+    |
+    LOOKAHEAD(99999) <TAGOPEN> (getSpace())? tag=<TAGNAME> (getSpace())? <EQUAL> value=getTagValue()
+    {
+        return new DTextTokenTag(tag.toString(),true,value);
+    }
+    |
+    LOOKAHEAD(99999) <TAGOPEN> <SLASH> (getSpace())? tag=<TAGNAME> (getSpace())? <EQUAL> value=getTagValue()
+    {
+        return new DTextTokenTag(tag.toString(),false,value);
+    }
+}
+
+
+String getTagValue() :
+{
+    Token t;
+    String s = "";
+}
+{
+    <SPACE> s=getTagValue()
+    {
+        return " " + s;
+    }
+    |
+    t=<TAGNAME> s=getTagValue()
+    {
+        return t.toString() + s;
+    }
+    |
+    t=<NUMBER> s=getTagValue()
+    {
+        return t.toString() + s;
+    }
+    |
+    t=<HASHTAG> s=getTagValue()
+    {
+        return t.toString() + s;
+    }
+    |
+    <TAGCLOSE>
+    {
+        return "";
+    }
+}

@@ -56,6 +56,37 @@
             android:parentActivityName="info.beastarman.e621.frontend.MainActivity"
             android:windowSoftInputMode="stateHidden"
             android:theme="@style/CustomActionBarTheme">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http"
+                      android:host="e621.net"
+                      android:pathPrefix="/post/show/" />
+                <data android:scheme="http"
+                      android:host="www.e621.net"
+                      android:pathPrefix="/post/show" />
+                <data android:scheme="http"
+                      android:host="e926.net"
+                      android:pathPrefix="/post/show/" />
+                <data android:scheme="http"
+                      android:host="www.e926.net"
+                      android:pathPrefix="/post/show/" />
+                <data android:scheme="https"
+                      android:host="e621.net"
+                      android:pathPrefix="/post/show/" />
+                <data android:scheme="https"
+                      android:host="www.e621.net"
+                      android:pathPrefix="/post/show" />
+                <data android:scheme="https"
+                      android:host="e926.net"
+                      android:pathPrefix="/post/show/" />
+                <data android:scheme="https"
+                      android:host="www.e926.net"
+                      android:pathPrefix="/post/show/" />
+            </intent-filter>
+
         </activity>
         <activity
             android:name="info.beastarman.e621.frontend.SettingsActivity"

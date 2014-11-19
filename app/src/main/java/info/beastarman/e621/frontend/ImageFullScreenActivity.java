@@ -10,6 +10,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
+import android.text.style.URLSpan;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -35,9 +40,11 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.api.dtext.DText;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
@@ -45,6 +52,7 @@ import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
+import info.beastarman.e621.views.DTextView;
 import info.beastarman.e621.views.ZoomableRelativeLayout;
 
 public class ImageFullScreenActivity extends BaseActivity
@@ -70,7 +78,27 @@ public class ImageFullScreenActivity extends BaseActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.image_full_screen_activity);
 
-		image = (ImageNavigator) getIntent().getSerializableExtra(NAVIGATOR);
+		if (Intent.ACTION_VIEW.equals(getIntent().getAction()))
+		{
+			final List<String> segments = getIntent().getData().getPathSegments();
+
+			if (segments.size() > 2)
+			{
+				try
+				{
+					image = new NowhereToGoImageNavigator(Integer.parseInt(segments.get(2)));
+				}
+				catch(NumberFormatException e)
+				{
+					Intent i = new Intent(this,MainActivity.class);
+					startActivity(i);
+				}
+			}
+		}
+		else
+		{
+			image = (ImageNavigator) getIntent().getSerializableExtra(NAVIGATOR);
+		}
 
 		setTitle("#" + image.getId());
 
@@ -91,7 +119,7 @@ public class ImageFullScreenActivity extends BaseActivity
 		tabHost.addTab(tabHost.newTabSpec("Tags").setIndicator("Tags").setContent(R.id.tags));
 		tabHost.addTab(tabHost.newTabSpec("Comments").setIndicator("Comments").setContent(R.id.comments));
 
-		tabHost.setVisibility(View.INVISIBLE);
+		tabHost.setVisibility(View.GONE);
 
 		tabHost.post(new Runnable()
 		{
@@ -294,14 +322,21 @@ public class ImageFullScreenActivity extends BaseActivity
 
 	private void updateImage()
 	{
-		runOnUiThread(new Runnable()
+		new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				hideUI();
+				runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						hideUI();
+					}
+				});
 			}
-		});
+		}).start();
 
 		updateInfo();
 
@@ -319,11 +354,73 @@ public class ImageFullScreenActivity extends BaseActivity
 			@Override
 			public void run()
 			{
+				updateDescription();
+
+				updateSources();
+
 				updateParent();
 
 				updateChildren();
 			}
 		});
+	}
+
+	private void updateSources()
+	{
+		if(img.sources.size() > 0)
+		{
+			LinearLayout sources = (LinearLayout)findViewById(R.id.sources);
+			sources.removeAllViews();
+
+			for(String source : img.sources)
+			{
+				TextView tv = new TextView(this);
+				tv.setMovementMethod(LinkMovementMethod.getInstance());
+
+				Spannable s = new SpannableString(source);
+				s.setSpan(new URLSpan(source),0,source.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+				tv.setText(s);
+
+				sources.addView(tv);
+			}
+		}
+		else
+		{
+			(findViewById(R.id.sourcesLayout)).setVisibility(View.GONE);
+		}
+	}
+
+	private void updateDescription()
+	{
+		final DTextView description = (DTextView)findViewById(R.id.description);
+
+		if(!img.description.isEmpty())
+		{
+			description.addView(new ProgressBar(this));
+
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					final DText d = img.getDescriptionAsDText();
+
+					description.post(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							description.setDText(d);
+						}
+					});
+				}
+			}).start();
+		}
+		else
+		{
+			(findViewById(R.id.descriptionLayout)).setVisibility(View.GONE);
+		}
 	}
 
 	private void updateParent()
@@ -402,8 +499,8 @@ public class ImageFullScreenActivity extends BaseActivity
 								@Override
 								public void run()
 								{
-									final int height;// = parentWrapper.getHeight();
-									final int width;// = Math.min(height, height * parent.preview_width / parent.preview_height);
+									final int height;
+									final int width;
 
 									int scale = Math.max(1, Math.min(parent.preview_width / (parentWrapper.getWidth() / 5), parent.preview_height / parentWrapper.getHeight()));
 
@@ -610,7 +707,6 @@ public class ImageFullScreenActivity extends BaseActivity
 			@Override
 			public void onViewDetachedFromWindow(View view)
 			{
-
 			}
 		});
 
@@ -974,12 +1070,22 @@ public class ImageFullScreenActivity extends BaseActivity
 	{
 		switch (item.getItemId())
 		{
+			case R.id.action_settings:
+				open_settings();
+				return true;
 			case android.R.id.home:
 				goUp();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
+	}
+
+	public void open_settings()
+	{
+		Intent intent;
+		intent = new Intent(this, SettingsActivity.class);
+		startActivity(intent);
 	}
 
 	public void goUp()

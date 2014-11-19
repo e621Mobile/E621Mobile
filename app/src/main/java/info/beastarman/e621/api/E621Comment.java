@@ -8,6 +8,8 @@ import java.util.TimeZone;
 
 import org.json.JSONObject;
 
+import info.beastarman.e621.api.dtext.DText;
+
 public class E621Comment
 {
 	public DText body = null;
