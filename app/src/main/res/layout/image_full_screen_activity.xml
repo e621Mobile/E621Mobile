@@ -77,9 +77,168 @@
 
                             <RelativeLayout
                                 android:layout_width="fill_parent"
-                                android:layout_height="fill_parent"
-                                android:background="@color/detailsBackgroundColor"
+                                android:layout_height="wrap_content"
+                                android:padding="1dp"
+                                android:id="@+id/statisticsWrapper"
+                                android:background="@drawable/statistics_background_2"
+                                android:layout_margin="12dp">
+
+                                <TableLayout
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="fill_parent">
+
+                                    <TableRow
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent">
+
+                                        <RelativeLayout
+                                            android:layout_width="fill_parent"
+                                            android:layout_height="fill_parent"
+                                            android:layout_weight="0.5"
+                                            android:background="@drawable/statistics_title"
+                                            android:padding="8dp">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                                android:text="Created at"
+                                                android:textColor="@color/white"/>
+
+                                        </RelativeLayout>
+
+                                        <RelativeLayout
+                                            android:layout_width="fill_parent"
+                                            android:layout_height="fill_parent"
+                                            android:layout_weight="0.5"
+                                            android:padding="8dp"
+                                            android:background="@drawable/statistics_value">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                                android:id="@+id/createdAt"
+                                                />
+                                        </RelativeLayout>
+                                    </TableRow>
+
+                                    <TableRow
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent">
+
+                                        <RelativeLayout
+                                            android:layout_width="fill_parent"
+                                            android:layout_height="fill_parent"
+                                            android:layout_weight="0.5"
+                                            android:background="@drawable/statistics_title"
+                                            android:padding="8dp">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                                android:text="Uploaded by"
+                                                android:textColor="@color/white"/>
+
+                                        </RelativeLayout>
+
+                                        <RelativeLayout
+                                            android:layout_width="fill_parent"
+                                            android:layout_height="fill_parent"
+                                            android:layout_weight="0.5"
+                                            android:padding="8dp"
+                                            android:background="@drawable/statistics_value">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                                android:id="@+id/uploader"
+                                                />
+                                        </RelativeLayout>
+                                    </TableRow>
+
+                                    <TableRow
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent">
+
+                                        <RelativeLayout
+                                            android:layout_width="fill_parent"
+                                            android:layout_height="fill_parent"
+                                            android:layout_weight="0.5"
+                                            android:background="@drawable/statistics_title"
+                                            android:padding="8dp">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                                android:text="Rating"
+                                                android:textColor="@color/white"/>
+
+                                        </RelativeLayout>
+
+                                        <RelativeLayout
+                                            android:layout_width="fill_parent"
+                                            android:layout_height="fill_parent"
+                                            android:layout_weight="0.5"
+                                            android:padding="8dp"
+                                            android:background="@drawable/statistics_value">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                                android:id="@+id/rating"
+                                                />
+                                        </RelativeLayout>
+                                    </TableRow>
+
+                                    <TableRow
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent">
+
+                                        <RelativeLayout
+                                            android:layout_width="fill_parent"
+                                            android:layout_height="fill_parent"
+                                            android:layout_weight="0.5"
+                                            android:background="@drawable/statistics_title"
+                                            android:padding="8dp">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                                android:text="Size"
+                                                android:textColor="@color/white"/>
+
+                                        </RelativeLayout>
+
+                                        <RelativeLayout
+                                            android:layout_width="fill_parent"
+                                            android:layout_height="fill_parent"
+                                            android:layout_weight="0.5"
+                                            android:padding="8dp"
+                                            android:background="@drawable/statistics_value">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                                android:id="@+id/size"
+                                                />
+                                        </RelativeLayout>
+                                    </TableRow>
+                                </TableLayout>
+                            </RelativeLayout>
+
+                            <RelativeLayout
+                                android:layout_width="fill_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/statistics_background_3"
                                 android:padding="12dp"
+                                android:layout_marginTop="12dp"
                                 android:id="@+id/descriptionLayout">
 
                                 <TextView
@@ -98,8 +257,8 @@
 
                             <RelativeLayout
                                 android:layout_width="fill_parent"
-                                android:layout_height="fill_parent"
-                                android:background="@color/detailsBackgroundColor"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/statistics_background_3"
                                 android:padding="12dp"
                                 android:layout_marginTop="12dp"
                                 android:id="@+id/parentWrapper"
@@ -149,8 +308,8 @@
 
                             <RelativeLayout
                                 android:layout_width="fill_parent"
-                                android:layout_height="fill_parent"
-                                android:background="@color/detailsBackgroundColor"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/statistics_background_3"
                                 android:layout_marginTop="12dp"
                                 android:padding="12dp"
                                 android:id="@+id/childrenWrapper"
@@ -178,8 +337,8 @@
 
                             <RelativeLayout
                                 android:layout_width="fill_parent"
-                                android:layout_height="fill_parent"
-                                android:background="@color/detailsBackgroundColor"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/statistics_background_3"
                                 android:padding="12dp"
                                 android:layout_marginTop="12dp"
                                 android:id="@+id/sourcesLayout">

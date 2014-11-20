@@ -13,9 +13,10 @@ import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,16 +40,17 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import info.beastarman.e621.R;
-import info.beastarman.e621.api.dtext.DText;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
-import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.api.dtext.DText;
 import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
@@ -356,6 +358,8 @@ public class ImageFullScreenActivity extends BaseActivity
 			{
 				updateDescription();
 
+				updateStatistics();
+
 				updateSources();
 
 				updateParent();
@@ -363,6 +367,66 @@ public class ImageFullScreenActivity extends BaseActivity
 				updateChildren();
 			}
 		});
+	}
+
+	private String getSize()
+	{
+		double size = img.file_size;
+
+		if(size < 1024)
+		{
+			return new DecimalFormat("#.##").format(size) + " B";
+		}
+
+		size /= 1024;
+
+		if(size < 1024)
+		{
+			return new DecimalFormat("#.##").format(size) + " KB";
+		}
+
+		size /= 1024;
+
+		return new DecimalFormat("#.##").format(size) + " MB";
+	}
+
+	private void updateStatistics()
+	{
+		TextView rating = (TextView)findViewById(R.id.rating);
+
+		if(img.rating.equals(E621Image.SAFE))
+		{
+			rating.setText(Html.fromHtml("<font color=#00FF00>Safe</font>"));
+		}
+		else if(img.rating.equals(E621Image.QUESTIONABLE))
+		{
+			rating.setText(Html.fromHtml("<font color=#FFFF00>Questionable</font>"));
+		}
+		else
+		{
+			rating.setText(Html.fromHtml("<font color=#FF0000>Explicit</font>"));
+		}
+
+		TextView size = (TextView)findViewById(R.id.size);
+		size.setText(img.width + "x" + img.height + " (" + getSize() + ")");
+
+		TextView uploader = (TextView)findViewById(R.id.uploader);
+		uploader.setMovementMethod(LinkMovementMethod.getInstance());
+		Spannable s = new SpannableString(img.author);
+		s.setSpan(new ClickableSpan()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				Intent i = new Intent(ImageFullScreenActivity.this,SearchActivity.class);
+				i.putExtra(SearchActivity.SEARCH,"user:" + img.author);
+				startActivity(i);
+			}
+		},0,s.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+		uploader.setText(s);
+
+		TextView created_at = (TextView)findViewById(R.id.createdAt);
+		created_at.setText(DateUtils.getRelativeTimeSpanString(img.created_at.getTime(),new Date().getTime(),0));
 	}
 
 	private void updateSources()
@@ -488,7 +552,7 @@ public class ImageFullScreenActivity extends BaseActivity
 						@Override
 						public void run()
 						{
-							if(ttags.length() != 0)
+							if (ttags.length() != 0)
 							{
 								parentTags.setVisibility(View.VISIBLE);
 								parentTags.setText(Html.fromHtml(ttags));
@@ -502,7 +566,7 @@ public class ImageFullScreenActivity extends BaseActivity
 									final int height;
 									final int width;
 
-									int scale = Math.max(1, Math.min(parent.preview_width / (parentWrapper.getWidth() / 5), parent.preview_height / parentWrapper.getHeight()));
+									int scale = Math.max(1, Math.min(parent.preview_width / (getResources().getDisplayMetrics().widthPixels / 5), parent.preview_height / (getResources().getDisplayMetrics().widthPixels / 5)));
 
 									width = parent.preview_width / scale;
 									height = parent.preview_height / scale;
@@ -512,14 +576,14 @@ public class ImageFullScreenActivity extends BaseActivity
 										@Override
 										public void run()
 										{
-											InputStream in = e621.getImage(parent,E621Image.PREVIEW);
+											InputStream in = e621.getImage(parent, E621Image.PREVIEW);
 
-											if(in == null)
+											if (in == null)
 											{
 												return;
 											}
 
-											final Bitmap bmp = e621.decodeFile(in,width,height);
+											final Bitmap bmp = e621.decodeFile(in, width, height);
 
 											final ImageView iv = (ImageView) parentWrapper.findViewById(R.id.parentThumbnail);
 
@@ -664,12 +728,10 @@ public class ImageFullScreenActivity extends BaseActivity
 					@Override
 					public void run()
 					{
-						Log.d(E621Middleware.LOG_TAG, "I AM ALIVE!!!! " + view.getWidth());
-
 						final int height;
 						final int width;
 
-						int scale = Math.max(1, Math.min(child.preview_width / (view.getWidth() / 5), child.preview_height / view.getHeight()));
+						int scale = Math.max(1, Math.min(child.preview_width / (getResources().getDisplayMetrics().widthPixels / 5), child.preview_height / (getResources().getDisplayMetrics().widthPixels / 5)));
 
 						width = child.preview_width / scale;
 						height = child.preview_height / scale;

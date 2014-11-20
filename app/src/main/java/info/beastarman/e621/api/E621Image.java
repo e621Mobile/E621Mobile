@@ -42,6 +42,12 @@ public class E621Image implements Serializable
 	public String parent_id = null;
 	public String rating = SAFE;
 	public String description = "";
+
+	public Integer creator_id = null;
+	public String author = null;
+
+	public Integer file_size = 0;
+
 	public ArrayList<E621Tag> tags = new ArrayList<E621Tag>();
 	public ArrayList<String> children = new ArrayList<String>();
 	public ArrayList<String> sources = new ArrayList<String>();
@@ -90,6 +96,11 @@ public class E621Image implements Serializable
 		height = that.height;
 		status = that.status;
 		has_comments = that.has_comments;
+
+		creator_id = that.creator_id;
+		author = that.author;
+
+		file_size = that.file_size;
 	}
 	
 	public static E621Image fromJSON(JSONObject json)
@@ -123,6 +134,11 @@ public class E621Image implements Serializable
 		img.height = json.optInt("height",1);
 		
 		img.has_children = json.optBoolean("has_children",false);
+
+		img.creator_id = json.optInt("creator_id",0);
+		img.author = json.optString("author","");
+
+		img.file_size = json.optInt("file_size",0);
 		
 		if(!json.isNull(("parent_id")))
 		{
@@ -203,6 +219,26 @@ public class E621Image implements Serializable
 		img.file_ext = xml.getAttribute("file_ext");
 		img.has_comments = xml.getAttribute("has_comments").equals("true");
 		img.has_children= xml.getAttribute("has_children").equals("true");
+
+		try
+		{
+			img.file_size = Integer.parseInt(xml.getAttribute("file_size"));
+		}
+		catch (NumberFormatException e)
+		{
+			img.file_size = 0;
+		}
+
+		try
+		{
+			img.creator_id = Integer.parseInt(xml.getAttribute("creator_id"));
+		}
+		catch (NumberFormatException e)
+		{
+			img.creator_id = 0;
+		}
+
+		img.author = xml.getAttribute("author");
 		
 		if(xml.getAttribute("parent_id").length() > 0)
 		{
