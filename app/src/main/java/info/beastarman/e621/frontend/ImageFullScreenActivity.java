@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,7 +18,11 @@ import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.text.style.URLSpan;
+import android.util.Pair;
+import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,7 +48,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -116,6 +124,16 @@ public class ImageFullScreenActivity extends BaseActivity
 
 		final TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
 
+		int resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+		if (resourceId > 0)
+		{
+			int navigationHeight = getResources().getDimensionPixelSize(resourceId);
+
+			findViewById(R.id.info).setPadding(0,0,0,navigationHeight);
+			findViewById(R.id.tags).setPadding(0,0,0,navigationHeight);
+			findViewById(R.id.comments).setPadding(0,0,0,navigationHeight);
+		}
+
 		tabHost.setup();
 		tabHost.addTab(tabHost.newTabSpec("Info").setIndicator("Info").setContent(R.id.info));
 		tabHost.addTab(tabHost.newTabSpec("Tags").setIndicator("Tags").setContent(R.id.tags));
@@ -157,11 +175,14 @@ public class ImageFullScreenActivity extends BaseActivity
 	}
 
 	SearchView searchView = null;
+	Menu mMenu = null;
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		getMenuInflater().inflate(R.menu.image_full_screen, menu);
+
+		mMenu = menu;
 
 		MenuItem searchItem = menu.findItem(R.id.action_search);
 		searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
@@ -356,6 +377,8 @@ public class ImageFullScreenActivity extends BaseActivity
 			@Override
 			public void run()
 			{
+				updateTags();
+
 				updateDescription();
 
 				updateStatistics();
@@ -367,6 +390,159 @@ public class ImageFullScreenActivity extends BaseActivity
 				updateChildren();
 			}
 		});
+	}
+
+	SparseArray<ArrayList<E621Tag>> catTags = null;
+	private synchronized SparseArray<ArrayList<E621Tag>> prepareTags()
+	{
+		if(catTags == null)
+		{
+			catTags = new SparseArray<ArrayList<E621Tag>>();
+			String[] stags = new String[img.tags.size()];
+
+			for(int i=0; i<img.tags.size(); i++)
+			{
+				stags[i] = img.tags.get(i).getTag();
+			}
+
+			img.tags = e621.getTags(stags);
+
+			for(E621Tag tag : img.tags)
+			{
+				ArrayList<E621Tag> ttags = catTags.get(tag.type);
+
+				if(ttags == null)
+				{
+					ttags = new ArrayList<E621Tag>();
+					catTags.put(tag.type, ttags);
+				}
+
+				ttags.add(tag);
+			}
+
+			for(int cat=0; cat < catTags.size(); cat++)
+			{
+				Collections.sort(catTags.valueAt(cat));
+			}
+		}
+
+		return catTags;
+	}
+
+	private ArrayList<View> getTagViews(SparseArray<ArrayList<E621Tag>> catTags)
+	{
+		ArrayList<View> views = new ArrayList<View>();
+
+		LinkedHashMap<Integer,Pair<String,Integer>> cats = new LinkedHashMap<Integer,Pair<String,Integer>>();
+
+		cats.put(E621Tag.ARTIST, new Pair<String, Integer>("Artist",getResources().getColor(R.color.yellow)));
+		cats.put(E621Tag.CHARACTER, new Pair<String, Integer>("Character",getResources().getColor(R.color.green)));
+		cats.put(E621Tag.COPYRIGHT, new Pair<String, Integer>("Copyright",getResources().getColor(R.color.magenta)));
+		cats.put(E621Tag.SPECIES, new Pair<String, Integer>("Species",getResources().getColor(R.color.red)));
+		cats.put(E621Tag.GENERAL, new Pair<String, Integer>("General",-1));
+
+		for(int cat : cats.keySet())
+		{
+			ArrayList<E621Tag> tags = catTags.get(cat);
+
+			if(tags != null)
+			{
+				TextView catView = new TextView(this); // X3
+
+				Spannable catSpan = new SpannableString(cats.get(cat).first);
+				catSpan.setSpan(new StyleSpan(Typeface.BOLD),0,catSpan.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+				catSpan.setSpan(new ForegroundColorSpan(Color.WHITE),0,catSpan.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+				catView.setText(catSpan);
+
+				views.add(catView);
+
+				for(E621Tag tag : tags)
+				{
+					TextView tagView = new TextView(this);
+
+					Spannable tagSpan = new SpannableString(tag.getTag());
+
+					if(cats.get(cat).second != -1)
+					{
+						tagSpan.setSpan(new ForegroundColorSpan(cats.get(cat).second),0,tagSpan.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+					}
+
+					tagView.setPadding(dpToPx(16),0,0,0);
+
+					tagView.setText(tagSpan);
+
+					tagView.setOnClickListener(new OnTagClickListener(tag.getTag()));
+
+					views.add(tagView);
+				}
+			}
+		}
+
+		return views;
+	}
+
+	private String getNewTitle(ArrayList<E621Tag> tags)
+	{
+		String title = "";
+
+		if(tags == null)
+		{
+			return "#" + img.id;
+		}
+		else
+		{
+			for(E621Tag tag : tags)
+			{
+				if(title.length() > 0)
+				{
+					title += ", ";
+				}
+
+				title += tag.getTag();
+			}
+
+			return "#" + img.id + " " + title;
+		}
+	}
+
+	private void updateTags()
+	{
+		if(findViewById(R.id.tagsLoading).getVisibility() == View.GONE)
+		{
+			return;
+		}
+
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				SparseArray<ArrayList<E621Tag>> catTags = prepareTags();
+
+				final LinearLayout tagsLayout = (LinearLayout)findViewById(R.id.tagsLayout);
+
+				final ArrayList<View> views = getTagViews(catTags);
+
+				final String newTitle = getNewTitle(catTags.get(E621Tag.ARTIST));
+
+				runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						findViewById(R.id.tagsLoading).setVisibility(View.GONE);
+
+						setTitle(newTitle);
+
+						for(View v : views)
+						{
+							tagsLayout.addView(v);
+						}
+					}
+				});
+			}
+		}).start();
 	}
 
 	private String getSize()
@@ -985,7 +1161,6 @@ public class ImageFullScreenActivity extends BaseActivity
 		} catch (IOException e)
 		{
 			e.printStackTrace();
-			return;
 		}
 
 		int w = decoder.getWidth();
@@ -1269,6 +1444,44 @@ public class ImageFullScreenActivity extends BaseActivity
 			ZoomableRelativeLayout zoomableRelativeLayout= (ZoomableRelativeLayout) ImageFullScreenActivity.this.findViewById(R.id.imageWrapper);
 
 			zoomableRelativeLayout.release();
+		}
+	}
+
+	private class OnTagClickListener implements View.OnClickListener
+	{
+		String tagName;
+
+		public OnTagClickListener(String tagName)
+		{
+			this.tagName = tagName;
+		}
+
+		@Override
+		public void onClick(View view)
+		{
+			Toast.makeText(ImageFullScreenActivity.this,tagName,Toast.LENGTH_SHORT).show();
+
+			if(ImageFullScreenActivity.this.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.ICE_CREAM_SANDWICH && mMenu != null)
+			{
+				MenuItem searchItem = mMenu.findItem(R.id.action_search);
+				searchItem.expandActionView();
+			}
+
+			searchView.setIconified(false);
+
+			String query = " " + searchView.getQuery().toString() + " ";
+
+			if(query.contains(" " + tagName + " "))
+			{
+				query = query.replace(" " + tagName + " ", " ");
+			}
+			else
+			{
+				query = query + " " + tagName;
+			}
+
+			searchView.setQuery(query.trim(),false);
+			searchView.clearFocus();
 		}
 	}
 }
