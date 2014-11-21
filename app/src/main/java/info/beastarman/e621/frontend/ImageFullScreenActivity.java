@@ -41,6 +41,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.TabHost;
 import android.widget.TableLayout;
@@ -418,6 +419,15 @@ public class ImageFullScreenActivity extends BaseActivity
 			else
 			{
 				l.addView(newView);
+
+				l.post(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						((ScrollView)findViewById(R.id.commentsScroll)).fullScroll(ScrollView.FOCUS_DOWN);
+					}
+				});
 			}
 
 			postComment.setText("");
