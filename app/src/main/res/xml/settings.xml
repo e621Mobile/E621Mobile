@@ -102,6 +102,13 @@
             android:entries="@array/blacklistMethods"
             android:entryValues="@array/blacklistMethodsValues"
             />
+        <info.beastarman.e621.views.IntListPreference
+            android:key="commentsSorting"
+            android:title="Comments order"
+            android:summary="Pick how you want to see comments sorted"
+            android:entries="@array/commentsSorting"
+            android:entryValues="@array/commentsSortingValues"
+            />
     </PreferenceCategory>
     <PreferenceCategory android:title="Actions">
         <Preference

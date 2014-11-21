@@ -577,7 +577,16 @@ public class E621Middleware extends E621
 	{
 		return settings.getBoolean("antecipateOnlyOnWiFi", true);
 	}
-	
+
+	public static final int DATE_ASC = 1;
+	public static final int DATE_DESC = 2;
+	public static final int SCORE = 3;
+
+	public int commentsSorting()
+	{
+		return settings.getInt("commentsSorting", DATE_ASC);
+	}
+
 	@Override
 	public E621Image post__show(Integer id) throws IOException
 	{

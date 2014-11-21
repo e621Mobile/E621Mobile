@@ -431,10 +431,48 @@
                             android:padding="12dp"
                             android:id="@+id/commentsLayout">
 
+                            <RelativeLayout
+                                android:layout_width="fill_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="12dp"
+                                android:id="@+id/postCommentArea"
+                                android:background="@drawable/statistics_background_3">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textAppearance="?android:attr/textAppearanceMedium"
+                                    android:text="Post a comment"
+                                    android:id="@+id/postComment"
+                                    android:textColor="@color/white"
+                                    android:textStyle="bold"/>
+
+                                <EditText
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="textMultiLine"
+                                    android:ems="10"
+                                    android:id="@+id/commentEditText"
+                                    android:layout_below="@id/postComment"
+                                    android:layout_alignLeft="@id/postComment"/>
+
+                                <Button
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@id/commentEditText"
+                                    android:layout_alignLeft="@id/commentEditText"
+                                    android:text="Post comment"
+                                    android:enabled="false"
+                                    android:onClick="postComment"
+                                    android:id="@+id/postCommentButton"/>
+
+                            </RelativeLayout>
+
                             <ProgressBar
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_horizontal"
+                                android:layout_marginTop="8dp"
                                 android:id="@+id/commentsLoading"/>
 
                         </LinearLayout>

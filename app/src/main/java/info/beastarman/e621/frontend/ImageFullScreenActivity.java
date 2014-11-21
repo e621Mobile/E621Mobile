@@ -11,10 +11,12 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
+import android.text.Editable;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
@@ -32,6 +34,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -49,11 +53,10 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import info.beastarman.e621.R;
@@ -62,6 +65,7 @@ import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.dtext.DText;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
@@ -348,21 +352,14 @@ public class ImageFullScreenActivity extends BaseActivity
 
 	private void updateImage()
 	{
-		new Thread(new Runnable()
+		runOnUiThread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				runOnUiThread(new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						hideUI();
-					}
-				});
+				hideUI();
 			}
-		}).start();
+		});
 
 		updateInfo();
 
@@ -397,6 +394,45 @@ public class ImageFullScreenActivity extends BaseActivity
 		});
 	}
 
+	public void postComment(View v)
+	{
+		EditText postComment = (EditText) findViewById(R.id.commentEditText);
+		String s = postComment.getText().toString();
+
+		if(!s.trim().isEmpty() && e621.isLoggedIn())
+		{
+			final E621Comment newComment = new E621Comment();
+
+			newComment.creator = e621.getLoggedUser();
+			newComment.body = s;
+			newComment.created_at = new Date();
+
+			View newView = getCommentView(newComment);
+
+			LinearLayout l = (LinearLayout) findViewById(R.id.commentsLayout);
+
+			if(e621.commentsSorting() == E621Middleware.DATE_DESC)
+			{
+				l.addView(newView,1);
+			}
+			else
+			{
+				l.addView(newView);
+			}
+
+			postComment.setText("");
+
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					e621.comment__create(img.id, newComment.body);
+				}
+			}).start();
+		}
+	}
+
 	ArrayList<E621Comment> comments = null;
 	private synchronized ArrayList<E621Comment> getComments()
 	{
@@ -404,72 +440,91 @@ public class ImageFullScreenActivity extends BaseActivity
 		{
 			comments = e621.comment__index(img.id);
 
-			Collections.reverse(comments);
+			if(e621.commentsSorting() == E621Middleware.DATE_ASC)
+			{
+				Collections.reverse(comments);
+			}
+			else if(e621.commentsSorting() == E621Middleware.SCORE)
+			{
+				Collections.sort(comments,new Comparator<E621Comment>()
+				{
+					@Override
+					public int compare(E621Comment a, E621Comment b)
+					{
+						return b.score - a.score;
+					}
+				});
+			}
 		}
 
 		return comments;
+	}
+
+	private View getCommentView(E621Comment c)
+	{
+		View v = getLayoutInflater().inflate(R.layout.image_full_screen_comment,null,false);
+
+		((TextView)v.findViewById(R.id.username)).setText(c.creator);
+
+		TextView score = (TextView)v.findViewById(R.id.score);
+		if(c.score > 0)
+		{
+			score.setTextColor(getResources().getColor(R.color.green));
+			score.setText("+" + c.score);
+		}
+		else if(c.score < 0)
+		{
+			score.setTextColor(getResources().getColor(R.color.red));
+			score.setText("" + c.score);
+		}
+		else
+		{
+			score.setText("" + c.score);
+		}
+
+		((TextView)v.findViewById(R.id.created_at)).setText(DateUtils.getRelativeTimeSpanString(c.created_at.getTime(), new Date().getTime(), 0));
+
+		((DTextView)v.findViewById(R.id.dtext)).setDText(c.getBodyAsDText());
+
+		TextView respond = (TextView) v.findViewById(R.id.respond);
+		respond.setMovementMethod(LinkMovementMethod.getInstance());
+		Spannable span = new SpannableString(respond.getText().toString());
+		span.setSpan(new respondClickableSpan(c),0,span.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+		respond.setText(span, TextView.BufferType.SPANNABLE);
+
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+		params.setMargins(0, dpToPx(8), 0, 0);
+		v.setLayoutParams(params);
+
+		return v;
 	}
 
 	private void updateComments()
 	{
 		if(findViewById(R.id.commentsLoading).getVisibility() == View.GONE) return;
 
+		Button post = (Button)findViewById(R.id.postCommentButton);
+
+		EditText postComment = (EditText) findViewById(R.id.commentEditText);
+		postComment.addTextChangedListener(new PostCommentTextChangedListener(post));
+
+		if(!e621.isLoggedIn())
+		{
+			findViewById(R.id.postCommentArea).setVisibility(View.GONE);
+		}
+
 		new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				final Map<E621Comment,DText> dtexts = new HashMap<E621Comment, DText>();
-
-				for(E621Comment c : getComments())
-				{
-					dtexts.put(c,c.getBodyAsDText());
-				}
-
 				final LinearLayout commentsLayout = (LinearLayout)findViewById(R.id.commentsLayout);
 
 				final ArrayList<View> views = new ArrayList<View>();
 
 				for(E621Comment c : getComments())
 				{
-					View v = getLayoutInflater().inflate(R.layout.image_full_screen_comment,null,false);
-
-					((TextView)v.findViewById(R.id.username)).setText(c.creator);
-
-					TextView score = (TextView)v.findViewById(R.id.score);
-					if(c.score > 0)
-					{
-						score.setTextColor(getResources().getColor(R.color.green));
-						score.setText("+" + c.score);
-					}
-					else if(c.score < 0)
-					{
-						score.setTextColor(getResources().getColor(R.color.red));
-						score.setText("" + c.score);
-					}
-					else
-					{
-						score.setText("" + c.score);
-					}
-
-					((TextView)v.findViewById(R.id.created_at)).setText(DateUtils.getRelativeTimeSpanString(c.created_at.getTime(), new Date().getTime(), 0));
-
-					((DTextView)v.findViewById(R.id.dtext)).setDText(dtexts.get(c));
-
-					TextView respond = (TextView) v.findViewById(R.id.respond);
-					respond.setMovementMethod(LinkMovementMethod.getInstance());
-					Spannable span = new SpannableString(respond.getText().toString());
-					span.setSpan(new respondClickableSpan(c),0,span.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-					respond.setText(span, TextView.BufferType.SPANNABLE);
-
-					if(views.size() > 0)
-					{
-						LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-						params.setMargins(0, dpToPx(8), 0, 0);
-						v.setLayoutParams(params);
-					}
-
-					views.add(v);
+					views.add(getCommentView(c));
 				}
 
 				runOnUiThread(new Runnable()
@@ -1556,8 +1611,6 @@ public class ImageFullScreenActivity extends BaseActivity
 		@Override
 		public void onClick(View view)
 		{
-			Toast.makeText(ImageFullScreenActivity.this,tagName,Toast.LENGTH_SHORT).show();
-
 			if(ImageFullScreenActivity.this.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.ICE_CREAM_SANDWICH && mMenu != null)
 			{
 				MenuItem searchItem = mMenu.findItem(R.id.action_search);
@@ -1594,7 +1647,34 @@ public class ImageFullScreenActivity extends BaseActivity
 		@Override
 		public void onClick(View view)
 		{
-			Toast.makeText(getApplicationContext(),"Respond to " + comment.creator, Toast.LENGTH_SHORT).show();
+			EditText postComment = (EditText) findViewById(R.id.commentEditText);
+			postComment.append("[quote] " + comment.creator + " said:\n" + comment.body + "\n[/quote]\n\n");
+		}
+	}
+
+	private class PostCommentTextChangedListener implements TextWatcher
+	{
+		Button button;
+
+		public PostCommentTextChangedListener(Button button)
+		{
+			this.button = button;
+		}
+
+		@Override
+		public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
+		{
+		}
+
+		@Override
+		public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
+		{
+		}
+
+		@Override
+		public void afterTextChanged(Editable editable)
+		{
+			button.setEnabled(!editable.toString().trim().isEmpty());
 		}
 	}
 }

@@ -96,6 +96,9 @@ public class SettingsActivity extends PreferenceActivity
 			ListPreference blacklistMethod = (ListPreference)findPreference("blacklistMethod");
 			blacklistMethod.setValue(String.valueOf(e621.blacklistMethod().asInt()));
 
+			ListPreference commentsSorting = (ListPreference)findPreference("commentsSorting");
+			commentsSorting.setValue(String.valueOf(e621.commentsSorting()));
+
             SeekBarDialogPreference thumbnailCacheSize = (SeekBarDialogPreference)findPreference("thumbnailCacheSize");
             thumbnailCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("thumbnailCacheSize", 5));
 
