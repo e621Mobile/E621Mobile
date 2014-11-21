@@ -1,18 +1,18 @@
 package info.beastarman.e621.api;
 
+import org.json.JSONObject;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.json.JSONObject;
-
 import info.beastarman.e621.api.dtext.DText;
 
 public class E621Comment
 {
-	public DText body = null;
+	public String body = null;
 	public int creator_id = 0;
 	public Date created_at = null;
 	public int score = 0;
@@ -26,7 +26,7 @@ public class E621Comment
 	{
 	}
 	
-	public E621Comment(DText body, int creator_id, Date created_at, int score, int post_id, int id, String creator)
+	public E621Comment(String body, int creator_id, Date created_at, int score, int post_id, int id, String creator)
 	{
 		this.body = body;
 		this.creator_id = creator_id;
@@ -57,8 +57,19 @@ public class E621Comment
 		{
 		}
 		
-		obj.body = new DText(json.optString("body",""));
+		obj.body = json.optString("body","");
 		
 		return obj;
+	}
+
+	public DText getBodyAsDText()
+	{
+		return new DText(body);
+	}
+
+	@Override
+	public String toString()
+	{
+		return body;
 	}
 }

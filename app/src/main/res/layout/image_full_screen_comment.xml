@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/statistics_background_3"
+    android:layout_marginBottom="16dp"
+    android:padding="8dp">
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Medium Text"
+        android:id="@+id/username"
+        android:textColor="@color/white"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Small Text"
+        android:id="@+id/score"
+        android:layout_alignBottom="@+id/username"
+        android:layout_toRightOf="@+id/username"
+        android:layout_toEndOf="@+id/username"
+        android:textColor="@color/white"
+        android:paddingLeft="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Time"
+        android:textColor="@color/white"
+        android:id="@+id/created_at"
+        android:layout_below="@+id/username"
+        android:layout_alignLeft="@+id/username"
+        android:layout_alignStart="@+id/username"/>
+
+    <view
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        class="info.beastarman.e621.views.DTextView"
+        android:id="@+id/dtext"
+        android:layout_below="@+id/created_at"
+        android:layout_alignLeft="@+id/created_at"
+        android:layout_alignStart="@+id/created_at"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Respond"
+        android:id="@+id/respond"
+        android:textColor="@color/white"
+        android:layout_below="@+id/dtext"
+        android:layout_alignLeft="@+id/dtext"
+        android:layout_alignStart="@+id/dtext"/>
+</RelativeLayout>

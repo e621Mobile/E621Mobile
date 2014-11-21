@@ -13,4 +13,5 @@
     <color name="yellow">#FF0</color>
     <color name="magenta">#F0F</color>
     <color name="transparent">#00000000</color>
+    <color name="real_green">#008000</color>
 </resources>

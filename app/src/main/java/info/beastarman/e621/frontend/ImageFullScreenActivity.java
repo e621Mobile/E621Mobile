@@ -50,11 +50,14 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.api.E621Comment;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
@@ -377,8 +380,6 @@ public class ImageFullScreenActivity extends BaseActivity
 			@Override
 			public void run()
 			{
-				updateTags();
-
 				updateDescription();
 
 				updateStatistics();
@@ -388,8 +389,104 @@ public class ImageFullScreenActivity extends BaseActivity
 				updateParent();
 
 				updateChildren();
+
+				updateTags();
+
+				updateComments();
 			}
 		});
+	}
+
+	ArrayList<E621Comment> comments = null;
+	private synchronized ArrayList<E621Comment> getComments()
+	{
+		if(comments == null)
+		{
+			comments = e621.comment__index(img.id);
+
+			Collections.reverse(comments);
+		}
+
+		return comments;
+	}
+
+	private void updateComments()
+	{
+		if(findViewById(R.id.commentsLoading).getVisibility() == View.GONE) return;
+
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				final Map<E621Comment,DText> dtexts = new HashMap<E621Comment, DText>();
+
+				for(E621Comment c : getComments())
+				{
+					dtexts.put(c,c.getBodyAsDText());
+				}
+
+				final LinearLayout commentsLayout = (LinearLayout)findViewById(R.id.commentsLayout);
+
+				final ArrayList<View> views = new ArrayList<View>();
+
+				for(E621Comment c : getComments())
+				{
+					View v = getLayoutInflater().inflate(R.layout.image_full_screen_comment,null,false);
+
+					((TextView)v.findViewById(R.id.username)).setText(c.creator);
+
+					TextView score = (TextView)v.findViewById(R.id.score);
+					if(c.score > 0)
+					{
+						score.setTextColor(getResources().getColor(R.color.green));
+						score.setText("+" + c.score);
+					}
+					else if(c.score < 0)
+					{
+						score.setTextColor(getResources().getColor(R.color.red));
+						score.setText("" + c.score);
+					}
+					else
+					{
+						score.setText("" + c.score);
+					}
+
+					((TextView)v.findViewById(R.id.created_at)).setText(DateUtils.getRelativeTimeSpanString(c.created_at.getTime(), new Date().getTime(), 0));
+
+					((DTextView)v.findViewById(R.id.dtext)).setDText(dtexts.get(c));
+
+					TextView respond = (TextView) v.findViewById(R.id.respond);
+					respond.setMovementMethod(LinkMovementMethod.getInstance());
+					Spannable span = new SpannableString(respond.getText().toString());
+					span.setSpan(new respondClickableSpan(c),0,span.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+					respond.setText(span, TextView.BufferType.SPANNABLE);
+
+					if(views.size() > 0)
+					{
+						LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+						params.setMargins(0, dpToPx(8), 0, 0);
+						v.setLayoutParams(params);
+					}
+
+					views.add(v);
+				}
+
+				runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						for(View v : views)
+						{
+							commentsLayout.addView(v);
+						}
+
+						findViewById(R.id.commentsLoading).setVisibility(View.GONE);
+					}
+				});
+			}
+		}).start();
 	}
 
 	SparseArray<ArrayList<E621Tag>> catTags = null;
@@ -1482,6 +1579,22 @@ public class ImageFullScreenActivity extends BaseActivity
 
 			searchView.setQuery(query.trim(),false);
 			searchView.clearFocus();
+		}
+	}
+
+	private class respondClickableSpan extends ClickableSpan
+	{
+		E621Comment comment;
+
+		public respondClickableSpan(E621Comment c)
+		{
+			comment = c;
+		}
+
+		@Override
+		public void onClick(View view)
+		{
+			Toast.makeText(getApplicationContext(),"Respond to " + comment.creator, Toast.LENGTH_SHORT).show();
 		}
 	}
 }

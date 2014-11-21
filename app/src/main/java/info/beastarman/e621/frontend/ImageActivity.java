@@ -38,9 +38,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import info.beastarman.e621.R;
-import info.beastarman.e621.api.dtext.DText;
-import info.beastarman.e621.api.dtext.DTextObject;
-import info.beastarman.e621.api.dtext.DTextString;
 import info.beastarman.e621.api.E621Comment;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
@@ -567,22 +564,14 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		}
 	}
 	
-	public View getDTextView(DText text)
+	public View getDTextView(String text)
 	{
 		LinearLayout container = new LinearLayout(getApplicationContext());
 		container.setOrientation(LinearLayout.VERTICAL);
-		
-		for(DTextObject obj : text)
-		{
-			if(!(obj instanceof DTextString))
-			{
-				continue;
-			}
 
-			TextView t = new TextView(getApplicationContext());
-			t.setText(((DTextString)obj).text);
-			container.addView(t);
-		}
+		TextView t = new TextView(getApplicationContext());
+		t.setText(text);
+		container.addView(t);
 		
 		return container;
 	}

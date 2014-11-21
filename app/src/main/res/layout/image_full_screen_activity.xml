@@ -413,9 +413,34 @@
 
                 <RelativeLayout
                     android:id="@+id/comments"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:orientation="vertical">
+
+                    <ScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="12dp"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentBottom="true">
+
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="12dp"
+                            android:id="@+id/commentsLayout">
+
+                            <ProgressBar
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:id="@+id/commentsLoading"/>
+
+                        </LinearLayout>
+
+                    </ScrollView>
+
                 </RelativeLayout>
             </FrameLayout>
         </LinearLayout>

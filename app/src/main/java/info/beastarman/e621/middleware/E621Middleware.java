@@ -24,6 +24,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
+import android.util.SparseArray;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
@@ -73,6 +74,7 @@ import java.util.concurrent.Semaphore;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621;
+import info.beastarman.e621.api.E621Comment;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
@@ -2654,6 +2656,80 @@ public class E621Middleware extends E621
 	public Boolean comment__create(int id, String body)
 	{
 		return comment__create(id,body,login,password_hash);
+	}
+
+	public ArrayList<E621Comment> comment__index(final Integer post_id)
+	{
+		final SparseArray<ArrayList<E621Comment>> comments = new SparseArray<ArrayList<E621Comment>>();
+
+		final int STEPS = 5;
+		int step = 0;
+
+		do
+		{
+			Thread[] threads = new Thread[STEPS];
+
+			final GTFO<Boolean> b = new GTFO<Boolean>();
+			b.obj = false;
+
+			for(int i=0; i<STEPS; i++)
+			{
+				final int ii = i+step;
+
+				threads[i] = new Thread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						ArrayList<E621Comment> localComments = comment__index(post_id, ii);
+
+						if(localComments == null)
+						{
+							localComments = new ArrayList<E621Comment>();
+						}
+
+						comments.put(ii,localComments);
+
+						if(localComments.size() == 0)
+						{
+							b.obj = true;
+						}
+					}
+				});
+
+				threads[i].start();
+			}
+
+			for(Thread t : threads)
+			{
+				try
+				{
+					t.join();
+				} catch (InterruptedException e)
+				{
+					e.printStackTrace();
+
+					Thread.currentThread().interrupt();
+				}
+			}
+
+			if(b.obj)
+			{
+				break;
+			}
+
+			step+=STEPS;
+		}
+		while(true);
+
+		ArrayList<E621Comment> retComments = new ArrayList<E621Comment>();
+
+		for(int i=0; i<comments.size(); i++)
+		{
+			retComments.addAll(comments.get(i));
+		}
+
+		return retComments;
 	}
 	
 	public boolean login(String name, String password, boolean remember)
