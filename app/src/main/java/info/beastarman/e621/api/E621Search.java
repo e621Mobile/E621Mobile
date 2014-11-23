@@ -26,6 +26,16 @@ public class E621Search implements Serializable
 		this.offset = offset;
 		this.count = count;
 		this.results_per_page = results_per_page;
+
+		impossibleCount();
+	}
+
+	private void impossibleCount()
+	{
+		if(!has_next_page())
+		{
+			count = offset + images.size();
+		}
 	}
 	
 	public boolean has_prev_page()

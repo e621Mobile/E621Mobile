@@ -375,6 +375,53 @@
                             android:background="@drawable/fav_star_disabled"
                             android:onClick="fav"
                             android:alpha="0.5"/>
+
+                        <ImageView
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:id="@+id/saveButton"
+                            android:layout_alignParentTop="true"
+                            android:layout_alignParentRight="true"
+                            android:layout_alignParentEnd="true"
+                            android:alpha="0.5"
+                            android:background="@drawable/save_icon_disabled"
+                            android:onClick="download"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:id="@+id/scoreTextView"
+                            android:layout_centerVertical="true"
+                            android:layout_centerHorizontal="true"
+                            android:paddingLeft="8dp"
+                            android:paddingRight="8dp"/>
+
+                        <ImageView
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:id="@+id/thumbsDown"
+                            android:layout_alignParentTop="true"
+                            android:layout_toLeftOf="@+id/scoreTextView"
+                            android:layout_toStartOf="@+id/scoreTextView"
+                            android:adjustViewBounds="false"
+                            android:alpha="0.5"
+                            android:background="@drawable/thumbs_down_disabled"
+                            android:visibility="gone"
+                            android:onClick="voteDown"/>
+
+                        <ImageView
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:id="@+id/thumbsUp"
+                            android:layout_alignParentTop="true"
+                            android:layout_toRightOf="@+id/scoreTextView"
+                            android:layout_toEndOf="@+id/scoreTextView"
+                            android:adjustViewBounds="false"
+                            android:alpha="0.5"
+                            android:background="@drawable/thumbs_up_disabled"
+                            android:visibility="gone"
+                            android:onClick="voteUp"/>
                     </RelativeLayout>
                 </RelativeLayout>
 

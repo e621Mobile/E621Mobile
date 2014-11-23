@@ -65,7 +65,9 @@ import info.beastarman.e621.api.E621Comment;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
 import info.beastarman.e621.api.E621Tag;
+import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.api.dtext.DText;
+import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
@@ -90,6 +92,8 @@ public class ImageFullScreenActivity extends BaseActivity
 
 	int IMAGE_CHUNK_SIZE = 512;
 	float TABS_HEIGHT = 0.7f;
+
+	DownloadEventManager downloadEventManager = new DownloadEventManager();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -178,6 +182,8 @@ public class ImageFullScreenActivity extends BaseActivity
 		{
 			tableLayout.removeAllViews();
 		}
+
+		e621.unbindDownloadState(img.id,downloadEventManager);
 
 		super.onStop();
 	}
@@ -378,6 +384,10 @@ public class ImageFullScreenActivity extends BaseActivity
 			@Override
 			public void run()
 			{
+				updateDownload();
+
+				updateScore();
+
 				updateDescription();
 
 				updateStatistics();
@@ -393,6 +403,280 @@ public class ImageFullScreenActivity extends BaseActivity
 				updateComments();
 			}
 		});
+	}
+
+	public static final int NO_VOTE = 0;
+	public static final int VOTE_UP = 1;
+	public static final int VOTE_DOWN= 2;
+
+	public Integer vote = null;
+
+	public void voteUp(View view)
+	{
+		if(!e621.isLoggedIn())
+		{
+			Toast.makeText(getApplicationContext(), "Please log in at the home screen.", Toast.LENGTH_SHORT).show();
+
+			return;
+		}
+
+		if(vote == null)
+		{
+			return;
+		}
+
+		final int vvote = vote;
+		final int sscore = img.score;
+
+		if(vote.equals(VOTE_UP))
+		{
+			vote = NO_VOTE;
+
+			img.score--;
+		}
+		else
+		{
+			img.score++;
+
+			if(vote == VOTE_DOWN)
+			{
+				img.score++;
+			}
+
+			vote = VOTE_UP;
+		}
+
+		updateScore();
+
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				final E621Vote v = e621.post__vote(img.id, true);
+
+				if(v == null || !v.success)
+				{
+					vote = vvote;
+
+					img.score = sscore;
+
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							updateScore();
+						}
+					});
+				}
+			}
+		}).start();
+	}
+
+	public void voteDown(View view)
+	{
+		if(!e621.isLoggedIn())
+		{
+			Toast.makeText(getApplicationContext(), "Please log in at the home screen.", Toast.LENGTH_SHORT).show();
+
+			return;
+		}
+
+		if(vote == null)
+		{
+			return;
+		}
+
+		final int vvote = vote;
+		final int sscore = img.score;
+
+		if(vote.equals(VOTE_DOWN))
+		{
+			vote = NO_VOTE;
+
+			img.score++;
+		}
+		else
+		{
+			img.score--;
+
+			if(vote == VOTE_UP)
+			{
+				img.score--;
+			}
+
+			vote = VOTE_DOWN;
+		}
+
+		updateScore();
+
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				final E621Vote v = e621.post__vote(img.id, false);
+
+				if(v == null || !v.success)
+				{
+					vote = vvote;
+
+					img.score = sscore;
+
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							updateScore();
+						}
+					});
+				}
+			}
+		}).start();
+	}
+
+	public void updateVote()
+	{
+		if(vote == null) return;
+
+		View thumbsUp = findViewById(R.id.thumbsUp);
+		View thumbsDown = findViewById(R.id.thumbsDown);
+
+		thumbsUp.setVisibility(View.VISIBLE);
+		thumbsDown.setVisibility(View.VISIBLE);
+
+		TextView score = (TextView)findViewById(R.id.scoreTextView);
+
+		switch (vote)
+		{
+			case NO_VOTE:
+				thumbsUp.setBackgroundResource(R.drawable.thumbs_up_disabled);
+				thumbsDown.setBackgroundResource(R.drawable.thumbs_down_disabled);
+				score.setTextColor(getResources().getColor(R.color.white));
+				break;
+			case VOTE_UP:
+				thumbsUp.setBackgroundResource(R.drawable.thumbs_up);
+				thumbsDown.setBackgroundResource(R.drawable.thumbs_down_disabled);
+				score.setTextColor(getResources().getColor(R.color.green));
+				break;
+			default:
+				thumbsUp.setBackgroundResource(R.drawable.thumbs_up_disabled);
+				thumbsDown.setBackgroundResource(R.drawable.thumbs_down);
+				score.setTextColor(getResources().getColor(R.color.red));
+				break;
+		}
+	}
+
+	public void updateScore()
+	{
+		TextView score = (TextView)findViewById(R.id.scoreTextView);
+		score.setText(""+img.score);
+
+		if(!e621.isLoggedIn())
+		{
+			return;
+		}
+
+		if(vote != null)
+		{
+			updateVote();
+		}
+		else
+		{
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					E621Search s = null;
+
+					try
+					{
+						s = e621.post__index("id:" + img.id + " voted:" + e621.getLoggedUser(), 0, 1);
+					}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+
+					if(s == null || s.count==0)
+					{
+						vote = NO_VOTE;
+					}
+					else
+					{
+						try
+						{
+							s = e621.post__index("id:" + img.id + " votedup:" + e621.getLoggedUser(), 0, 1);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						if(s == null)
+						{
+							return;
+						}
+						else if(s.count==0)
+						{
+							vote = VOTE_DOWN;
+						}
+						else
+						{
+							vote = VOTE_UP;
+						}
+					}
+
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							updateVote();
+						}
+					});
+				}
+			}).start();
+		}
+	}
+
+	public void download(View v)
+	{
+		if(downloadEventManager.isDownloaded())
+		{
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					e621.deleteImage(img);
+				}
+			}).start();
+		}
+		else
+		{
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					e621.saveImage(img);
+				}
+			}).start();
+		}
+	}
+
+	private void updateDownload()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				e621.bindDownloadState(img.id,downloadEventManager);
+			}
+		}).start();
 	}
 
 	public void postComment(View v)
@@ -764,7 +1048,7 @@ public class ImageFullScreenActivity extends BaseActivity
 		uploader.setText(s);
 
 		TextView created_at = (TextView)findViewById(R.id.createdAt);
-		created_at.setText(DateUtils.getRelativeTimeSpanString(img.created_at.getTime(),new Date().getTime(),0));
+		created_at.setText(DateUtils.getRelativeTimeSpanString(img.created_at.getTime(), new Date().getTime(), 0));
 	}
 
 	private void updateSources()
@@ -986,7 +1270,7 @@ public class ImageFullScreenActivity extends BaseActivity
 						{
 							ll.removeAllViews();
 
-							for(View v : views)
+							for (View v : views)
 							{
 								ll.addView(v);
 							}
@@ -1212,7 +1496,7 @@ public class ImageFullScreenActivity extends BaseActivity
 			{
 				E621Search search;
 				try {
-					search = e621.post__index("fav:"+e621.getLoggedUser() + " id:" + image.getId(), 0, 1);
+					search = e621.post__index("fav:" + e621.getLoggedUser() + " id:" + image.getId(), 0, 1);
 				} catch (IOException e) {
 					return;
 				}
@@ -1263,45 +1547,53 @@ public class ImageFullScreenActivity extends BaseActivity
 			return;
 		}
 
-		if(is_faved == null) return;
+		final boolean f = (is_faved==null?false:is_faved);
+
+		is_faved = !f;
+
+		final ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
+
+		if(is_faved)
+		{
+			favButton.setBackgroundResource(R.drawable.fav_star_enabled_2);
+		}
+		else
+		{
+			favButton.setBackgroundResource(R.drawable.fav_star_disabled);
+		}
 
 		new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				final Boolean ret = e621.post_favorite(image.getId(), !is_faved);
+				final Boolean ret = e621.post_favorite(image.getId(), !f);
 
-				if(ret != null)
+				if(ret == null || !ret)
 				{
-					if(ret)
+					is_faved = f;
+
+					if(f)
 					{
-						is_faved = !is_faved;
-
-						final ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
-
-						if(is_faved)
+						runOnUiThread(new Runnable()
 						{
-							runOnUiThread(new Runnable()
+							@Override
+							public void run()
 							{
-								@Override
-								public void run()
-								{
-									favButton.setBackgroundResource(R.drawable.fav_star_enabled_2);
-								}
-							});
-						}
-						else
+								favButton.setBackgroundResource(R.drawable.fav_star_enabled_2);
+							}
+						});
+					}
+					else
+					{
+						runOnUiThread(new Runnable()
 						{
-							runOnUiThread(new Runnable()
+							@Override
+							public void run()
 							{
-								@Override
-								public void run()
-								{
-									favButton.setBackgroundResource(R.drawable.fav_star_disabled);
-								}
-							});
-						}
+								favButton.setBackgroundResource(R.drawable.fav_star_disabled);
+							}
+						});
 					}
 				}
 			}
@@ -1685,6 +1977,52 @@ public class ImageFullScreenActivity extends BaseActivity
 		public void afterTextChanged(Editable editable)
 		{
 			button.setEnabled(!editable.toString().trim().isEmpty());
+		}
+	}
+
+	private class DownloadEventManager extends EventManager
+	{
+		boolean downloaded = false;
+
+		public boolean isDownloaded()
+		{
+			return downloaded;
+		}
+
+		@Override
+		public void onTrigger(Object obj)
+		{
+			if(obj instanceof E621Middleware.DownloadStatus)
+			{
+				final ImageView iv = (ImageView)findViewById(R.id.saveButton);
+
+				if(obj == E621Middleware.DownloadStatus.DOWNLOADED || obj == E621Middleware.DownloadStatus.DOWNLOADING)
+				{
+					downloaded = true;
+
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							iv.setBackgroundResource(R.drawable.save_icon);
+						}
+					});
+				}
+				else
+				{
+					downloaded = false;
+
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							iv.setBackgroundResource(R.drawable.save_icon_disabled);
+						}
+					});
+				}
+			}
 		}
 	}
 }
