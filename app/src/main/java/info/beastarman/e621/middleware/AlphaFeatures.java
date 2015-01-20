@@ -37,7 +37,7 @@ public class AlphaFeatures
 			}
 		}
 
-		editor.commit();
+		editor.apply();
 	}
 
 	public boolean isEnabled(String feature)
@@ -47,12 +47,12 @@ public class AlphaFeatures
 
 	public void enable(String feature)
 	{
-		settings.edit().putBoolean(prepareKey(feature),true).commit();
+		settings.edit().putBoolean(prepareKey(feature),true).apply();
 	}
 
 	public void disable(String feature)
 	{
-		settings.edit().putBoolean(prepareKey(feature),false).commit();
+		settings.edit().putBoolean(prepareKey(feature),false).apply();
 	}
 
 	public HashMap<String,Pair<String,Boolean>> getFeatures()

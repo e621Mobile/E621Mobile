@@ -74,7 +74,7 @@ public class BlackList
 			edit.putStringSet(enabledName,enabled);
 		}
 
-		edit.commit();
+		edit.apply();
 	}
 
 	public void disable(String query)
@@ -97,7 +97,7 @@ public class BlackList
 			edit.putStringSet(enabledName,enabled);
 		}
 
-		edit.commit();
+		edit.apply();
 	}
 
 	public void remove(String query)
@@ -120,6 +120,6 @@ public class BlackList
 			edit.putStringSet(enabledName,enabled);
 		}
 
-		edit.commit();
+		edit.apply();
 	}
 }

@@ -364,7 +364,7 @@ public class E621Middleware extends E621
 		}
 		
 		if(firstRun == null) firstRun = settings.getBoolean("firstRun",true);
-		settings.edit().putBoolean("firstRun",false).commit();
+		settings.edit().putBoolean("firstRun",false).apply();
 	}
 	
 	@Override
@@ -417,7 +417,7 @@ public class E621Middleware extends E621
 
 	public BlacklistMethod blacklistMethod()
 	{
-		switch(settings.getInt("blacklistMethod",3))
+		switch(settings.getInt("blacklistMethod",1))
 		{
 			case 0:
 				return BlacklistMethod.DISABLED;
@@ -485,7 +485,7 @@ public class E621Middleware extends E621
 				_highlight.enable("animated");
 			}
 
-			settings.edit().putBoolean("firstHighlight",false).commit();
+			settings.edit().putBoolean("firstHighlight",false).apply();
 		}
 
 		return _highlight;
@@ -565,7 +565,7 @@ public class E621Middleware extends E621
 	{
 		if(version == null) return;
 		
-		settings.edit().putInt("mostRecentKnownVersion",version.versionCode).commit();
+		settings.edit().putInt("mostRecentKnownVersion",version.versionCode).apply();
 	}
 	
 	public boolean syncOnlyOnWiFi()
@@ -2007,6 +2007,11 @@ public class E621Middleware extends E621
 			}
 		}
 	}
+
+	public int localSearchCount(String query)
+	{
+		return download_manager.totalEntries(new SearchQuery(query));
+	}
 	
 	public int pages(int results_per_page, String query)
 	{
@@ -2754,7 +2759,7 @@ public class E621Middleware extends E621
 				SharedPreferences.Editor editor = settings.edit();
 				editor.putString("userLogin", login);
 				editor.putString("userPasswordHash", password_hash);
-				editor.commit();
+				editor.apply();
 			}
 			
 			return true;
@@ -2774,7 +2779,7 @@ public class E621Middleware extends E621
 		SharedPreferences.Editor editor = settings.edit();
 		editor.remove("userLogin");
 		editor.remove("userPasswordHash");
-		editor.commit();
+		editor.apply();
 	}
 	
 	public String getLoggedUser()
@@ -2855,6 +2860,8 @@ public class E621Middleware extends E621
 	public void continue_later(String search, String seen_past, String seen_until)
 	{
 		search= prepareQuery(search);
+
+		Log.d(E621Middleware.LOG_TAG,search);
 		
 		interrupt.addOrUpdateSearch(search, seen_past, seen_until);
 		
@@ -3579,7 +3586,7 @@ public class E621Middleware extends E621
 	
 	public void setDisallowedMascots(ArrayList<String> ids)
 	{
-		settings.edit().putStringSet("mascots", new HashSet<String>(ids)).commit();
+		settings.edit().putStringSet("mascots", new HashSet<String>(ids)).apply();
 	}
 	
 	public ArrayList<String> getDisallowedMascots()

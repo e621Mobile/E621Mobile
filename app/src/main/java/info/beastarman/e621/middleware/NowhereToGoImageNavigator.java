@@ -1,6 +1,6 @@
 package info.beastarman.e621.middleware;
 
-public class NowhereToGoImageNavigator implements ImageNavigator
+public class NowhereToGoImageNavigator extends ImageNavigator
 {
 	private static final long serialVersionUID = 8158998755587453735L;
 	
@@ -9,6 +9,18 @@ public class NowhereToGoImageNavigator implements ImageNavigator
 	public NowhereToGoImageNavigator(Integer id)
 	{
 		this.id = id;
+	}
+
+	@Override
+	public Integer getPosition()
+	{
+		return 0;
+	}
+
+	@Override
+	public Integer getCount()
+	{
+		return 1;
 	}
 
 	@Override

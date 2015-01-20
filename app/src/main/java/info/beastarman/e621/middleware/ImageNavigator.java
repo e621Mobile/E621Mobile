@@ -2,9 +2,33 @@ package info.beastarman.e621.middleware;
 
 import java.io.Serializable;
 
-public interface ImageNavigator extends Serializable
+public abstract class ImageNavigator implements Serializable
 {
-	ImageNavigator next();
-	ImageNavigator prev();
-	Integer getId();
+	public ImageNavigator getRelative(int diff)
+	{
+		ImageNavigator in = this;
+
+		while(diff > 0)
+		{
+			in = in.next();
+
+			diff--;
+		}
+
+		while(diff < 0)
+		{
+			in = in.prev();
+
+			diff++;
+		}
+
+		return in;
+	}
+
+	public abstract Integer getPosition();
+	public abstract Integer getCount();
+
+	public abstract ImageNavigator next();
+	public abstract ImageNavigator prev();
+	public abstract Integer getId();
 }

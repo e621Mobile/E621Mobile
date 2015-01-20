@@ -2,7 +2,7 @@ package info.beastarman.e621.middleware;
 
 import java.util.ArrayList;
 
-public class OfflineImageNavigator implements ImageNavigator
+public class OfflineImageNavigator extends ImageNavigator
 {
 	private static final long serialVersionUID = -1860597960377199668L;
 	
@@ -16,7 +16,19 @@ public class OfflineImageNavigator implements ImageNavigator
 		this.position = position;
 		this.query = query;
 	}
-	
+
+	@Override
+	public Integer getPosition()
+	{
+		return position;
+	}
+
+	@Override
+	public Integer getCount()
+	{
+		return E621Middleware.getInstance().localSearchCount(query);
+	}
+
 	@Override
 	public ImageNavigator next()
 	{

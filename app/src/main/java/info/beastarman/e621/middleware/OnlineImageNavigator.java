@@ -1,12 +1,12 @@
 package info.beastarman.e621.middleware;
 
-import info.beastarman.e621.api.E621Image;
-import info.beastarman.e621.api.E621Search;
-
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class OnlineImageNavigator implements ImageNavigator
+import info.beastarman.e621.api.E621Image;
+import info.beastarman.e621.api.E621Search;
+
+public class OnlineImageNavigator extends ImageNavigator
 {
 	private static final long serialVersionUID = 6801245286947782850L;
 	
@@ -44,7 +44,19 @@ public class OnlineImageNavigator implements ImageNavigator
 	{
 		return E621Middleware.getInstance().post__index(query, page, limit);
 	}
-	
+
+	@Override
+	public Integer getPosition()
+	{
+		return position;
+	}
+
+	@Override
+	public Integer getCount()
+	{
+		return total;
+	}
+
 	@Override
 	public ImageNavigator next()
 	{

@@ -16,6 +16,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -132,7 +133,7 @@ public class DownloadsActivity extends BaseActivity
 
 		imageViews.clear();
 
-		LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
+		ViewGroup layout = (ViewGroup) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
 		
 		e621.unbindExportSearchState(search, event);
@@ -266,9 +267,9 @@ public class DownloadsActivity extends BaseActivity
 					
 					int image_height = (int) (layout_width * (((double)img.height) / img.width));
 					
-					LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
 							layout_width,
-							image_height));
+							image_height);
 					imgView.setLayoutParams(lp);
 
 					rel.setPadding(0, 20, 0, 20);

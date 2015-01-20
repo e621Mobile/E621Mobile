@@ -32,9 +32,9 @@ public class E621Search implements Serializable
 
 	private void impossibleCount()
 	{
-		if(!has_next_page())
+		if(count == 0 && images.size() > 0)
 		{
-			count = offset + images.size();
+			count = images.size();
 		}
 	}
 	
