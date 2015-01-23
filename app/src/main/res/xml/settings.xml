@@ -116,10 +116,6 @@
             android:summary="Clear both thumbnail and full image cache"
             android:key="clearCache"/>
         <Preference
-            android:title="Update metadata"
-            android:summary="Update tags and aliases database."
-            android:key="updateTags"/>
-        <Preference
             android:title="Force full metadata update"
             android:summary="Throws everything away and updates tags and aliases database."
             android:key="updateTagsForce"/>

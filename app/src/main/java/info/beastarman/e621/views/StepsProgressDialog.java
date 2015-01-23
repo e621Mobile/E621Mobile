@@ -1,13 +1,13 @@
 package info.beastarman.e621.views;
 
-import java.util.ArrayList;
-
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.View;
+
+import java.util.ArrayList;
 
 public class StepsProgressDialog extends ProgressDialog
 {
@@ -50,11 +50,25 @@ public class StepsProgressDialog extends ProgressDialog
 		setIndeterminate(true);
 		setCancelable(false);
 	}
-	
+
 	public StepsProgressDialog addStep(String message)
 	{
 		steps.add(message);
-		
+
+		return this;
+	}
+
+	public StepsProgressDialog updateStep(String message)
+	{
+		if(steps.size() == 0)
+		{
+			return addStep(message);
+		}
+		else
+		{
+			steps.set(steps.size() - 1, message);
+		}
+
 		return this;
 	}
 	

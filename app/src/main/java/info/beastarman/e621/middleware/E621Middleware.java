@@ -1,6 +1,5 @@
 package info.beastarman.e621.middleware;
 
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -340,10 +339,12 @@ public class E621Middleware extends E621
 		
 		alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
 		alarmIntent = PendingIntent.getBroadcast(ctx, 0, intent, 0);
-		
+
+		long interval = AlarmManager.INTERVAL_HOUR;
+
 		alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
-				SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_HOUR,
-		        AlarmManager.INTERVAL_HOUR, alarmIntent);
+				SystemClock.elapsedRealtime() + interval,
+		        interval, alarmIntent);
 		
 		interrupt = new InterruptedSearchManager(interrupted_path);
 		
@@ -393,6 +394,16 @@ public class E621Middleware extends E621
 	public boolean playGifs()
 	{
 		return settings.getBoolean("playGifs", true);
+	}
+
+	public int updateBreak()
+	{
+		return settings.getInt("updateBreak", 0);
+	}
+
+	public void setUpdateBreak(int i)
+	{
+		settings.edit().putInt("updateBreak", i).commit();
 	}
 
 	public static enum BlacklistMethod
@@ -1372,7 +1383,7 @@ public class E621Middleware extends E621
 
 					InputStream inputStream = getImageFromInternet(url);
 
-					if (in == null)
+					if (in == null || inputStream == null)
 					{
 						return;
 					}
@@ -1437,7 +1448,7 @@ public class E621Middleware extends E621
 
 			InputStream inputStream = getImageFromInternet(url);
 
-			if (in == null)
+			if (in == null || inputStream == null)
 			{
 				return null;
 			}
@@ -1562,7 +1573,7 @@ public class E621Middleware extends E621
 
 					InputStream inputStream = getImageFromInternet(url);
 
-					if (in == null)
+					if (in == null || inputStream == null)
 						return;
 
 					File f;
@@ -1643,7 +1654,7 @@ public class E621Middleware extends E621
 
 			InputStream inputStream = getImageFromInternet(url);
 
-			if (in == null)
+			if (in == null || inputStream == null)
 				return null;
 
 			File f;
@@ -1682,38 +1693,20 @@ public class E621Middleware extends E621
 	{
 		return download_manager.getFile(id);
 	}
-	
-	public void update_tags()
+
+	public void update_tags(EventManager em)
 	{
-		download_manager.updateMetadata(this);
+		download_manager.updateMetadata(this, em);
 	}
-	
-	public void force_update_tags()
+
+	public void update_some_metadata(EventManager em)
 	{
-		download_manager.updateMetadataForce(this);
+		setUpdateBreak(download_manager.updateMetadataPartial(this, updateBreak(), em));
 	}
-	
-	public void update_tags(Activity activity)
+
+	public void force_update_tags(EventManager em)
 	{
-		if(!updateTagsSemaphore.tryAcquire())
-		{
-			return;
-		}
-		
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run() {
-				try
-				{
-					download_manager.updateMetadata(E621Middleware.this);
-				}
-				finally
-				{
-					updateTagsSemaphore.release();
-				}
-			}
-		}).start();
+		download_manager.updateMetadataForce(this, em);
 	}
 	
 	private String prepareQuery(String tags)
@@ -2023,9 +2016,7 @@ public class E621Middleware extends E621
 	public void sync()
 	{
 		Log.d(LOG_TAG,"Begin sync");
-		
-		//if(true) return;
-		
+
 		for(String file : report_path.list())
 		{
 			File report = new File(report_path,file);
@@ -2085,6 +2076,14 @@ public class E621Middleware extends E621
 		syncSearch();
 		
 		backup();
+
+		update_some_metadata(new EventManager()
+		{
+			@Override
+			public void onTrigger(Object obj)
+			{
+			}
+		});
 		
 		Log.d(LOG_TAG,"End sync");
 	}
@@ -2560,7 +2559,7 @@ public class E621Middleware extends E621
 		}
 		
 		event.trigger(BackupStates.UPDATE_TAGS);
-		update_tags();
+		update_tags(event);
 		
 		event.trigger(BackupStates.SUCCESS);
 		return true;
@@ -2573,31 +2572,45 @@ public class E621Middleware extends E621
 			@Override
 			public void run()
 			{
-                String report = "";
+                sendReport(generateErrorReport(),message,errorReport);
+			}
+		}).start();
+	}
 
-                if(errorReport)
-                {
-                    report = generateErrorReport();
-                }
 
+
+	public void sendReport(final String report, final String message, final boolean errorReport)
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
 				String message_trim = message.trim();
 
-                if(message_trim.length() > 0)
-                {
-                    report += "\n\n-----------\n\n" + message_trim;
-                }
+				String r = "";
+
+				if(errorReport)
+				{
+					r = report;
+				}
+
+				if(message_trim.length() > 0)
+				{
+					r += "\n\n-----------\n\n" + message_trim;
+				}
 
 				try
 				{
-					sendReportOnline(report);
+					sendReportOnline(r);
 				}
 				catch(ClientProtocolException e)
 				{
-					saveReportForLater(report);
+					saveReportForLater(r);
 				}
 				catch (IOException e)
 				{
-					saveReportForLater(report);
+					saveReportForLater(r);
 				}
 			}
 		}).start();

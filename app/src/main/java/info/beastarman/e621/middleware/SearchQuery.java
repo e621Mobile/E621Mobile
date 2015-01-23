@@ -12,7 +12,7 @@ public class SearchQuery
 	
 	public SearchQuery(String query)
 	{
-		String[] tags = query.trim().replace("\"", "").replace("\'", "").split("\\s");
+		String[] tags = query.trim().split("\\s");
 		
 		for(String s : tags)
 		{

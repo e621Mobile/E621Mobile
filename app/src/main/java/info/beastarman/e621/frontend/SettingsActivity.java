@@ -25,8 +25,10 @@ import java.util.HashSet;
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.middleware.AndroidAppUpdater;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
+import info.beastarman.e621.middleware.E621DownloadedImages;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.BlackListDialog;
 import info.beastarman.e621.views.HighlightDialog;
@@ -50,253 +52,267 @@ public class SettingsActivity extends PreferenceActivity
     }
 
     public static class MyPreferenceFragment extends PreferenceFragment
-    {
-    	E621Middleware e621;
-    	Activity activity;
-    	
-    	@Override
-        public void onAttach(Activity act)
-        {
-        	super.onAttach(act);
-        	
-        	this.activity = act;
-        	
-        	this.e621 = E621Middleware.getInstance(act);;
-        }
-    	
-        @Override
-        public void onCreate(final Bundle savedInstanceState)
-        {
-            super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.settings);
-            
-            getPreferenceManager().setSharedPreferencesName(E621Middleware.PREFS_NAME);
-        	
-            CheckBoxPreference hideDownload = (CheckBoxPreference)findPreference("hideDownloadFolder");
-            hideDownload.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("hideDownloadFolder", true));
+	{
+		E621Middleware e621;
+		Activity activity;
 
-            CheckBoxPreference antecipateOnlyOnWiFi = (CheckBoxPreference)findPreference("antecipateOnlyOnWiFi");
-            antecipateOnlyOnWiFi.setChecked(e621.antecipateOnlyOnWiFi());
+		@Override
+		public void onAttach(Activity act)
+		{
+			super.onAttach(act);
 
-            CheckBoxPreference syncOnlyOnWiFi = (CheckBoxPreference)findPreference("syncOnlyOnWiFi");
-            syncOnlyOnWiFi.setChecked(e621.syncOnlyOnWiFi());
-            
-            CheckBoxPreference playGifs = (CheckBoxPreference)findPreference("playGifs");
-            playGifs.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("playGifs", true));
-            
-            CheckBoxPreference downloadInSearch = (CheckBoxPreference)findPreference("downloadInSearch");
-            downloadInSearch.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("downloadInSearch", true));
+			this.activity = act;
 
-			ListPreference downloadSize = (ListPreference)findPreference("prefferedFileDownloadSize");
+			this.e621 = E621Middleware.getInstance(act);
+			;
+		}
+
+		@Override
+		public void onCreate(final Bundle savedInstanceState)
+		{
+			super.onCreate(savedInstanceState);
+			addPreferencesFromResource(R.xml.settings);
+
+			getPreferenceManager().setSharedPreferencesName(E621Middleware.PREFS_NAME);
+
+			CheckBoxPreference hideDownload = (CheckBoxPreference) findPreference("hideDownloadFolder");
+			hideDownload.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("hideDownloadFolder", true));
+
+			CheckBoxPreference antecipateOnlyOnWiFi = (CheckBoxPreference) findPreference("antecipateOnlyOnWiFi");
+			antecipateOnlyOnWiFi.setChecked(e621.antecipateOnlyOnWiFi());
+
+			CheckBoxPreference syncOnlyOnWiFi = (CheckBoxPreference) findPreference("syncOnlyOnWiFi");
+			syncOnlyOnWiFi.setChecked(e621.syncOnlyOnWiFi());
+
+			CheckBoxPreference playGifs = (CheckBoxPreference) findPreference("playGifs");
+			playGifs.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("playGifs", true));
+
+			CheckBoxPreference downloadInSearch = (CheckBoxPreference) findPreference("downloadInSearch");
+			downloadInSearch.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("downloadInSearch", true));
+
+			ListPreference downloadSize = (ListPreference) findPreference("prefferedFileDownloadSize");
 			downloadSize.setValue(String.valueOf(getPreferenceManager().getSharedPreferences().getInt("prefferedFileDownloadSize", 2)));
 
-			ListPreference thumbnailSize = (ListPreference)findPreference("prefferedFilePreviewSize");
+			ListPreference thumbnailSize = (ListPreference) findPreference("prefferedFilePreviewSize");
 			thumbnailSize.setValue(String.valueOf(getPreferenceManager().getSharedPreferences().getInt("prefferedFilePreviewSize", 1)));
 
-			ListPreference blacklistMethod = (ListPreference)findPreference("blacklistMethod");
+			ListPreference blacklistMethod = (ListPreference) findPreference("blacklistMethod");
 			blacklistMethod.setValue(String.valueOf(e621.blacklistMethod().asInt()));
 
-			ListPreference commentsSorting = (ListPreference)findPreference("commentsSorting");
+			ListPreference commentsSorting = (ListPreference) findPreference("commentsSorting");
 			commentsSorting.setValue(String.valueOf(e621.commentsSorting()));
 
-            SeekBarDialogPreference thumbnailCacheSize = (SeekBarDialogPreference)findPreference("thumbnailCacheSize");
-            thumbnailCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("thumbnailCacheSize", 5));
+			SeekBarDialogPreference thumbnailCacheSize = (SeekBarDialogPreference) findPreference("thumbnailCacheSize");
+			thumbnailCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("thumbnailCacheSize", 5));
 
-            SeekBarDialogPreference resultsPerPage = (SeekBarDialogPreference)findPreference("resultsPerPage");
-            resultsPerPage.setProgress(getPreferenceManager().getSharedPreferences().getInt("resultsPerPage", 2));
-            
-            SeekBarDialogPreference fullCacheSize = (SeekBarDialogPreference)findPreference("fullCacheSize");
-            fullCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("fullCacheSize", 10));
-            
-            MultiSelectListPreference ratings = (MultiSelectListPreference)findPreference("allowedRatings");
-            ratings.setValues(getPreferenceManager().getSharedPreferences().getStringSet("allowedRatings",new HashSet<String>()));
+			SeekBarDialogPreference resultsPerPage = (SeekBarDialogPreference) findPreference("resultsPerPage");
+			resultsPerPage.setProgress(getPreferenceManager().getSharedPreferences().getInt("resultsPerPage", 2));
 
-			Preference blacklist = (Preference)getPreferenceManager().findPreference("blacklist");
-			blacklist.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+			SeekBarDialogPreference fullCacheSize = (SeekBarDialogPreference) findPreference("fullCacheSize");
+			fullCacheSize.setProgress(getPreferenceManager().getSharedPreferences().getInt("fullCacheSize", 10));
+
+			MultiSelectListPreference ratings = (MultiSelectListPreference) findPreference("allowedRatings");
+			ratings.setValues(getPreferenceManager().getSharedPreferences().getStringSet("allowedRatings", new HashSet<String>()));
+
+			Preference blacklist = (Preference) getPreferenceManager().findPreference("blacklist");
+			blacklist.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
 				@Override
 				public boolean onPreferenceClick(Preference arg0)
 				{
-					BlackListDialog dialog = new BlackListDialog(activity,e621.blacklist());
+					BlackListDialog dialog = new BlackListDialog(activity, e621.blacklist());
 					dialog.show();
 
 					return true;
 				}
 			});
 
-			Preference highlight = (Preference)getPreferenceManager().findPreference("highlight");
-			highlight.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+			Preference highlight = (Preference) getPreferenceManager().findPreference("highlight");
+			highlight.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
 				@Override
 				public boolean onPreferenceClick(Preference arg0)
 				{
-					HighlightDialog dialog = new HighlightDialog(activity,e621.highlight());
+					HighlightDialog dialog = new HighlightDialog(activity, e621.highlight());
 					dialog.show();
 
 					return true;
 				}
 			});
 
-			Preference clearCache = (Preference)getPreferenceManager().findPreference("clearCache");
-			clearCache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+			Preference clearCache = (Preference) getPreferenceManager().findPreference("clearCache");
+			clearCache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
 				@Override
-				public boolean onPreferenceClick(Preference arg0) {
+				public boolean onPreferenceClick(Preference arg0)
+				{
 					clearCache();
 					return true;
 				}
 			});
 
-            Preference about = (Preference)getPreferenceManager().findPreference("about");
-            about.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0)
-                {
-                	String title;
-					try {
+			Preference about = (Preference) getPreferenceManager().findPreference("about");
+			about.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					String title;
+					try
+					{
 						title = "About E621Mobile " + activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
-					} catch (NameNotFoundException e) {
+					} catch (NameNotFoundException e)
+					{
 						e.printStackTrace();
 						return true;
 					}
-                	
-                	AlertDialog dialog = new AlertDialog.Builder(activity).setTitle(title).setMessage(R.string.about).
-                			setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
+
+					AlertDialog dialog = new AlertDialog.Builder(activity).setTitle(title).setMessage(R.string.about).
+							setPositiveButton("Dismiss", new DialogInterface.OnClickListener()
+							{
 								@Override
-								public void onClick(DialogInterface dialog, int which) {
+								public void onClick(DialogInterface dialog, int which)
+								{
 									dialog.dismiss();
 								}
 							}).create();
-                	dialog.show();
-                	
-                    return true;
-                }
-            });
+					dialog.show();
 
-            Preference changelog = (Preference)getPreferenceManager().findPreference("changeLog");
-            changelog.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0) {
-                	AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Change Log").setMessage(R.string.changelog).
-                			setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
+					return true;
+				}
+			});
+
+			Preference changelog = (Preference) getPreferenceManager().findPreference("changeLog");
+			changelog.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Change Log").setMessage(R.string.changelog).
+							setPositiveButton("Dismiss", new DialogInterface.OnClickListener()
+							{
 								@Override
-								public void onClick(DialogInterface dialog, int which) {
+								public void onClick(DialogInterface dialog, int which)
+								{
 									dialog.dismiss();
 								}
 							}).create();
-                	dialog.show();
-                	
-                    return true;
-                }
-            });
-            
-            ArrayList<Date> backups = e621.getBackups();
-            CharSequence[] entries = new CharSequence[backups.size()];
-            CharSequence[] entriesValues = new CharSequence[backups.size()];
-            
-            for(int i=0; i<backups.size(); i++)
-            {
-            	entries[i] = backups.get(i).toString();
-            	entriesValues[i] = String.valueOf(backups.get(i).getTime());
-            }
-            
-            ListPreference restoreBackup = (ListPreference)getPreferenceManager().findPreference("restoreBackup");
-            restoreBackup.setDefaultValue(null);
-            restoreBackup.setEntries(entries);
-            restoreBackup.setEntryValues(entriesValues);
-            restoreBackup.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                @Override
-                public boolean onPreferenceChange(Preference preference, Object newValue)
-                {
-                	restoreBackup(new Date(Long.parseLong(newValue.toString())));
-                	
-                    return false;
-                }
-            });
-            
-            Preference allowedMascots = (Preference)getPreferenceManager().findPreference("allowedMascots");
-            allowedMascots.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0) {
-                	E621MascotSelect fragment = new E621MascotSelect();
-            		fragment.show(getFragmentManager(), "MascotSelect");
-            		
-            		return true;
-                }
-            });
+					dialog.show();
 
-            Preference button = (Preference)getPreferenceManager().findPreference("updateTags");
-            button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0) {
-                	updateTags();
-                    return true;
-                }
-            });
+					return true;
+				}
+			});
 
-            Preference updateTagsForce = (Preference)getPreferenceManager().findPreference("updateTagsForce");
-            updateTagsForce.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0) {
-                	forceUpdateTags();
-                    return true;
-                }
-            });
+			ArrayList<Date> backups = e621.getBackups();
+			CharSequence[] entries = new CharSequence[backups.size()];
+			CharSequence[] entriesValues = new CharSequence[backups.size()];
 
-            final Preference donate = (Preference)getPreferenceManager().findPreference("donate");
-            donate.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0)
-                {
-                	donate.setSummary(Html.fromHtml("Buy me porn"));
-                	donate();
-                    return true;
-                }
-            });
+			for (int i = 0; i < backups.size(); i++)
+			{
+				entries[i] = backups.get(i).toString();
+				entriesValues[i] = String.valueOf(backups.get(i).getTime());
+			}
 
-            Preference aboutE621 = (Preference)getPreferenceManager().findPreference("aboutE621");
-            aboutE621.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0)
-                {
-                	Intent i = new Intent(Intent.ACTION_VIEW);
-                	i.setData(Uri.parse("https://e621.net/wiki/show?title=e621%3Aabout"));
-                	startActivity(i);
-                    return true;
-                }
-            });
+			ListPreference restoreBackup = (ListPreference) getPreferenceManager().findPreference("restoreBackup");
+			restoreBackup.setDefaultValue(null);
+			restoreBackup.setEntries(entries);
+			restoreBackup.setEntryValues(entriesValues);
+			restoreBackup.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener()
+			{
+				@Override
+				public boolean onPreferenceChange(Preference preference, Object newValue)
+				{
+					restoreBackup(new Date(Long.parseLong(newValue.toString())));
 
-            Preference update = (Preference)getPreferenceManager().findPreference("update");
-            update.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0)
-                {
-                	update();
-                    return true;
-                }
-            });
+					return false;
+				}
+			});
 
-            Preference sync = (Preference)getPreferenceManager().findPreference("sync");
-            sync.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0)
-                {
-                	final ProgressDialog dialog = ProgressDialog.show(activity,
-                			"Synchronizing", "Please wait while sync is in progress",true,false);
-                	
-                	new Thread(new Runnable()
-                	{
-                		public void run()
-                		{
-                			e621.sync();
-                			
-                			dialog.dismiss();
-                		}
-                	}).start();
-                	
-                    return true;
-                }
-            });
+			Preference allowedMascots = (Preference) getPreferenceManager().findPreference("allowedMascots");
+			allowedMascots.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					E621MascotSelect fragment = new E621MascotSelect();
+					fragment.show(getFragmentManager(), "MascotSelect");
 
-			Preference sendErrorReport = (Preference)getPreferenceManager().findPreference("sendErrorReport");
-			sendErrorReport.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+					return true;
+				}
+			});
+
+			Preference updateTagsForce = (Preference) getPreferenceManager().findPreference("updateTagsForce");
+			updateTagsForce.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					forceUpdateTags();
+					return true;
+				}
+			});
+
+			final Preference donate = (Preference) getPreferenceManager().findPreference("donate");
+			donate.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					donate.setSummary(Html.fromHtml("Buy me porn"));
+					donate();
+					return true;
+				}
+			});
+
+			Preference aboutE621 = (Preference) getPreferenceManager().findPreference("aboutE621");
+			aboutE621.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					Intent i = new Intent(Intent.ACTION_VIEW);
+					i.setData(Uri.parse("https://e621.net/wiki/show?title=e621%3Aabout"));
+					startActivity(i);
+					return true;
+				}
+			});
+
+			Preference update = (Preference) getPreferenceManager().findPreference("update");
+			update.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					update();
+					return true;
+				}
+			});
+
+			Preference sync = (Preference) getPreferenceManager().findPreference("sync");
+			sync.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					final ProgressDialog dialog = ProgressDialog.show(activity, "Synchronizing", "Please wait while sync is in progress", true, false);
+
+					new Thread(new Runnable()
+					{
+						public void run()
+						{
+							e621.sync();
+
+							dialog.dismiss();
+						}
+					}).start();
+
+					return true;
+				}
+			});
+
+			Preference sendErrorReport = (Preference) getPreferenceManager().findPreference("sendErrorReport");
+			sendErrorReport.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
 				@Override
 				public boolean onPreferenceClick(Preference arg0)
 				{
@@ -307,8 +323,9 @@ public class SettingsActivity extends PreferenceActivity
 				}
 			});
 
-			Preference alphaFeatures = (Preference)getPreferenceManager().findPreference("alphaFeatures");
-			alphaFeatures.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+			Preference alphaFeatures = (Preference) getPreferenceManager().findPreference("alphaFeatures");
+			alphaFeatures.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
 				@Override
 				public boolean onPreferenceClick(Preference arg0)
 				{
@@ -318,47 +335,93 @@ public class SettingsActivity extends PreferenceActivity
 					return true;
 				}
 			});
-			if(e621.alpha().getFeatures().size()==0)
+			if (e621.alpha().getFeatures().size() == 0)
 			{
 				alphaFeatures.setEnabled(false);
 			}
-            
-            CheckBoxPreference lazyLoad = (CheckBoxPreference)findPreference("lazyLoad");
-            lazyLoad.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("lazyLoad", true));
-        }
-        
-        @Override
-        public void onStart()
-        {
-        	super.onStart();
-        	
-        	final Preference donate = (Preference)getPreferenceManager().findPreference("donate");
-        	donate.setSummary("Buy me a beer");
-        }
-        
-        protected void donate()
-    	{
-    		Intent i = new Intent(activity,DonateActivity.class);
-    		startActivity(i);
-    	}
 
-    	protected void updateTags()
-    	{
-    		final ProgressDialog dialog = ProgressDialog.show(activity, "","Updating tags. This may take an while. Please wait...", true);
-    		dialog.setIndeterminate(true);
-    		dialog.show();
-    		
-    		new Thread(new Runnable()
-    		{
-    			@Override
-    			public void run()
-    			{
-    				e621.update_tags();
-    				
-    				dialog.dismiss();
-    			}
-    		}).start();
-    	}
+			CheckBoxPreference lazyLoad = (CheckBoxPreference) findPreference("lazyLoad");
+			lazyLoad.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("lazyLoad", true));
+		}
+
+		@Override
+		public void onStart()
+		{
+			super.onStart();
+
+			final Preference donate = (Preference) getPreferenceManager().findPreference("donate");
+			donate.setSummary("Buy me a beer");
+		}
+
+		protected void donate()
+		{
+			Intent i = new Intent(activity, DonateActivity.class);
+			startActivity(i);
+		}
+
+		private EventManager getTagUpdateEventManager(final StepsProgressDialog dialog)
+		{
+			return new EventManager()
+			{
+				String last = "";
+
+				@Override
+				public void onTrigger(Object obj)
+				{
+					if(obj == E621DownloadedImages.UpdateStates.CLEANING)
+					{
+						last = "Cleaning metadata";
+						dialog.addStep(last);
+					}
+					else if(obj == E621DownloadedImages.UpdateStates.TAG_SYNC)
+					{
+						last = "Synchronizing tags";
+						dialog.addStep(last);
+					}
+					else if(obj == E621DownloadedImages.UpdateStates.TAG_ALIAS_SYNC)
+					{
+						last = "Synchronizing tag aliases";
+						dialog.addStep(last);
+					}
+					else if(obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_SYNC)
+					{
+						last = "Synchronizing image tags";
+						dialog.addStep(last);
+					}
+					else if(obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_DB)
+					{
+						last = "Saving image tags into database";
+						dialog.addStep(last);
+					}
+					else if(obj == E621DownloadedImages.UpdateStates.COMPLETED)
+					{
+						activity.runOnUiThread(new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								dialog.setDone("Finished");
+							}
+						});
+					}
+					else if(obj instanceof Pair)
+					{
+						Pair<String,String> pair = ((Pair<String,String>) obj);
+
+						dialog.updateStep(last + " (" + pair.left + "/" + pair.right + ")");
+					}
+
+					activity.runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							dialog.showStepsMessage();
+						}
+					});
+				}
+			};
+		}
 
     	protected void forceUpdateTags()
     	{
@@ -369,18 +432,16 @@ public class SettingsActivity extends PreferenceActivity
     			@Override
     			public void onClick(DialogInterface dialogInterface, int which)
     			{
-    				final ProgressDialog dialog = ProgressDialog.show(activity, "","Forcing tags update. This will take an while. Please wait...", true);
-    				dialog.setIndeterminate(true);
-    				dialog.show();
+    				final GTFO<StepsProgressDialog> dialog = new GTFO<StepsProgressDialog>();
+					dialog.obj = new StepsProgressDialog(activity);
+					dialog.obj.show();
     				
     				new Thread(new Runnable()
     				{
     					@Override
     					public void run()
     					{
-    						e621.force_update_tags();
-    						
-    						dialog.dismiss();
+    						e621.force_update_tags(getTagUpdateEventManager(dialog.obj));
     					}
     				}).start();
     			}

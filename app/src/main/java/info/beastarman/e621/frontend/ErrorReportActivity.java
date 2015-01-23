@@ -34,6 +34,8 @@ public class ErrorReportActivity extends Activity
 	
 	E621Middleware e621;
 
+	String log = null;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -41,6 +43,16 @@ public class ErrorReportActivity extends Activity
 		setContentView(R.layout.activity_error_report);
 		
 		e621 = E621Middleware.getInstance(getApplicationContext());
+
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				String l = e621.generateErrorReport();
+				log = l;
+			}
+		}).start();
 	}
 	
 	@Override
@@ -94,7 +106,16 @@ public class ErrorReportActivity extends Activity
             @Override
             public void run()
             {
-                final String log = e621.generateErrorReport();
+                while(log == null)
+				{
+					try
+					{
+						Thread.currentThread().sleep(1000);
+					} catch (InterruptedException e)
+					{
+						Thread.currentThread().interrupt();
+					}
+				}
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -110,11 +131,29 @@ public class ErrorReportActivity extends Activity
 	{
 		EditText error_description = (EditText) findViewById(R.id.errorDescription);
 		
-		String text = error_description.getText().toString().trim();
-		
-		CheckBox sendStatistics = (CheckBox) findViewById(R.id.sendStatistics);
-		
-		e621.sendReport(text,sendStatistics.isChecked());
+		final String text = error_description.getText().toString().trim();
+
+		final CheckBox sendStatistics = (CheckBox) findViewById(R.id.sendStatistics);
+
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				while(log == null)
+				{
+					try
+					{
+						Thread.currentThread().sleep(1000);
+					} catch (InterruptedException e)
+					{
+						Thread.currentThread().interrupt();
+					}
+				}
+
+				e621.sendReport(log,text,sendStatistics.isChecked());
+			}
+		}).start();
 		
 		end();
 	}
