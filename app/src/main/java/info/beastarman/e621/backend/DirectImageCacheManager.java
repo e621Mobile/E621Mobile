@@ -144,7 +144,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 	}
 
 	@Override
-	public File createOrUpdate(final String id, final InputStream in)
+	public void createOrUpdate(final String id, final InputStream in)
 	{
 		final GTFO<File> ret = new GTFO<File>();
 
@@ -172,8 +172,6 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 				}
 			}
 		});
-
-		return ret.obj;
 	}
 
 	@Override

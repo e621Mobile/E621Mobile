@@ -1,10 +1,10 @@
 package info.beastarman.e621.middleware;
 
-import info.beastarman.e621.api.E621Image;
+import android.os.Message;
 
 import java.io.InputStream;
 
-import android.os.Message;
+import info.beastarman.e621.api.E621Image;
 
 public class ImageLoadRunnable implements Runnable
 {
@@ -22,10 +22,12 @@ public class ImageLoadRunnable implements Runnable
 	}
 	
 	@Override
-	public void run() {
+	public void run()
+	{
 		InputStream in = e621.getImage(img, size);
     	Message msg = handler.obtainMessage();
     	msg.obj = in;
+
     	handler.sendMessage(msg);
 	}
 }

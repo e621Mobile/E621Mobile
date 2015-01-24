@@ -1199,23 +1199,6 @@ public class E621Middleware extends E621
 			return null;
 		}
 
-		if(o.outWidth == width && o.outHeight == height)
-		{
-			in = new ByteArrayInputStream(bytes);
-
-			Bitmap ret = BitmapFactory.decodeStream(in);
-
-			try
-			{
-				in.close();
-			} catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-
-			return ret;
-		}
-
 		//Find the correct scale value. It should be the power of 2.
 		int scale=1;
 		while(o.outWidth/scale/2>=width && o.outHeight/scale/2>=height)
@@ -1574,37 +1557,52 @@ public class E621Middleware extends E621
 					InputStream inputStream = getImageFromInternet(url);
 
 					if (in == null || inputStream == null)
+					{
 						return;
-
-					File f;
-
-					if (size == E621Image.PREVIEW)
-					{
-						f = thumb_cache.createOrUpdate(String.valueOf(img.id), inputStream);
-					}
-					else
-					{
-						f = full_cache.createOrUpdate(String.valueOf(img.id), inputStream);
 					}
 
-					InputStream inTemp = null;
+					byte[] byteArray;
 
 					try
 					{
-						inTemp = new BufferedInputStream(new FileInputStream(f));
-					} catch (IOException e)
+						byteArray = IOUtils.toByteArray(inputStream);
+					}
+					catch (IOException e)
 					{
 						e.printStackTrace();
+						return;
+					}
+					finally
+					{
+						try
+						{
+							inputStream.close();
+						} catch (IOException e)
+						{
+							e.printStackTrace();
+						}
 					}
 
-					if (inTemp != null)
+					byte[] b2 = byteArray.clone();
+
+					inputStream = new ByteArrayInputStream(byteArray);
+
+					if (size == E621Image.PREVIEW)
 					{
-						synchronized (lock)
+						thumb_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+					}
+					else
+					{
+						full_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+					}
+
+					inputStream = new ByteArrayInputStream(b2);
+
+					synchronized (lock)
+					{
+						if (in.obj == null)
 						{
-							if (in.obj == null)
-							{
-								in.obj = inTemp;
-							}
+							in.obj = inputStream;
 						}
 					}
 				}
@@ -1655,30 +1653,48 @@ public class E621Middleware extends E621
 			InputStream inputStream = getImageFromInternet(url);
 
 			if (in == null || inputStream == null)
+			{
 				return null;
-
-			File f;
-
-			if (size == E621Image.PREVIEW)
-			{
-				f = thumb_cache.createOrUpdate(String.valueOf(img.id), inputStream);
-			}
-			else
-			{
-				f = full_cache.createOrUpdate(String.valueOf(img.id), inputStream);
 			}
 
-			InputStream inTemp = null;
+			byte[] byteArray;
 
 			try
 			{
-				inTemp = new BufferedInputStream(new FileInputStream(f));
-				in.obj = new ByteArrayInputStream(IOUtils.toByteArray(inTemp));
-			} catch (IOException e)
+				byteArray = IOUtils.toByteArray(inputStream);
+			}
+			catch (IOException e)
 			{
 				e.printStackTrace();
 				return null;
 			}
+			finally
+			{
+				try
+				{
+					inputStream.close();
+				} catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+
+			byte[] b2 = byteArray.clone();
+
+			inputStream = new ByteArrayInputStream(byteArray);
+
+			if (size == E621Image.PREVIEW)
+			{
+				thumb_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+			}
+			else
+			{
+				full_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+			}
+
+			inputStream = new ByteArrayInputStream(b2);
+
+			in.obj = inputStream;
 		}
 		
 		return in.obj;
@@ -2753,7 +2769,7 @@ public class E621Middleware extends E621
 
 		for(int i=0; i<comments.size(); i++)
 		{
-			retComments.addAll(comments.get(i));
+			if(comments.get(i) != null) retComments.addAll(comments.get(i));
 		}
 
 		return retComments;

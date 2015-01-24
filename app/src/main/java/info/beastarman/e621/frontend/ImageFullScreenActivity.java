@@ -44,7 +44,6 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.TabHost;
-import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -128,6 +127,46 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 		final TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
 
+		setupTabHost(tabHost);
+
+		viewPager = (ViewPager)findViewById(R.id.view_pager);
+		mPagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
+		viewPager.setAdapter(mPagerAdapter);
+		viewPager.setCurrentItem(image.getPosition());
+		viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener()
+		{
+			@Override
+			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels)
+			{
+			}
+
+			@Override
+			public void onPageSelected(final int position)
+			{
+				resetTabHost();
+
+				new Thread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						final ImageNavigator i = image.getRelative(position-image.getPosition());
+						img = null;
+
+						retrieveImage(i);
+					}
+				}).start();
+			}
+
+			@Override
+			public void onPageScrollStateChanged(int state)
+			{
+			}
+		});
+	}
+
+	private void setupTabHost(final TabHost tabHost)
+	{
 		int resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
 		if (resourceId > 0)
 		{
@@ -163,22 +202,11 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 				return true;
 			}
 		});
-
-		viewPager = (ViewPager)findViewById(R.id.view_pager);
-		mPagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
-		viewPager.setAdapter(mPagerAdapter);
 	}
 
 	@Override
 	protected void onStop()
 	{
-		final TableLayout tableLayout = (TableLayout) findViewById(R.id.imageViewTable);
-
-		if(tableLayout != null)
-		{
-			tableLayout.removeAllViews();
-		}
-
 		e621.unbindDownloadState(img.id,downloadEventManager);
 
 		super.onStop();
@@ -262,12 +290,38 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			@Override
 			public void run()
 			{
-				retrieveImage();
+				retrieveImage(image);
 			}
 		});
 	}
 
-	private void retrieveImage()
+	private void resetTabHost()
+	{
+		if(img != null)
+		{
+			e621.unbindDownloadState(img.id,downloadEventManager);
+		}
+
+		children = null;
+		catTags = null;
+		comments = null;
+
+		View tagsLoading = findViewById(R.id.tagsLoading);
+		tagsLoading.setVisibility(View.VISIBLE);
+		ViewGroup tagsLayout = ((ViewGroup)findViewById(R.id.tagsLayout));
+		tagsLayout.removeAllViews();
+		tagsLayout.addView(tagsLoading);
+
+		View commentsLoading = findViewById(R.id.commentsLoading);
+		commentsLoading.setVisibility(View.VISIBLE);
+		View v = findViewById(R.id.postCommentArea);
+		ViewGroup commentsLayout = ((ViewGroup)findViewById(R.id.commentsLayout));
+		commentsLayout.removeAllViews();
+		commentsLayout.addView(v);
+		commentsLayout.addView(commentsLoading);
+	}
+
+	private void retrieveImage(final ImageNavigator imageNav)
 	{
 		if(img == null)
 		{
@@ -278,7 +332,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 				{
 					try
 					{
-						img = e621.post__show(image.getId());
+						img = e621.post__show(imageNav.getId());
 
 						updateImage();
 					} catch (IOException e)
@@ -301,34 +355,6 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}
 	}
 
-	private float getImageScale()
-	{
-		int w;
-		int h;
-
-		switch (e621.getFileDownloadSize())
-		{
-			case E621Image.PREVIEW:
-				w = img.preview_width;
-				h = img.preview_height;
-				break;
-			case E621Image.SAMPLE:
-				w = img.sample_width;
-				h = img.sample_height;
-				break;
-			default:
-				w = img.width;
-				h = img.height;
-				break;
-		}
-
-		float scale = ((float)w) / getWindow().getDecorView().getWidth();
-		scale = Math.max(scale, ((float)h) / getWindow().getDecorView().getHeight());
-		scale = Math.max(scale,1f);
-
-		return scale;
-	}
-
 	private void updateImage()
 	{
 		runOnUiThread(new Runnable()
@@ -336,7 +362,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			@Override
 			public void run()
 			{
-				hideUI();
+				if(visible) hideUI();
 			}
 		});
 
@@ -354,6 +380,8 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			@Override
 			public void run()
 			{
+				setTitle("#" + img.id);
+
 				updateDownload();
 
 				updateScore();
@@ -1085,6 +1113,8 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 		if(img.parent_id != null)
 		{
+			parentWrapper.setVisibility(View.VISIBLE);
+
 			TextView parent_id = (TextView) findViewById(R.id.parent_id);
 			parent_id.setText("#" + img.parent_id);
 
@@ -1208,6 +1238,8 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 		if(img.has_children)
 		{
+			childrenWrapper.setVisibility(View.VISIBLE);
+
 			new Thread(new Runnable()
 			{
 				@Override
@@ -1370,7 +1402,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	public void searchChildren(View v)
 	{
 		Intent i = new Intent(this,SearchActivity.class);
-		i.putExtra(SearchActivity.SEARCH, "parent:" + image.getId());
+		i.putExtra(SearchActivity.SEARCH, "parent:" + img.id);
 		startActivity(i);
 	}
 
@@ -1379,7 +1411,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	{
 		if(children == null)
 		{
-			children = e621.post__index("parent:"+image.getId(),0,100);
+			children = e621.post__index("parent:"+img.id,0,100);
 		}
 
 		return children;
@@ -1466,7 +1498,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			{
 				E621Search search;
 				try {
-					search = e621.post__index("fav:" + e621.getLoggedUser() + " id:" + image.getId(), 0, 1);
+					search = e621.post__index("fav:" + e621.getLoggedUser() + " id:" + img.id, 0, 1);
 				} catch (IOException e) {
 					return;
 				}
@@ -1537,7 +1569,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			@Override
 			public void run()
 			{
-				final Boolean ret = e621.post_favorite(image.getId(), !f);
+				final Boolean ret = e621.post_favorite(img.id, !f);
 
 				if(ret == null || !ret)
 				{
@@ -1805,7 +1837,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		@Override
 		public Fragment getItem(int position)
 		{
-			return ImageFullScreenActivityStaticImageFragment.fromImageNavigator(new ImageNavilagorLazyRelative(image, position));
+			return ImageFullScreenActivityTouchImageViewFragment.fromImageNavigator(new ImageNavilagorLazyRelative(image, position - image.getPosition()));
 		}
 
 		@Override

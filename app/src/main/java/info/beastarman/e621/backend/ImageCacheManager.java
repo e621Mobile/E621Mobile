@@ -180,7 +180,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	}
 
 	@Override
-	public File createOrUpdate(final String id, final InputStream in)
+	public void createOrUpdate(final String id, final InputStream in)
 	{
 		lock.write(new Runnable()
 		{
@@ -236,8 +236,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		});
 
 		if(max_size > 0) accessWatcher.insert(id);
-
-		return new File(base_path,id);
 	}
 
 	@Override

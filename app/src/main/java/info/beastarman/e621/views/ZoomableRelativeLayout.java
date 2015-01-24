@@ -3,6 +3,7 @@ package info.beastarman.e621.views;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.RelativeLayout;
@@ -186,5 +187,11 @@ public class ZoomableRelativeLayout extends RelativeLayout
 		{
 			smoothScale(MAX_SCALE);
 		}
+	}
+
+	@Override
+	public boolean onInterceptTouchEvent(MotionEvent ev)
+	{
+		return true;
 	}
 }

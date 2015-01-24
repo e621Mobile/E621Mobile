@@ -1,6 +1,5 @@
 package info.beastarman.e621.backend;
 
-import java.io.File;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -14,7 +13,7 @@ public interface ImageCacheManagerInterface {
 
 	public abstract InputStream getFile(String id);
 
-	public abstract File createOrUpdate(String id, InputStream in);
+	public abstract void createOrUpdate(String id, InputStream in);
 
 	public abstract void removeFile(String id);
 

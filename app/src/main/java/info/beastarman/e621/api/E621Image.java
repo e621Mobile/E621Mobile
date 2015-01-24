@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import info.beastarman.e621.api.dtext.DText;
+import info.beastarman.e621.backend.Pair;
 
 public class E621Image implements Serializable
 {
@@ -340,5 +341,18 @@ public class E621Image implements Serializable
 	public String toString()
 	{
 		return String.valueOf(id);
+	}
+
+	public Pair<Integer,Integer> getSize(int size)
+	{
+		switch (size)
+		{
+			case PREVIEW:
+				return new Pair<Integer, Integer>(preview_width,preview_height);
+			case SAMPLE:
+				return new Pair<Integer, Integer>(sample_width,sample_height);
+			default:
+				return new Pair<Integer, Integer>(width,height);
+		}
 	}
 }

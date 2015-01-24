@@ -47,19 +47,6 @@ public class ImageFullScreenActivityStaticImageFragment extends Fragment
 
 	int IMAGE_CHUNK_SIZE = 512;
 
-	public static ImageFullScreenActivityStaticImageFragment fromImageNavigator(ImageNavigator navigator)
-	{
-		ImageFullScreenActivityStaticImageFragment ret = new ImageFullScreenActivityStaticImageFragment();
-
-		Bundle bundle = new Bundle();
-
-		bundle.putSerializable(POSITION, navigator);
-
-		ret.setArguments(bundle);
-
-		return ret;
-	}
-
 	public static ImageFullScreenActivityStaticImageFragment fromImageNavigator(ImageNavilagorLazyRelative navigator)
 	{
 		ImageFullScreenActivityStaticImageFragment ret = new ImageFullScreenActivityStaticImageFragment();
@@ -156,6 +143,7 @@ public class ImageFullScreenActivityStaticImageFragment extends Fragment
 								{
 									return true;
 								}
+
 								return false;
 							}
 						});
@@ -200,14 +188,14 @@ public class ImageFullScreenActivityStaticImageFragment extends Fragment
 
 		recyclableImageViews.clear();
 
-		((TableLayout)zoomableRelativeLayout.findViewById(R.id.imageViewTable)).removeAllViews();
+		((TableLayout)zoomableRelativeLayout.findViewById(R.id.progressBar)).removeAllViews();
 
 		super.onStop();
 	}
 
 	private void showImage()
 	{
-		final TableLayout tableLayout = (TableLayout) zoomableRelativeLayout.findViewById(R.id.imageViewTable);
+		final TableLayout tableLayout = (TableLayout) zoomableRelativeLayout.findViewById(R.id.progressBar);
 		final ProgressBar progressBar = (ProgressBar) zoomableRelativeLayout.findViewById(R.id.progressBar);
 
 		InputStream is = E621Middleware.getInstance().getImage(img, E621Middleware.getInstance().getFileDownloadSize());
