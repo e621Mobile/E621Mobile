@@ -10,7 +10,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
@@ -298,7 +298,7 @@ public class E621Middleware extends E621
 		
 		if(download_manager == null)
 		{
-			download_manager = new E621DownloadedImages(download_path);
+			download_manager = new E621DownloadedImages(ctx, download_path);
 		}
 		
 		File failed_download_file = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"failed_downloads.txt");
@@ -3174,6 +3174,9 @@ public class E621Middleware extends E621
 		protected int version = 1;
 		protected File path;
 		protected File thumbnails_path;
+		protected File db_path;
+
+		DatabaseHelper dbHelper;
 		
 		ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
 		
@@ -3181,6 +3184,7 @@ public class E621Middleware extends E621
 		{
 			this.path = path;
 			this.thumbnails_path = new File(path,"thumbnails/");
+			this.db_path = new File(path,"db.sqlite3");
 			
 			if(this.thumbnails_path.exists() && this.thumbnails_path.isFile())
 			{
@@ -3191,86 +3195,64 @@ public class E621Middleware extends E621
 			{
 				this.thumbnails_path.mkdirs();
 			}
-		}
-		
-		private void new_db(SQLiteDatabase db)
-		{
-			db.execSQL("CREATE TABLE search (" +
-					"search_query TEXT PRIMARY KEY" +
-					", " +
-					"seen_past UNSIGNED BIG INT" +
-					", " +
-					"seen_until UNSIGNED BIG INT" +
-				");"
-			);
-			
-			db.setVersion(0);
+
+			dbHelper = new DatabaseHelper();
 		}
 
-		Semaphore s = new Semaphore(1);
-		
-		private synchronized SQLiteDatabase get_db()
+		private class DatabaseHelper extends SQLiteOpenHelper
 		{
-			SQLiteDatabase db;
-
-			try
+			private DatabaseHelper()
 			{
-				s.acquire();
-			}
-			catch (InterruptedException e)
-			{
-				Thread.currentThread().interrupt();
-			}
-			
-			File db_path = new File(path,"db.sqlite3");
-			
-			try
-			{
-				db = SQLiteDatabase.openDatabase(db_path.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
-			}
-			catch(SQLiteException e)
-			{
-				e.printStackTrace();
-				db = SQLiteDatabase.openOrCreateDatabase(db_path, null);
-				new_db(db);
-			}
-			
-			while(db.getVersion() < version)
-			{
-				update_db(db, db.getVersion()+1);
-				
-				db.setVersion(db.getVersion()+1);
+				super(ctx, db_path.getAbsolutePath(), null, version);
 			}
 
-			s.release();
-			
-			return db;
-		}
-		
-		protected synchronized void update_db(SQLiteDatabase db, int version)
-		{
-			switch(version)
+			@Override
+			public void onCreate(SQLiteDatabase db)
 			{
-				case 1:
-					update_0_1(db);
-					break;
-				default:
-					break;
+				db.execSQL("CREATE TABLE search (" +
+								"search_query TEXT PRIMARY KEY" +
+								", " +
+								"seen_past UNSIGNED BIG INT" +
+								", " +
+								"seen_until UNSIGNED BIG INT" +
+								");"
+				);
+			}
+
+			@Override
+			public void onUpgrade(SQLiteDatabase db, int i, int i2)
+			{
+				while(i < i2)
+				{
+					update_db(db, ++i);
+				}
+			}
+
+			protected synchronized void update_db(SQLiteDatabase db, int version)
+			{
+				switch(version)
+				{
+					case 1:
+						update_0_1(db);
+						break;
+					default:
+						break;
+				}
+			}
+
+			protected synchronized void update_0_1(SQLiteDatabase db)
+			{
+				db.execSQL("ALTER TABLE search ADD COLUMN new_images INTEGER DEFAULT 0;");
 			}
 		}
-		
-		protected synchronized void update_0_1(SQLiteDatabase db)
-		{
-			db.execSQL("ALTER TABLE search ADD COLUMN new_images INTEGER DEFAULT 0;");
-		}
-		
+
 		public void addOrUpdateSearch(final String search, final String seen_past, final String seen_until)
 		{
 			lock.write(new Runnable()
 			{
 				public void run()
 				{
-					SQLiteDatabase db = get_db();
+					SQLiteDatabase db = dbHelper.getWritableDatabase();
 					
 					Cursor c = db.rawQuery("SELECT * FROM search WHERE search_query = ? LIMIT 1;", new String[]{search});
 					
@@ -3291,8 +3273,6 @@ public class E621Middleware extends E621
 						
 						c.close();
 					}
-					
-					db.close();
 				}
 			});
 		}
@@ -3303,11 +3283,9 @@ public class E621Middleware extends E621
 			{
 				public void run()
 				{
-					SQLiteDatabase db = get_db();
+					SQLiteDatabase db = dbHelper.getWritableDatabase();
 					
 					update_new_image_count(search,new_image_count,db);
-					
-					db.close();
 				}
 			});
 		}
@@ -3326,11 +3304,9 @@ public class E621Middleware extends E621
 			{
 				public void run()
 				{
-					SQLiteDatabase db = get_db();
+					SQLiteDatabase db = dbHelper.getWritableDatabase();
 					
 					remove(search,db);
-					
-					db.close();
 				}
 			});
 		}
@@ -3395,11 +3371,9 @@ public class E621Middleware extends E621
 			{
 				public void run()
 				{
-					SQLiteDatabase db = get_db();
+					SQLiteDatabase db = dbHelper.getReadableDatabase();
 					
 					ret.obj = getSearch(search,db);
-					
-					db.close();
 				}
 			});
 			
@@ -3442,7 +3416,7 @@ public class E621Middleware extends E621
 			{
 				public void run()
 				{
-					SQLiteDatabase db = get_db();
+					SQLiteDatabase db = dbHelper.getReadableDatabase();
 					
 					Cursor c = db.rawQuery("SELECT search_query, seen_past, seen_until, new_images FROM search ORDER BY -new_images, search_query;", null);
 					
@@ -3468,8 +3442,6 @@ public class E621Middleware extends E621
 						
 						c.close();
 					}
-					
-					db.close();
 				}
 			});
 			
@@ -3482,7 +3454,7 @@ public class E621Middleware extends E621
 			{
 				public void run()
 				{
-					SQLiteDatabase db = get_db();
+					SQLiteDatabase db = dbHelper.getWritableDatabase();
 					db.beginTransaction();
 					
 					try
@@ -3506,7 +3478,6 @@ public class E621Middleware extends E621
 					finally
 					{
 						db.endTransaction();
-						db.close();
 					}
 				}
 			});

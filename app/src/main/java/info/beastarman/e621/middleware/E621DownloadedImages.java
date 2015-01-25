@@ -1,9 +1,10 @@
 package info.beastarman.e621.middleware;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Tag;
@@ -29,110 +29,71 @@ public class E621DownloadedImages
 	File image_tag_file;
 	ImageCacheManager images;
 	public E621TagDatabase tags;
+
+	int version = 1;
 	
 	ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
+
+	DatabaseHelper dbHelper;
+
+	private class DatabaseHelper extends SQLiteOpenHelper
+	{
+		private DatabaseHelper(Context context, File f)
+		{
+			super(context, f.getAbsolutePath(), null, version);
+		}
+
+		@Override
+		public void onCreate(SQLiteDatabase db)
+		{
+			if(db.getVersion() == 0)
+			{
+				db.setVersion(1);
+			}
+			else
+			{
+				db.execSQL("CREATE TABLE image_tag (" +
+								"image UNSIGNED INTEGER" +
+								", " +
+								"tag UNSIGNED INTEGER" +
+								", " +
+								"PRIMARY KEY(image,tag)" +
+								", " +
+								"FOREIGN KEY (image) REFERENCES e621image(id)" +
+								");"
+				);
+
+				db.execSQL("CREATE TABLE e621image (" +
+								"image_file TEXT" +
+								", " +
+								"id UNSIGNED INTEGER" +
+								", " +
+								"rating VARCHAR(1)" +
+								", " +
+								"width INTEGER DEFAULT 1" +
+								", " +
+								"height INTEGER DEFAULT 1" +
+								", " +
+								"PRIMARY KEY(id)" +
+								");"
+				);
+			}
+		}
+
+		@Override
+		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2)
+		{
+		}
+	}
 	
-	public E621DownloadedImages(File base_path)
+	public E621DownloadedImages(Context ctx, File base_path)
 	{
 		this.base_path = base_path;
 		this.image_tag_file = new File(base_path,".image_tag.sqlite3");
-		this.images = new ImageCacheManager(base_path,0);
-		this.tags = new E621TagDatabase(new File(base_path,".tags.sqlite3"));
-	}
+		this.images = new ImageCacheManager(ctx,base_path,0);
+		this.tags = new E621TagDatabase(ctx, new File(base_path,".tags.sqlite3"));
 
-	static Semaphore s = new Semaphore(1);
-
-	private synchronized SQLiteDatabase getDB()
-	{
-		SQLiteDatabase db = null;
-
-		try
-		{
-			s.acquire();
-		}
-		catch (InterruptedException e)
-		{
-			Thread.currentThread().interrupt();
-		}
-		
-		try
-		{
-			db = SQLiteDatabase.openDatabase(image_tag_file.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
-		}
-		catch(SQLiteException e)
-		{
-			e.printStackTrace();
-
-			try
-			{
-				db = null;
-
-				SQLiteDatabase.openDatabase(image_tag_file.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY);
-
-				while(db == null)
-				{
-					try
-					{
-						Thread.currentThread().sleep(5000);
-					} catch (InterruptedException e1)
-					{
-						Thread.currentThread().interrupt();
-					}
-
-					try
-					{
-						db = SQLiteDatabase.openDatabase(image_tag_file.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
-					}
-					catch(SQLiteException e2)
-					{
-						e2.printStackTrace();
-					}
-				}
-			}
-			catch(SQLiteException e1)
-			{
-				e1.printStackTrace();
-			}
-
-			if(db == null)
-			{
-				db = SQLiteDatabase.openOrCreateDatabase(image_tag_file, null);
-				newDB(db);
-			}
-		}
-
-		s.release();
-		
-		return db;
-	}
-	
-	private void newDB(SQLiteDatabase db)
-	{
-		db.execSQL("CREATE TABLE image_tag (" +
-				"image UNSIGNED INTEGER" +
-				", " +
-				"tag UNSIGNED INTEGER" +
-				", " +
-				"PRIMARY KEY(image,tag)" +
-				", " +
-				"FOREIGN KEY (image) REFERENCES e621image(id)" +
-			");"
-		);
-		
-		db.execSQL("CREATE TABLE e621image (" +
-				"image_file TEXT" +
-				", " +
-				"id UNSIGNED INTEGER" +
-				", " +
-				"rating VARCHAR(1)" +
-				", " +
-				"width INTEGER DEFAULT 1" +
-				", " +
-				"height INTEGER DEFAULT 1" +
-				", " +
-				"PRIMARY KEY(id)" +
-			");"
-		);
+		dbHelper = new DatabaseHelper(ctx,image_tag_file);
 	}
 	
 	public E621Tag getTag(String name)
@@ -269,7 +230,7 @@ public class E621DownloadedImages
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -296,7 +257,6 @@ public class E621DownloadedImages
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -315,7 +275,7 @@ public class E621DownloadedImages
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -332,7 +292,6 @@ public class E621DownloadedImages
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -359,7 +318,7 @@ public class E621DownloadedImages
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -376,7 +335,6 @@ public class E621DownloadedImages
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -400,7 +358,7 @@ public class E621DownloadedImages
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -417,7 +375,6 @@ public class E621DownloadedImages
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -485,17 +442,10 @@ public class E621DownloadedImages
 					images.removeFile(file_name);
 				}
 				
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
 				
-				try
-				{
-					db.delete("image_tag", "image = ?", new String[]{String.valueOf(id)});
-					db.delete("e621image", "id = ?", new String[]{String.valueOf(id)});
-				}
-				finally
-				{
-					db.close();
-				}
+				db.delete("image_tag", "image = ?", new String[]{String.valueOf(id)});
+				db.delete("e621image", "id = ?", new String[]{String.valueOf(id)});
 			}
 		});
 	}
@@ -517,36 +467,29 @@ public class E621DownloadedImages
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
-				
-				try
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+				ContentValues values = new ContentValues();
+				values.put("id", img.id);
+				values.put("image_file", file_name);
+				values.put("rating", img.rating);
+				values.put("width", img.width);
+				values.put("height", img.height);
+
+				db.insert("e621image", null, values);
+
+				for(E621Tag tag : img.tags)
 				{
-					ContentValues values = new ContentValues();
-					values.put("id", img.id);
-					values.put("image_file", file_name);
-					values.put("rating", img.rating);
-					values.put("width", img.width);
-					values.put("height", img.height);
-					
-					db.insert("e621image", null, values);
-					
-					for(E621Tag tag : img.tags)
+					tag = tags.getTag(tag.getTag());
+
+					if(tag != null)
 					{
-						tag = tags.getTag(tag.getTag());
-						
-						if(tag != null)
-						{
-							values = new ContentValues();
-							values.put("image", img.id);
-							values.put("tag", tag.getId());
-							
-							db.insert("image_tag", null, values);
-						}
+						values = new ContentValues();
+						values.put("image", img.id);
+						values.put("tag", tag.getId());
+
+						db.insert("image_tag", null, values);
 					}
-				}
-				finally
-				{
-					db.close();
 				}
 			}
 		});
@@ -619,7 +562,7 @@ public class E621DownloadedImages
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
 				db.beginTransaction();
 				
 				try
@@ -631,7 +574,6 @@ public class E621DownloadedImages
 				finally
 				{
 					db.endTransaction();
-					db.close();
 				}
 			}
 		});
@@ -756,7 +698,7 @@ public class E621DownloadedImages
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -778,7 +720,6 @@ public class E621DownloadedImages
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -794,7 +735,7 @@ public class E621DownloadedImages
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 
 				try
@@ -816,7 +757,6 @@ public class E621DownloadedImages
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -887,7 +827,7 @@ public class E621DownloadedImages
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
 				db.beginTransaction();
 
 				try
@@ -920,7 +860,6 @@ public class E621DownloadedImages
 				finally
 				{
 					db.endTransaction();
-					db.close();
 				}
 			}
 		});

@@ -436,14 +436,21 @@ public class SearchActivity extends BaseActivity
 
 							View resultWrapper = views.get(i);
 
-							ImageView imgView = (ImageView) resultWrapper.findViewById(R.id.imageView);
-							ProgressBar progressBar = (ProgressBar) resultWrapper.findViewById(R.id.progressBar);
+							final ImageView imgView = (ImageView) resultWrapper.findViewById(R.id.imageView);
+							final ProgressBar progressBar = (ProgressBar) resultWrapper.findViewById(R.id.progressBar);
 
 							if(!e621.isBlacklisted(img).isEmpty() && e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG)
 							{
-								imgView.setImageResource(android.R.drawable.ic_menu_report_image);
-								imgView.setBackgroundColor(getResources().getColor(R.color.gray));
-								progressBar.setVisibility(View.GONE);
+								runOnUiThread(new Runnable()
+								{
+									@Override
+									public void run()
+									{
+										imgView.setImageResource(android.R.drawable.ic_menu_report_image);
+										imgView.setBackgroundColor(getResources().getColor(R.color.gray));
+										progressBar.setVisibility(View.GONE);
+									}
+								});
 
 								continue;
 							}

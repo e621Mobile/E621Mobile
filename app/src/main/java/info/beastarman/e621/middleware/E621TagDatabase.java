@@ -1,15 +1,15 @@
 package info.beastarman.e621.middleware;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.Semaphore;
 
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621TagAlias;
@@ -20,77 +20,71 @@ public class E621TagDatabase
 {
 	File file_path;
 	ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
+
+	int version = 1;
+
+	DatabaseHelper dbHelper;
+
+	private class DatabaseHelper extends SQLiteOpenHelper
+	{
+		public DatabaseHelper(Context context, File f)
+		{
+			super(context, f.getAbsolutePath(), null, version);
+		}
+
+		@Override
+		public void onCreate(SQLiteDatabase db)
+		{
+			if(db.getVersion() == 0)
+			{
+				db.setVersion(1);
+			}
+			else
+			{
+				db.execSQL("CREATE TABLE tag (" +
+								"id UNSIGNED INTEGER PRIMARY KEY" +
+								", " +
+								"name TEXT" +
+								", " +
+								"type SMALL INTEGER" +
+								");"
+				);
+
+				db.execSQL("CREATE TABLE tag_alias (" +
+								"alias TEXT" +
+								", " +
+								"id UNSIGNED INTEGER" +
+								", " +
+								"tag UNSIGNED INTEGER" +
+								", " +
+								"PRIMARY KEY(id)" +
+								", " +
+								"FOREIGN KEY (tag) REFERENCES tag(id)" +
+								");"
+				);
+			}
+		}
+
+		@Override
+		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2)
+		{
+		}
+	}
 	
-	public E621TagDatabase(File file_path)
+	public E621TagDatabase(Context ctx, File file_path)
 	{
 		this.file_path = file_path;
-		
-		getDB().close();
+
+		dbHelper = new DatabaseHelper(ctx,file_path);
 	}
 
-	static Semaphore s = new Semaphore(1);
-	
-	private synchronized SQLiteDatabase getDB()
-	{
-		SQLiteDatabase db;
-
-		try
-		{
-			s.acquire();
-		}
-		catch (InterruptedException e)
-		{
-			Thread.currentThread().interrupt();
-		}
-		
-		try
-		{
-			db = SQLiteDatabase.openDatabase(file_path.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
-		}
-		catch(SQLiteException e)
-		{
-			e.printStackTrace();
-			db = SQLiteDatabase.openOrCreateDatabase(file_path, null);
-			newDB(db);
-		}
-
-		s.release();
-		
-		return db;
-	}
-	
-	private void newDB(SQLiteDatabase db)
-	{
-		db.execSQL("CREATE TABLE tag (" +
-				"id UNSIGNED INTEGER PRIMARY KEY" +
-				", " +
-				"name TEXT" +
-				", " +
-				"type SMALL INTEGER" +
-			");"
-		);
-		
-		db.execSQL("CREATE TABLE tag_alias (" +
-				"alias TEXT" +
-				", " +
-				"id UNSIGNED INTEGER" +
-				", " +
-				"tag UNSIGNED INTEGER" +
-				", " +
-				"PRIMARY KEY(id)" +
-				", " +
-				"FOREIGN KEY (tag) REFERENCES tag(id)" +
-			");"
-		);
-	}
-	
 	public void clean()
 	{
 		lock.write(new Runnable()
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
 				db.beginTransaction();
 				
 				try
@@ -103,7 +97,6 @@ public class E621TagDatabase
 				finally
 				{
 					db.endTransaction();
-					db.close();
 				}
 			}
 		});
@@ -115,7 +108,7 @@ public class E621TagDatabase
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
 				db.beginTransaction();
 				
 				try
@@ -149,7 +142,6 @@ public class E621TagDatabase
 				finally
 				{
 					db.endTransaction();
-					db.close();
 				}
 			}
 		});
@@ -161,7 +153,7 @@ public class E621TagDatabase
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
 				db.beginTransaction();
 				
 				try
@@ -195,7 +187,6 @@ public class E621TagDatabase
 				finally
 				{
 					db.endTransaction();
-					db.close();
 				}
 			}
 		});
@@ -209,7 +200,7 @@ public class E621TagDatabase
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -226,7 +217,6 @@ public class E621TagDatabase
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -242,7 +232,7 @@ public class E621TagDatabase
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -275,7 +265,6 @@ public class E621TagDatabase
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -291,7 +280,7 @@ public class E621TagDatabase
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -308,7 +297,6 @@ public class E621TagDatabase
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -324,7 +312,7 @@ public class E621TagDatabase
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -341,7 +329,6 @@ public class E621TagDatabase
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -357,7 +344,7 @@ public class E621TagDatabase
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -374,7 +361,6 @@ public class E621TagDatabase
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -391,7 +377,7 @@ public class E621TagDatabase
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -408,7 +394,6 @@ public class E621TagDatabase
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -424,7 +409,7 @@ public class E621TagDatabase
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -453,7 +438,6 @@ public class E621TagDatabase
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});
@@ -469,7 +453,7 @@ public class E621TagDatabase
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getDB();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				Cursor c = null;
 				
 				try
@@ -492,7 +476,6 @@ public class E621TagDatabase
 				finally
 				{
 					if(c != null) c.close();
-					db.close();
 				}
 			}
 		});

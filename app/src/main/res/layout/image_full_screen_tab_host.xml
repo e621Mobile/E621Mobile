@@ -473,7 +473,6 @@
                                 android:layout_alignLeft="@id/commentEditText"
                                 android:text="Post comment"
                                 android:enabled="false"
-                                android:onClick="postComment"
                                 android:id="@+id/postCommentButton"/>
 
                         </RelativeLayout>

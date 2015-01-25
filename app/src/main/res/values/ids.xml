@@ -8,4 +8,5 @@
     <item type="id" name="progressBar"/>
     <item type="id" name="wrapper"/>
     <item type="id" name="DTextRules"/>
+    <item type="id" name="syncNotificationId"/>
 </resources>

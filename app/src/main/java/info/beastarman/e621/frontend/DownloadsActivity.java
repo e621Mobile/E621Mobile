@@ -127,7 +127,7 @@ public class DownloadsActivity extends BaseActivity
 			if (drawable instanceof BitmapDrawable) {
 				BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
 				Bitmap bitmap = bitmapDrawable.getBitmap();
-				bitmap.recycle();
+				if(bitmap != null) bitmap.recycle();
 			}
 		}
 

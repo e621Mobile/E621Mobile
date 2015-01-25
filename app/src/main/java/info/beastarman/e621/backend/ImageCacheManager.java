@@ -1,9 +1,11 @@
 package info.beastarman.e621.backend;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
 
 import org.apache.commons.io.IOUtils;
 
@@ -19,7 +21,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.concurrent.Semaphore;
 
 public class ImageCacheManager implements ImageCacheManagerInterface
 {
@@ -27,88 +28,58 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	File cache_file;
 	File access_file;
 
-	int version=0;
+	int version=1;
 
 	public long max_size;
 	public ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
 
 	private AccessWatcher accessWatcher;
 
-	public ImageCacheManager(File base_path, long max_size)
+	ImageDatabaseHelper imageDbHelper;
+
+	private class ImageDatabaseHelper extends SQLiteOpenHelper
+	{
+		private ImageDatabaseHelper(Context ctx, File f)
+		{
+			super(ctx, f.getAbsolutePath(), null, version);
+		}
+
+		@Override
+		public void onCreate(SQLiteDatabase db)
+		{
+			if(db.getVersion() == 0)
+			{
+				db.setVersion(1);
+			}
+			else
+			{
+				db.execSQL("CREATE TABLE images (" +
+								"id TEXT PRIMARY KEY" +
+								", " +
+								"file_size UNSIGNED BIG INT" +
+								");"
+				);
+			}
+		}
+
+		@Override
+		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2)
+		{
+		}
+	}
+
+	public ImageCacheManager(Context ctx, File base_path, long max_size)
 	{
 		this.max_size = max_size;
 		this.base_path = base_path;
 
 		cache_file = new File(base_path, ".cache.sqlite3");
 
-		accessWatcher = new AccessWatcher(new File(base_path, ".access.sqlite3"));
+		accessWatcher = new AccessWatcher(ctx, new File(base_path, ".access.sqlite3"));
 
-		getImageDB().close();
+		imageDbHelper = new ImageDatabaseHelper(ctx,cache_file);
 
 		clean();
-	}
-
-	static Semaphore s = new Semaphore(1);
-
-	protected synchronized SQLiteDatabase getImageDB()
-	{
-		SQLiteDatabase db;
-
-		try
-		{
-			s.acquire();
-		}
-		catch (InterruptedException e)
-		{
-			Thread.currentThread().interrupt();
-		}
-
-		try
-		{
-			db = SQLiteDatabase.openDatabase(cache_file.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
-		} catch (SQLiteException e)
-		{
-			e.printStackTrace();
-			db = SQLiteDatabase.openOrCreateDatabase(cache_file, null);
-			newImageDB(db);
-		}
-
-		setImageDBVersion(version, db);
-
-		s.release();
-
-		return db;
-	}
-
-	protected void newImageDB(SQLiteDatabase db)
-	{
-		db.execSQL("CREATE TABLE images (" +
-						"id TEXT PRIMARY KEY" +
-						", " +
-						"file_size UNSIGNED BIG INT" +
-						");"
-		);
-	}
-
-	protected void setImageDBVersion(int version, SQLiteDatabase db)
-	{
-		if(version < this.version)
-		{
-			return;
-		}
-
-		this.version = version;
-
-		while(db.getVersion() < version)
-		{
-			update_db(db.getVersion()+1, db);
-
-			db.setVersion(db.getVersion()+1);
-		}
-	}
-
-	protected void update_db(int version, SQLiteDatabase db)
-	{
 	}
 
 	@Override
@@ -120,7 +91,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getImageDB();
+				SQLiteDatabase db = imageDbHelper.getReadableDatabase();
 				Cursor c = null;
 
 				try
@@ -138,8 +109,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 				finally
 				{
 					if(c != null) c.close();
-
-					db.close();
 				}
 			}
 		});
@@ -200,7 +169,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 				String[] query_params = new String[]{id};
 
-				SQLiteDatabase db = getImageDB();
+				SQLiteDatabase db = imageDbHelper.getWritableDatabase();
 
 				try
 				{
@@ -228,8 +197,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 				}
 				finally
 				{
-					db.close();
-
 					clean();
 				}
 			}
@@ -247,18 +214,11 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 			{
 				String[] query_params = new String[]{id};
 
-				SQLiteDatabase db = getImageDB();
+				SQLiteDatabase db = imageDbHelper.getWritableDatabase();
 
-				try
+				if(db.delete("images", "id = ?", query_params) > 0)
 				{
-					if(db.delete("images", "id = ?", query_params) > 0)
-					{
-						new File(base_path,id).delete();
-					}
-				}
-				finally
-				{
-					db.close();
+					new File(base_path,id).delete();
 				}
 			}
 		});
@@ -272,7 +232,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getImageDB();
+				SQLiteDatabase db = imageDbHelper.getWritableDatabase();
 				db.beginTransaction();
 
 				try
@@ -290,7 +250,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 				finally
 				{
 					db.endTransaction();
-					db.close();
 				}
 			}
 		});
@@ -307,7 +266,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getImageDB();
+				SQLiteDatabase db = imageDbHelper.getReadableDatabase();
 				Cursor c = null;
 
 				try
@@ -332,8 +291,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 				finally
 				{
 					if(c != null) c.close();
-
-					db.close();
 				}
 			}
 		});
@@ -435,16 +392,9 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		{
 			public void run()
 			{
-				SQLiteDatabase db = getImageDB();
+				SQLiteDatabase db = imageDbHelper.getReadableDatabase();
 
-				try
-				{
-					ret.obj = totalSize(db);
-				}
-				finally
-				{
-					db.close();
-				}
+				ret.obj = totalSize(db);
 			}
 		});
 
@@ -456,52 +406,44 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		File database_file;
 		ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
 
-		public AccessWatcher(File database_file)
+		DatabaseHelper dbHelper;
+
+		private class DatabaseHelper extends SQLiteOpenHelper
+		{
+			private DatabaseHelper(Context context, File f)
+			{
+				super(context, f.getAbsolutePath(), null, version);
+			}
+
+			@Override
+			public void onCreate(SQLiteDatabase db)
+			{
+				if(db.getVersion() == 0)
+				{
+					db.setVersion(1);
+				}
+				else
+				{
+					db.execSQL("CREATE TABLE access (" +
+									"id TEXT PRIMARY KEY" +
+									", " +
+									"last_access DATETIME DEFAULT CURRENT_TIMESTAMP" +
+									");"
+					);
+				}
+			}
+
+			@Override
+			public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2)
+			{
+			}
+		}
+
+		public AccessWatcher(Context ctx, File database_file)
 		{
 			this.database_file = database_file;
 
-			getDB().close();
-		}
-
-		Semaphore s = new Semaphore(1);
-
-		private SQLiteDatabase getDB()
-		{
-			SQLiteDatabase db;
-
-			try
-			{
-				s.acquire();
-			}
-			catch (InterruptedException e)
-			{
-				Thread.currentThread().interrupt();
-			}
-
-			try
-			{
-				db = SQLiteDatabase.openDatabase(database_file.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
-			}
-			catch(SQLiteException e)
-			{
-				e.printStackTrace();
-				db = SQLiteDatabase.openOrCreateDatabase(database_file, null);
-				newDB(db);
-			}
-
-			s.release();
-
-			return db;
-		}
-
-		private void newDB(SQLiteDatabase db)
-		{
-			db.execSQL("CREATE TABLE access (" +
-							"id TEXT PRIMARY KEY" +
-							", " +
-							"last_access DATETIME DEFAULT CURRENT_TIMESTAMP" +
-							");"
-			);
+			dbHelper = new DatabaseHelper(ctx,database_file);
 		}
 
 		public void insert(final String id)
@@ -510,23 +452,16 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 			{
 				public void run()
 				{
-					final SQLiteDatabase db = getDB();
+					final SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-					try
-					{
-						ContentValues values = new ContentValues();
-						values.put("id", id);
-						values.put("last_access", dateFormat.format(new Date()));
+					ContentValues values = new ContentValues();
+					values.put("id", id);
+					values.put("last_access", dateFormat.format(new Date()));
 
-						if(db.insert("access", null, values) == -1)
-						{
-							values.remove("id");
-							db.update("access", values, "id = ?", new String[]{id});
-						}
-					}
-					finally
+					if(db.insert("access", null, values) == -1)
 					{
-						db.close();
+						values.remove("id");
+						db.update("access", values, "id = ?", new String[]{id});
 					}
 				}
 			});
@@ -538,7 +473,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 			{
 				public void run()
 				{
-					final SQLiteDatabase db = getDB();
+					final SQLiteDatabase db = dbHelper.getWritableDatabase();
 					db.beginTransaction();
 
 					try
@@ -559,7 +494,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 					finally
 					{
 						db.endTransaction();
-						db.close();
 					}
 				}
 			});
@@ -575,7 +509,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 				{
 					ArrayList<String> ids = new ArrayList<String>();
 
-					final SQLiteDatabase db = getDB();
+					final SQLiteDatabase db = dbHelper.getReadableDatabase();
 					Cursor c = null;
 
 					try
@@ -594,8 +528,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 					finally
 					{
 						if(c != null) c.close();
-
-						db.close();
 					}
 
 					ret.obj = ids;
