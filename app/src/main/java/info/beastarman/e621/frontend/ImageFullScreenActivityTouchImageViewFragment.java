@@ -39,26 +39,29 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 		return ret;
 	}
 
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState)
+	private View.OnClickListener toggleListener()
 	{
-		RelativeLayout rl = (RelativeLayout) inflater.inflate(R.layout.image_full_screen_static_image, container, false);
-
-		final TouchImageView t = (TouchImageView) rl.findViewById(R.id.touchImageView);
-		final ProgressBar p = (ProgressBar) rl.findViewById(R.id.progressBar);
-
-		t.setOnClickListener(new View.OnClickListener()
+		return new View.OnClickListener()
 		{
 			@Override
 			public void onClick(View view)
 			{
 				Activity a = getActivity();
 
-				if(a instanceof ImageFullScreenActivity)
+				if (a instanceof ImageFullScreenActivity)
 				{
-					((ImageFullScreenActivity)a).toggleVisibility();
+					((ImageFullScreenActivity) a).toggleVisibility();
 				}
 			}
-		});
+		};
+	}
+
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState)
+	{
+		final RelativeLayout rl = (RelativeLayout) inflater.inflate(R.layout.image_full_screen_static_image, container, false);
+
+		rl.setOnClickListener(toggleListener());
+		rl.findViewById(R.id.progressBar).setOnClickListener(toggleListener());
 
 		new Thread(new Runnable()
 		{
@@ -66,33 +69,46 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 			public void run()
 			{
 				image = ((ImageNavilagorLazyRelative) getArguments().getSerializable(LAZY_POSITION)).getImageNavigator();
-				getImage(t,p);
+				getImage(rl);
 			}
 		}).start();
 
 		return rl;
 	}
 
-	private void getImage(final TouchImageView t, final ProgressBar p)
+	private void getImage(final RelativeLayout rl)
 	{
 		try
 		{
+			final ProgressBar p = (ProgressBar) rl.findViewById(R.id.progressBar);
+
 			final E621Image img = E621Middleware.getInstance().post__show(image.getId());
 
-			final Pair<Integer,Integer> size = img.getSize(E621Middleware.getInstance().getFileDownloadSize());
-
-			final float scale = Math.max(1, Math.max(size.left / 2048f, size.right / 2048f));
-
-			getActivity().runOnUiThread(new Runnable()
+			if(true)
 			{
-				@Override
-				public void run()
-				{
-					TouchImageViewHandler handler = new TouchImageViewHandler(t, p, (int) (size.left / scale), (int) (size.right / scale));
+				final Pair<Integer, Integer> size = img.getSize(E621Middleware.getInstance().getFileDownloadSize());
 
-					new Thread(new ImageLoadRunnable(handler, img, E621Middleware.getInstance(), E621Image.FULL)).start();
-				}
-			});
+				final float scale = Math.max(1, Math.max(size.left / 2048f, size.right / 2048f));
+
+				rl.post(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						final TouchImageView t = new TouchImageView(rl.getContext());
+						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,RelativeLayout.LayoutParams.WRAP_CONTENT);
+						params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+						t.setLayoutParams(params);
+						rl.addView(t);
+
+						t.setOnClickListener(toggleListener());
+
+						TouchImageViewHandler handler = new TouchImageViewHandler(t, p, (int) (size.left / scale), (int) (size.right / scale));
+
+						new Thread(new ImageLoadRunnable(handler, img, E621Middleware.getInstance(), E621Image.FULL)).start();
+					}
+				});
+			}
 		}
 		catch (IOException e)
 		{

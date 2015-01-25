@@ -42,6 +42,7 @@ public class E621
 	String DOMAIN_NAME = "https://e621.net";
 	String client = "";
 	private static E621 instance = null;
+	public int TIMEOUT = 5000;
 	
 	protected E621(String client)
 	{
@@ -542,8 +543,8 @@ public class E621
 		url = Uri.parse(url).buildUpon().appendQueryParameter("client", client).build().toString();
 		
 		final HttpParams httpParams = new BasicHttpParams();
-	    HttpConnectionParams.setConnectionTimeout(httpParams, 30000);
-	    HttpConnectionParams.setSoTimeout(httpParams, 30000);
+	    HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT);
+	    HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT);
 		HttpClient httpclient = new DefaultHttpClient(httpParams);
 		
 		for(;tries>=0; tries--)
@@ -565,7 +566,7 @@ public class E621
 		pairs.add(new BasicNameValuePair("client", client));
 		
 		final HttpParams httpParams = new BasicHttpParams();
-	    HttpConnectionParams.setConnectionTimeout(httpParams, 30000);
+	    HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT);
 		HttpClient httpclient = new DefaultHttpClient(httpParams);
 		
 		for(;tries>=0; tries--)

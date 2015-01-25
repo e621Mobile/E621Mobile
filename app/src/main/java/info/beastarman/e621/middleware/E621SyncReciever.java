@@ -15,6 +15,11 @@ public class E621SyncReciever extends BroadcastReceiver
 	{
 		final E621Middleware e621 = E621Middleware.getInstance(context);
 
+		if(e621.syncOnlyOnWiFi() && !e621.isWifiConnected())
+		{
+			return;
+		}
+
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
 
 		builder.setSmallIcon(R.drawable.ic_launcher);
@@ -31,11 +36,6 @@ public class E621SyncReciever extends BroadcastReceiver
 			@Override
 			public void run()
 			{
-				if(e621.syncOnlyOnWiFi() && !e621.isWifiConnected())
-				{
-					return;
-				}
-				
 				try
 				{
 					e621.sync();

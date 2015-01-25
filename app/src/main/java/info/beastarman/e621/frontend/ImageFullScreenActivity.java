@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
@@ -741,8 +742,14 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}
 	}
 
+	HashMap<Integer,ArrayList<E621Comment>> commentsCache = new HashMap<Integer,ArrayList<E621Comment>>();
 	private synchronized ArrayList<E621Comment> getComments(final E621Image img)
 	{
+		if(commentsCache.containsKey(img.id))
+		{
+			return commentsCache.get(img.id);
+		}
+
 		ArrayList<E621Comment> comments = e621.comment__index(img.id);
 
 		if(e621.commentsSorting() == E621Middleware.DATE_ASC)
@@ -760,6 +767,8 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 				}
 			});
 		}
+
+		commentsCache.put(img.id,comments);
 
 		return comments;
 	}
@@ -855,8 +864,14 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		});
 	}
 
+	HashMap<Integer,SparseArray<ArrayList<E621Tag>>> catTagsCache = new HashMap<Integer,SparseArray<ArrayList<E621Tag>>>();
 	private synchronized SparseArray<ArrayList<E621Tag>> prepareTags(final E621Image img)
 	{
+		if(catTagsCache.containsKey(img.id))
+		{
+			return catTagsCache.get(img.id);
+		}
+
 		SparseArray<ArrayList<E621Tag>> catTags = new SparseArray<ArrayList<E621Tag>>();
 		String[] stags = new String[img.tags.size()];
 
@@ -884,6 +899,8 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		{
 			Collections.sort(catTags.valueAt(cat));
 		}
+
+		catTagsCache.put(img.id,catTags);
 
 		return catTags;
 	}
@@ -1433,9 +1450,19 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		startActivity(i);
 	}
 
+	HashMap<Integer,E621Search> childrenCache = new HashMap<Integer,E621Search>();
 	private synchronized E621Search getChildren(final E621Image img) throws IOException
 	{
-		return e621.post__index("parent:"+img.id,0,100);
+		if(childrenCache.containsKey(img.id))
+		{
+			return childrenCache.get(img.id);
+		}
+
+		E621Search ret = e621.post__index("parent:"+img.id,0,100);
+
+		childrenCache.put(img.id,ret);
+
+		return ret;
 	}
 
 	public void goToChild(final E621Image image)
@@ -1667,7 +1694,9 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		tabHost.setVisibility(View.VISIBLE);
 
 		a.setDuration(300);
+		tabHost.requestLayout();
 		tabHost.startAnimation(a);
+		tabHost.invalidate();
 
 		visible = true;
 	}
@@ -1726,6 +1755,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 		a.setDuration(300);
 		tabHost.startAnimation(a);
+		tabHost.invalidate();
 
 		visible = false;
 	}
