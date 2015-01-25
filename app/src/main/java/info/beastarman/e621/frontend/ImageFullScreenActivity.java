@@ -1,5 +1,6 @@
 package info.beastarman.e621.frontend;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -66,6 +67,7 @@ import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.api.dtext.DText;
 import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.ImageNavilagorLazyRelative;
@@ -81,10 +83,10 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	public ImageNavigator image;
 	public Intent intent;
 
-	E621Image img = null;
+	E621Image lastImg = null;
 	float TABS_HEIGHT = 0.7f;
 
-	DownloadEventManager downloadEventManager = new DownloadEventManager();
+	DownloadEventManager downloadEventManager;
 
 	private ViewPager viewPager;
 	private PagerAdapter mPagerAdapter;
@@ -151,7 +153,6 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 					public void run()
 					{
 						final ImageNavigator i = image.getRelative(position-image.getPosition());
-						img = null;
 
 						retrieveImage(i);
 					}
@@ -172,9 +173,9 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		{
 			int navigationHeight = getResources().getDimensionPixelSize(resourceId);
 
-			findViewById(R.id.info).setPadding(0,0,0,navigationHeight);
-			findViewById(R.id.tags).setPadding(0,0,0,navigationHeight);
-			findViewById(R.id.comments).setPadding(0,0,0,navigationHeight);
+			tabHost.findViewById(R.id.info).setPadding(0,0,0,navigationHeight);
+			tabHost.findViewById(R.id.tags).setPadding(0,0,0,navigationHeight);
+			tabHost.findViewById(R.id.comments).setPadding(0,0,0,navigationHeight);
 		}
 
 		tabHost.setup();
@@ -207,7 +208,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	@Override
 	protected void onStop()
 	{
-		e621.unbindDownloadState(img.id,downloadEventManager);
+		if(lastImg != null) e621.unbindDownloadState(lastImg.id,downloadEventManager);
 
 		super.onStop();
 	}
@@ -297,25 +298,30 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 	private void resetTabHost()
 	{
-		if(img != null)
+		View a = findViewById(R.id.tabHost);
+		TabHost b = (TabHost) getLayoutInflater().inflate(R.layout.image_full_screen_tab_host,null,false);
+
+		ViewGroup g = (ViewGroup)a.getParent();
+		g.removeView(a);
+		g.addView(b);
+
+		setupTabHost(b);
+
+		if(lastImg != null)
 		{
-			e621.unbindDownloadState(img.id,downloadEventManager);
+			e621.unbindDownloadState(lastImg.id,downloadEventManager);
 		}
 
-		children = null;
-		catTags = null;
-		comments = null;
-
-		View tagsLoading = findViewById(R.id.tagsLoading);
+		View tagsLoading = b.findViewById(R.id.tagsLoading);
 		tagsLoading.setVisibility(View.VISIBLE);
-		ViewGroup tagsLayout = ((ViewGroup)findViewById(R.id.tagsLayout));
+		ViewGroup tagsLayout = ((ViewGroup)b.findViewById(R.id.tagsLayout));
 		tagsLayout.removeAllViews();
 		tagsLayout.addView(tagsLoading);
 
-		View commentsLoading = findViewById(R.id.commentsLoading);
+		View commentsLoading = b.findViewById(R.id.commentsLoading);
 		commentsLoading.setVisibility(View.VISIBLE);
-		View v = findViewById(R.id.postCommentArea);
-		ViewGroup commentsLayout = ((ViewGroup)findViewById(R.id.commentsLayout));
+		View v = b.findViewById(R.id.postCommentArea);
+		ViewGroup commentsLayout = ((ViewGroup)b.findViewById(R.id.commentsLayout));
 		commentsLayout.removeAllViews();
 		commentsLayout.addView(v);
 		commentsLayout.addView(commentsLoading);
@@ -323,39 +329,24 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 	private void retrieveImage(final ImageNavigator imageNav)
 	{
-		if(img == null)
+		new Thread(new Runnable()
 		{
-			new Thread(new Runnable()
+			@Override
+			public void run()
 			{
-				@Override
-				public void run()
+				try
 				{
-					try
-					{
-						img = e621.post__show(imageNav.getId());
-
-						updateImage();
-					} catch (IOException e)
-					{
-						e.printStackTrace();
-					}
-				}
-			}).start();
-		}
-		else
-		{
-			new Thread(new Runnable()
-			{
-				@Override
-				public void run()
+					lastImg = e621.post__show(imageNav.getId());
+					updateImage(lastImg,(TabHost)findViewById(R.id.tabHost));
+				} catch (IOException e)
 				{
-					updateImage();
+					e.printStackTrace();
 				}
-			}).start();
-		}
+			}
+		}).start();
 	}
 
-	private void updateImage()
+	private void updateImage(E621Image img, TabHost tabHost)
 	{
 		runOnUiThread(new Runnable()
 		{
@@ -366,14 +357,12 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			}
 		});
 
-		updateInfo();
+		updateInfo(img,tabHost);
 	}
 
-	Boolean is_faved = null;
-
-	private void updateInfo()
+	private void updateInfo(final E621Image img, final TabHost tabHost)
 	{
-		updateFav();
+		updateFav(img,tabHost);
 
 		runOnUiThread(new Runnable()
 		{
@@ -382,23 +371,23 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			{
 				setTitle("#" + img.id);
 
-				updateDownload();
+				updateDownload(img,tabHost);
 
-				updateScore();
+				updateScore(img,tabHost);
 
-				updateDescription();
+				updateDescription(img,tabHost);
 
-				updateStatistics();
+				updateStatistics(img,tabHost);
 
-				updateSources();
+				updateSources(img,tabHost);
 
-				updateParent();
+				updateParent(img,tabHost);
 
-				updateChildren();
+				updateChildren(img,tabHost);
 
-				updateTags();
+				updateTags(img,tabHost);
 
-				updateComments();
+				updateComments(img,tabHost);
 			}
 		});
 	}
@@ -407,9 +396,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	public static final int VOTE_UP = 1;
 	public static final int VOTE_DOWN= 2;
 
-	public Integer vote = null;
-
-	public void voteUp(View view)
+	public void voteUp(final GTFO<Integer> voteOut, final E621Image img, final TabHost tabHost)
 	{
 		if(!e621.isLoggedIn())
 		{
@@ -418,17 +405,17 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			return;
 		}
 
-		if(vote == null)
+		if(voteOut == null)
 		{
 			return;
 		}
 
-		final int vvote = vote;
+		final int oldVote = voteOut.obj;
 		final int sscore = img.score;
 
-		if(vote.equals(VOTE_UP))
+		if(voteOut.obj.equals(VOTE_UP))
 		{
-			vote = NO_VOTE;
+			voteOut.obj = NO_VOTE;
 
 			img.score--;
 		}
@@ -436,15 +423,15 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		{
 			img.score++;
 
-			if(vote == VOTE_DOWN)
+			if(voteOut.obj == VOTE_DOWN)
 			{
 				img.score++;
 			}
 
-			vote = VOTE_UP;
+			voteOut.obj = VOTE_UP;
 		}
 
-		updateScore();
+		updateScore(img,tabHost);
 
 		new Thread(new Runnable()
 		{
@@ -454,7 +441,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 				if(v == null || !v.success)
 				{
-					vote = vvote;
+					voteOut.obj = oldVote;
 
 					img.score = sscore;
 
@@ -463,7 +450,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 						@Override
 						public void run()
 						{
-							updateScore();
+							updateScore(img,tabHost);
 						}
 					});
 				}
@@ -471,7 +458,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}).start();
 	}
 
-	public void voteDown(View view)
+	public void voteDown(final GTFO<Integer> voteOut, final E621Image img, final TabHost tabHost)
 	{
 		if(!e621.isLoggedIn())
 		{
@@ -480,17 +467,17 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			return;
 		}
 
-		if(vote == null)
+		if(voteOut == null)
 		{
 			return;
 		}
 
-		final int vvote = vote;
+		final int oldVote = voteOut.obj;
 		final int sscore = img.score;
 
-		if(vote.equals(VOTE_DOWN))
+		if(voteOut.obj.equals(VOTE_DOWN))
 		{
-			vote = NO_VOTE;
+			voteOut.obj = NO_VOTE;
 
 			img.score++;
 		}
@@ -498,15 +485,15 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		{
 			img.score--;
 
-			if(vote == VOTE_UP)
+			if(voteOut.obj == VOTE_UP)
 			{
 				img.score--;
 			}
 
-			vote = VOTE_DOWN;
+			voteOut.obj = VOTE_DOWN;
 		}
 
-		updateScore();
+		updateScore(img,tabHost);
 
 		new Thread(new Runnable()
 		{
@@ -516,7 +503,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 				if(v == null || !v.success)
 				{
-					vote = vvote;
+					voteOut.obj = oldVote;
 
 					img.score = sscore;
 
@@ -525,7 +512,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 						@Override
 						public void run()
 						{
-							updateScore();
+							updateScore(img,tabHost);
 						}
 					});
 				}
@@ -533,17 +520,15 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}).start();
 	}
 
-	public void updateVote()
+	public void updateVote(final int vote, final E621Image img, final TabHost tabHost)
 	{
-		if(vote == null) return;
-
-		View thumbsUp = findViewById(R.id.thumbsUp);
-		View thumbsDown = findViewById(R.id.thumbsDown);
+		View thumbsUp = tabHost.findViewById(R.id.thumbsUp);
+		View thumbsDown = tabHost.findViewById(R.id.thumbsDown);
 
 		thumbsUp.setVisibility(View.VISIBLE);
 		thumbsDown.setVisibility(View.VISIBLE);
 
-		TextView score = (TextView)findViewById(R.id.scoreTextView);
+		TextView score = (TextView)tabHost.findViewById(R.id.scoreTextView);
 
 		switch (vote)
 		{
@@ -563,11 +548,32 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 				score.setTextColor(getResources().getColor(R.color.red));
 				break;
 		}
+
+		final GTFO<Integer> voteOut = new GTFO<Integer>();
+		voteOut.obj = vote;
+
+		thumbsUp.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				voteUp(voteOut,img,tabHost);
+			}
+		});
+
+		thumbsDown.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				voteDown(voteOut, img, tabHost);
+			}
+		});
 	}
 
-	public void updateScore()
+	public void updateScore(final E621Image img, final TabHost tabHost)
 	{
-		TextView score = (TextView)findViewById(R.id.scoreTextView);
+		TextView score = (TextView)tabHost.findViewById(R.id.scoreTextView);
 		score.setText(""+img.score);
 
 		if(!e621.isLoggedIn())
@@ -575,71 +581,68 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			return;
 		}
 
-		if(vote != null)
+		new Thread(new Runnable()
 		{
-			updateVote();
-		}
-		else
-		{
-			new Thread(new Runnable()
+			@Override
+			public void run()
 			{
-				@Override
-				public void run()
-				{
-					E621Search s = null;
+				E621Search s = null;
 
+				try
+				{
+					s = e621.post__index("id:" + img.id + " voted:" + e621.getLoggedUser(), 0, 1);
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+
+				int vote;
+
+				if(s == null || s.count==0)
+				{
+					vote = NO_VOTE;
+				}
+				else
+				{
 					try
 					{
-						s = e621.post__index("id:" + img.id + " voted:" + e621.getLoggedUser(), 0, 1);
+						s = e621.post__index("id:" + img.id + " votedup:" + e621.getLoggedUser(), 0, 1);
 					}
 					catch (IOException e)
 					{
 						e.printStackTrace();
 					}
 
-					if(s == null || s.count==0)
+					if(s == null)
 					{
-						vote = NO_VOTE;
+						return;
+					}
+					else if(s.count==0)
+					{
+						vote = VOTE_DOWN;
 					}
 					else
 					{
-						try
-						{
-							s = e621.post__index("id:" + img.id + " votedup:" + e621.getLoggedUser(), 0, 1);
-						}
-						catch (IOException e)
-						{
-							e.printStackTrace();
-						}
-
-						if(s == null)
-						{
-							return;
-						}
-						else if(s.count==0)
-						{
-							vote = VOTE_DOWN;
-						}
-						else
-						{
-							vote = VOTE_UP;
-						}
+						vote = VOTE_UP;
 					}
-
-					runOnUiThread(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							updateVote();
-						}
-					});
 				}
-			}).start();
-		}
+
+				final int vvote = vote;
+
+				runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						updateVote(vvote, img, tabHost);
+					}
+				});
+			}
+		}).start();
 	}
 
-	public void download(View v)
+	public void download(final E621Image img)
 	{
 		if(downloadEventManager.isDownloaded())
 		{
@@ -665,8 +668,21 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}
 	}
 
-	private void updateDownload()
+	private void updateDownload(final E621Image img, final TabHost tabHost)
 	{
+		ImageView saveButton = (ImageView)tabHost.findViewById(R.id.saveButton);
+
+		downloadEventManager = new DownloadEventManager(saveButton);
+
+		saveButton.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				download(img);
+			}
+		});
+
 		new Thread(new Runnable()
 		{
 			@Override
@@ -677,9 +693,9 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}).start();
 	}
 
-	public void postComment(View v)
+	public void postComment(final E621Image img, final TabHost tabHost)
 	{
-		EditText postComment = (EditText) findViewById(R.id.commentEditText);
+		EditText postComment = (EditText) tabHost.findViewById(R.id.commentEditText);
 		String s = postComment.getText().toString();
 
 		if(!s.trim().isEmpty() && e621.isLoggedIn())
@@ -692,7 +708,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 			View newView = getCommentView(newComment);
 
-			LinearLayout l = (LinearLayout) findViewById(R.id.commentsLayout);
+			LinearLayout l = (LinearLayout) tabHost.findViewById(R.id.commentsLayout);
 
 			if(e621.commentsSorting() == E621Middleware.DATE_DESC)
 			{
@@ -707,7 +723,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 					@Override
 					public void run()
 					{
-						((ScrollView)findViewById(R.id.commentsScroll)).fullScroll(ScrollView.FOCUS_DOWN);
+						((ScrollView)tabHost.findViewById(R.id.commentsScroll)).fullScroll(ScrollView.FOCUS_DOWN);
 					}
 				});
 			}
@@ -725,28 +741,24 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}
 	}
 
-	ArrayList<E621Comment> comments = null;
-	private synchronized ArrayList<E621Comment> getComments()
+	private synchronized ArrayList<E621Comment> getComments(final E621Image img)
 	{
-		if(comments == null)
-		{
-			comments = e621.comment__index(img.id);
+		ArrayList<E621Comment> comments = e621.comment__index(img.id);
 
-			if(e621.commentsSorting() == E621Middleware.DATE_ASC)
+		if(e621.commentsSorting() == E621Middleware.DATE_ASC)
+		{
+			Collections.reverse(comments);
+		}
+		else if(e621.commentsSorting() == E621Middleware.SCORE)
+		{
+			Collections.sort(comments,new Comparator<E621Comment>()
 			{
-				Collections.reverse(comments);
-			}
-			else if(e621.commentsSorting() == E621Middleware.SCORE)
-			{
-				Collections.sort(comments,new Comparator<E621Comment>()
+				@Override
+				public int compare(E621Comment a, E621Comment b)
 				{
-					@Override
-					public int compare(E621Comment a, E621Comment b)
-					{
-						return b.score - a.score;
-					}
-				});
-			}
+					return b.score - a.score;
+				}
+			});
 		}
 
 		return comments;
@@ -791,18 +803,16 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		return v;
 	}
 
-	private void updateComments()
+	private void updateComments(final E621Image img, final TabHost tabHost)
 	{
-		if(findViewById(R.id.commentsLoading).getVisibility() == View.GONE) return;
+		final Button post = (Button)tabHost.findViewById(R.id.postCommentButton);
 
-		Button post = (Button)findViewById(R.id.postCommentButton);
-
-		EditText postComment = (EditText) findViewById(R.id.commentEditText);
+		final EditText postComment = (EditText) tabHost.findViewById(R.id.commentEditText);
 		postComment.addTextChangedListener(new PostCommentTextChangedListener(post));
 
 		if(!e621.isLoggedIn())
 		{
-			findViewById(R.id.postCommentArea).setVisibility(View.GONE);
+			tabHost.findViewById(R.id.postCommentArea).setVisibility(View.GONE);
 		}
 
 		new Thread(new Runnable()
@@ -810,11 +820,11 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			@Override
 			public void run()
 			{
-				final LinearLayout commentsLayout = (LinearLayout)findViewById(R.id.commentsLayout);
+				final LinearLayout commentsLayout = (LinearLayout)tabHost.findViewById(R.id.commentsLayout);
 
 				final ArrayList<View> views = new ArrayList<View>();
 
-				for(E621Comment c : getComments())
+				for(E621Comment c : getComments(img))
 				{
 					views.add(getCommentView(c));
 				}
@@ -829,45 +839,50 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 							commentsLayout.addView(v);
 						}
 
-						findViewById(R.id.commentsLoading).setVisibility(View.GONE);
+						tabHost.findViewById(R.id.commentsLoading).setVisibility(View.GONE);
 					}
 				});
 			}
 		}).start();
+
+		tabHost.findViewById(R.id.postCommentButton).setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				postComment(img,tabHost);
+			}
+		});
 	}
 
-	SparseArray<ArrayList<E621Tag>> catTags = null;
-	private synchronized SparseArray<ArrayList<E621Tag>> prepareTags()
+	private synchronized SparseArray<ArrayList<E621Tag>> prepareTags(final E621Image img)
 	{
-		if(catTags == null)
+		SparseArray<ArrayList<E621Tag>> catTags = new SparseArray<ArrayList<E621Tag>>();
+		String[] stags = new String[img.tags.size()];
+
+		for(int i=0; i<img.tags.size(); i++)
 		{
-			catTags = new SparseArray<ArrayList<E621Tag>>();
-			String[] stags = new String[img.tags.size()];
+			stags[i] = img.tags.get(i).getTag();
+		}
 
-			for(int i=0; i<img.tags.size(); i++)
+		img.tags = e621.getTags(stags);
+
+		for(E621Tag tag : img.tags)
+		{
+			ArrayList<E621Tag> ttags = catTags.get(tag.type);
+
+			if(ttags == null)
 			{
-				stags[i] = img.tags.get(i).getTag();
+				ttags = new ArrayList<E621Tag>();
+				catTags.put(tag.type, ttags);
 			}
 
-			img.tags = e621.getTags(stags);
+			ttags.add(tag);
+		}
 
-			for(E621Tag tag : img.tags)
-			{
-				ArrayList<E621Tag> ttags = catTags.get(tag.type);
-
-				if(ttags == null)
-				{
-					ttags = new ArrayList<E621Tag>();
-					catTags.put(tag.type, ttags);
-				}
-
-				ttags.add(tag);
-			}
-
-			for(int cat=0; cat < catTags.size(); cat++)
-			{
-				Collections.sort(catTags.valueAt(cat));
-			}
+		for(int cat=0; cat < catTags.size(); cat++)
+		{
+			Collections.sort(catTags.valueAt(cat));
 		}
 
 		return catTags;
@@ -926,7 +941,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		return views;
 	}
 
-	private String getNewTitle(ArrayList<E621Tag> tags)
+	private String getNewTitle(ArrayList<E621Tag> tags, final E621Image img)
 	{
 		String title = "";
 
@@ -950,34 +965,29 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}
 	}
 
-	private void updateTags()
+	private void updateTags(final E621Image img, final TabHost tabHost)
 	{
-		if(findViewById(R.id.tagsLoading).getVisibility() == View.GONE)
-		{
-			return;
-		}
-
 		new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				SparseArray<ArrayList<E621Tag>> catTags = prepareTags();
+				SparseArray<ArrayList<E621Tag>> catTags = prepareTags(img);
 
-				final LinearLayout tagsLayout = (LinearLayout)findViewById(R.id.tagsLayout);
+				final LinearLayout tagsLayout = (LinearLayout)tabHost.findViewById(R.id.tagsLayout);
 
 				final ArrayList<View> views = getTagViews(catTags);
 
-				final String newTitle = getNewTitle(catTags.get(E621Tag.ARTIST));
+				final String newTitle = getNewTitle(catTags.get(E621Tag.ARTIST),img);
 
 				runOnUiThread(new Runnable()
 				{
 					@Override
 					public void run()
 					{
-						findViewById(R.id.tagsLoading).setVisibility(View.GONE);
+						tabHost.findViewById(R.id.tagsLoading).setVisibility(View.GONE);
 
-						setTitle(newTitle);
+						if(tabHost.getParent() != null) setTitle(newTitle);
 
 						for(View v : views)
 						{
@@ -989,7 +999,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}).start();
 	}
 
-	private String getSize()
+	private String getSize(final E621Image img)
 	{
 		double size = img.file_size;
 
@@ -1010,9 +1020,9 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		return new DecimalFormat("#.##").format(size) + " MB";
 	}
 
-	private void updateStatistics()
+	private void updateStatistics(final E621Image img, final TabHost tabHost)
 	{
-		TextView rating = (TextView)findViewById(R.id.rating);
+		TextView rating = (TextView)tabHost.findViewById(R.id.rating);
 
 		if(img.rating.equals(E621Image.SAFE))
 		{
@@ -1027,10 +1037,10 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			rating.setText(Html.fromHtml("<font color=#FF0000>Explicit</font>"));
 		}
 
-		TextView size = (TextView)findViewById(R.id.size);
-		size.setText(img.width + "x" + img.height + " (" + getSize() + ")");
+		TextView size = (TextView)tabHost.findViewById(R.id.size);
+		size.setText(img.width + "x" + img.height + " (" + getSize(img) + ")");
 
-		TextView uploader = (TextView)findViewById(R.id.uploader);
+		TextView uploader = (TextView)tabHost.findViewById(R.id.uploader);
 		uploader.setMovementMethod(LinkMovementMethod.getInstance());
 		Spannable s = new SpannableString(img.author);
 		s.setSpan(new ClickableSpan()
@@ -1045,15 +1055,15 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		},0,s.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 		uploader.setText(s);
 
-		TextView created_at = (TextView)findViewById(R.id.createdAt);
+		TextView created_at = (TextView)tabHost.findViewById(R.id.createdAt);
 		created_at.setText(DateUtils.getRelativeTimeSpanString(img.created_at.getTime(), new Date().getTime(), 0));
 	}
 
-	private void updateSources()
+	private void updateSources(final E621Image img, final TabHost tabHost)
 	{
 		if(img.sources.size() > 0)
 		{
-			LinearLayout sources = (LinearLayout)findViewById(R.id.sources);
+			LinearLayout sources = (LinearLayout)tabHost.findViewById(R.id.sources);
 			sources.removeAllViews();
 
 			for(String source : img.sources)
@@ -1071,13 +1081,13 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}
 		else
 		{
-			(findViewById(R.id.sourcesLayout)).setVisibility(View.GONE);
+			(tabHost.findViewById(R.id.sourcesLayout)).setVisibility(View.GONE);
 		}
 	}
 
-	private void updateDescription()
+	private void updateDescription(final E621Image img, final TabHost tabHost)
 	{
-		final DTextView description = (DTextView)findViewById(R.id.description);
+		final DTextView description = (DTextView)tabHost.findViewById(R.id.description);
 
 		if(!img.description.isEmpty())
 		{
@@ -1103,19 +1113,19 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}
 		else
 		{
-			(findViewById(R.id.descriptionLayout)).setVisibility(View.GONE);
+			(tabHost.findViewById(R.id.descriptionLayout)).setVisibility(View.GONE);
 		}
 	}
 
-	private void updateParent()
+	private void updateParent(final E621Image img, final TabHost tabHost)
 	{
-		final View parentWrapper = findViewById(R.id.parentWrapper);
+		final View parentWrapper = tabHost.findViewById(R.id.parentWrapper);
 
 		if(img.parent_id != null)
 		{
 			parentWrapper.setVisibility(View.VISIBLE);
 
-			TextView parent_id = (TextView) findViewById(R.id.parent_id);
+			TextView parent_id = (TextView) tabHost.findViewById(R.id.parent_id);
 			parent_id.setText("#" + img.parent_id);
 
 			new Thread(new Runnable()
@@ -1165,7 +1175,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 						tags += "<font color=#FF8080>-" + tag.getTag().replace('_',' ') + "</font>";
 					}
 
-					final TextView parentTags = (TextView) findViewById(R.id.parentTags);
+					final TextView parentTags = (TextView) tabHost.findViewById(R.id.parentTags);
 
 					final String ttags = tags;
 
@@ -1180,6 +1190,14 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 								parentTags.setText(Html.fromHtml(ttags));
 							}
 
+							parentWrapper.setOnClickListener(new View.OnClickListener()
+							{
+								@Override
+								public void onClick(View view)
+								{
+									goToParent(img);
+								}
+							});
 							parentWrapper.post(new Runnable()
 							{
 								@Override
@@ -1232,9 +1250,9 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}
 	}
 
-	private void updateChildren()
+	private void updateChildren(final E621Image img, final TabHost tabHost)
 	{
-		final View childrenWrapper = findViewById(R.id.childrenWrapper);
+		final View childrenWrapper = tabHost.findViewById(R.id.childrenWrapper);
 
 		if(img.has_children)
 		{
@@ -1249,7 +1267,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 					try
 					{
-						children = getChildren();
+						children = getChildren(img);
 					} catch (IOException e)
 					{
 						e.printStackTrace();
@@ -1257,12 +1275,12 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 						return;
 					}
 
-					final LinearLayout ll = (LinearLayout) findViewById(R.id.childrenGroup);
+					final LinearLayout ll = (LinearLayout) tabHost.findViewById(R.id.childrenGroup);
 					final ArrayList<View> views = new ArrayList<View>();
 
 					for(E621Image child : children.images)
 					{
-						views.add(getChildView(child));
+						views.add(getChildView(child,img));
 					}
 
 					runOnUiThread(new Runnable()
@@ -1285,9 +1303,18 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		{
 			childrenWrapper.setVisibility(View.GONE);
 		}
+
+		tabHost.findViewById(R.id.childrenLabel).setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				searchChildren(img);
+			}
+		});
 	}
 
-	public View getChildView(final E621Image child)
+	public View getChildView(final E621Image child, final E621Image img)
 	{
 		final View view = getLayoutInflater().inflate(R.layout.image_full_screen_child_post,null,false);
 
@@ -1399,22 +1426,16 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		return view;
 	}
 
-	public void searchChildren(View v)
+	public void searchChildren(final E621Image img)
 	{
 		Intent i = new Intent(this,SearchActivity.class);
 		i.putExtra(SearchActivity.SEARCH, "parent:" + img.id);
 		startActivity(i);
 	}
 
-	E621Search children = null;
-	private synchronized E621Search getChildren() throws IOException
+	private synchronized E621Search getChildren(final E621Image img) throws IOException
 	{
-		if(children == null)
-		{
-			children = e621.post__index("parent:"+img.id,0,100);
-		}
-
-		return children;
+		return e621.post__index("parent:"+img.id,0,100);
 	}
 
 	public void goToChild(final E621Image image)
@@ -1428,7 +1449,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 				try
 				{
-					children = getChildren();
+					children = getChildren(image);
 				} catch (IOException e)
 				{
 					e.printStackTrace();
@@ -1457,7 +1478,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 					if(pos >= 0)
 					{
-						i.putExtra(ImageFullScreenActivity.NAVIGATOR,new OnlineImageNavigator(image,pos,"parent:"+img.id,100,children));
+						i.putExtra(ImageFullScreenActivity.NAVIGATOR,new OnlineImageNavigator(image,pos,"parent:"+image.id,100,children));
 					}
 					else
 					{
@@ -1470,7 +1491,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}).start();
 	}
 
-	public void goToParent(View v)
+	public void goToParent(final E621Image img)
 	{
 		if(img.parent_id != null)
 		{
@@ -1483,11 +1504,11 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}
 	}
 
-	private void updateFav()
+	private void updateFav(final E621Image img, final TabHost tabHost)
 	{
 		if(!e621.isLoggedIn())
 		{
-			ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
+			ImageButton favButton = (ImageButton) tabHost.findViewById(R.id.favButton);
 			favButton.setImageResource(android.R.drawable.star_big_off);
 
 			return;
@@ -1505,42 +1526,50 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 				if(search != null)
 				{
+					final GTFO<Boolean> favOut = new GTFO<Boolean>();
+					final ImageButton favButton = (ImageButton) tabHost.findViewById(R.id.favButton);
+
 					if(search.images.size() > 0)
 					{
-						is_faved = true;
+						favOut.obj = true;
 
 						runOnUiThread(new Runnable()
 						{
 							@Override
 							public void run()
 							{
-								ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
-
 								favButton.setBackgroundResource(R.drawable.fav_star_enabled_2);
 							}
 						});
 					}
 					else
 					{
-						is_faved = false;
+						favOut.obj = false;
 
 						runOnUiThread(new Runnable()
 						{
 							@Override
 							public void run()
 							{
-								ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
-
 								favButton.setBackgroundResource(R.drawable.fav_star_disabled);
 							}
 						});
 					}
+
+					favButton.setOnClickListener(new View.OnClickListener()
+					{
+						@Override
+						public void onClick(View view)
+						{
+							fav(img,favOut,favButton);
+						}
+					});
 				}
 			}
 		}).start();
 	}
 
-	public void fav(View v)
+	public void fav(final E621Image img, final GTFO<Boolean> favOut, final ImageButton favButton)
 	{
 		if(!e621.isLoggedIn())
 		{
@@ -1549,13 +1578,11 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			return;
 		}
 
-		final boolean f = (is_faved==null?false:is_faved);
+		final boolean f = favOut.obj;
 
-		is_faved = !f;
+		favOut.obj = !f;
 
-		final ImageButton favButton = (ImageButton) findViewById(R.id.favButton);
-
-		if(is_faved)
+		if(favOut.obj)
 		{
 			favButton.setBackgroundResource(R.drawable.fav_star_enabled_2);
 		}
@@ -1573,7 +1600,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 				if(ret == null || !ret)
 				{
-					is_faved = f;
+					favOut.obj = f;
 
 					if(f)
 					{
@@ -1602,7 +1629,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}).start();
 	}
 
-	private boolean visible = false;
+	private boolean visible = true;
 
 	public void toggleVisibility()
 	{
@@ -1712,6 +1739,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			this.tagName = tagName;
 		}
 
+		@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 		@Override
 		public void onClick(View view)
 		{
@@ -1786,6 +1814,13 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	{
 		boolean downloaded = false;
 
+		private ImageView iv;
+
+		public DownloadEventManager(ImageView iv)
+		{
+			this.iv = iv;
+		}
+
 		public boolean isDownloaded()
 		{
 			return downloaded;
@@ -1796,8 +1831,6 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		{
 			if(obj instanceof E621Middleware.DownloadStatus)
 			{
-				final ImageView iv = (ImageView)findViewById(R.id.saveButton);
-
 				if(obj == E621Middleware.DownloadStatus.DOWNLOADED || obj == E621Middleware.DownloadStatus.DOWNLOADING)
 				{
 					downloaded = true;

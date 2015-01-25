@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TabHost xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:id="@+id/tabHost"
+    android:layout_alignParentBottom="true"
+    android:layout_centerHorizontal="true"
+    android:background="@color/BackgroundColorTransparent">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical">
+
+        <TabWidget
+            android:id="@android:id/tabs"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true">
+        </TabWidget>
+
+        <FrameLayout
+            android:id="@android:id/tabcontent"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+            <RelativeLayout
+                android:id="@+id/info"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical">
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/scrollView"
+                    android:layout_above="@+id/buttonArea"
+                    android:layout_alignParentTop="true">
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:padding="12dp">
+
+                        <RelativeLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="1dp"
+                            android:id="@+id/statisticsWrapper"
+                            android:background="@drawable/statistics_background_2"
+                            >
+
+                            <TableLayout
+                                android:layout_width="fill_parent"
+                                android:layout_height="fill_parent">
+
+                                <TableRow
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="fill_parent">
+
+                                    <RelativeLayout
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent"
+                                        android:background="@drawable/statistics_title"
+                                        android:padding="8dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:textAppearance="?android:attr/textAppearanceSmall"
+                                            android:text="Created at"
+                                            android:textColor="@color/white"
+                                            android:layout_alignParentRight="true"
+                                            android:layout_alignParentEnd="true"/>
+
+                                    </RelativeLayout>
+
+                                    <RelativeLayout
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent"
+                                        android:layout_weight="0.5"
+                                        android:padding="8dp"
+                                        android:background="@drawable/statistics_value">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:textAppearance="?android:attr/textAppearanceSmall"
+                                            android:id="@+id/createdAt"
+                                            />
+                                    </RelativeLayout>
+                                </TableRow>
+
+                                <TableRow
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="fill_parent">
+
+                                    <RelativeLayout
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent"
+                                        android:background="@drawable/statistics_title"
+                                        android:padding="8dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:textAppearance="?android:attr/textAppearanceSmall"
+                                            android:text="Uploaded by"
+                                            android:textColor="@color/white"
+                                            android:layout_alignParentRight="true"
+                                            android:layout_alignParentEnd="true"/>
+
+                                    </RelativeLayout>
+
+                                    <RelativeLayout
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent"
+                                        android:layout_weight="0.5"
+                                        android:padding="8dp"
+                                        android:background="@drawable/statistics_value">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:textAppearance="?android:attr/textAppearanceSmall"
+                                            android:id="@+id/uploader"
+                                            />
+                                    </RelativeLayout>
+                                </TableRow>
+
+                                <TableRow
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="fill_parent">
+
+                                    <RelativeLayout
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent"
+                                        android:background="@drawable/statistics_title"
+                                        android:padding="8dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:textAppearance="?android:attr/textAppearanceSmall"
+                                            android:text="Rating"
+                                            android:textColor="@color/white"
+                                            android:layout_alignParentRight="true"
+                                            android:layout_alignParentEnd="true"/>
+
+                                    </RelativeLayout>
+
+                                    <RelativeLayout
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent"
+                                        android:layout_weight="0.5"
+                                        android:padding="8dp"
+                                        android:background="@drawable/statistics_value">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:textAppearance="?android:attr/textAppearanceSmall"
+                                            android:id="@+id/rating"
+                                            />
+                                    </RelativeLayout>
+                                </TableRow>
+
+                                <TableRow
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="fill_parent">
+
+                                    <RelativeLayout
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent"
+                                        android:background="@drawable/statistics_title"
+                                        android:padding="8dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:textAppearance="?android:attr/textAppearanceSmall"
+                                            android:text="Size"
+                                            android:textColor="@color/white"
+                                            android:layout_alignParentRight="true"
+                                            android:layout_alignParentEnd="true"/>
+
+                                    </RelativeLayout>
+
+                                    <RelativeLayout
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="fill_parent"
+                                        android:layout_weight="0.5"
+                                        android:padding="8dp"
+                                        android:background="@drawable/statistics_value">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:textAppearance="?android:attr/textAppearanceSmall"
+                                            android:id="@+id/size"
+                                            />
+                                    </RelativeLayout>
+                                </TableRow>
+                            </TableLayout>
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/statistics_background_3"
+                            android:padding="12dp"
+                            android:layout_marginTop="12dp"
+                            android:id="@+id/descriptionLayout">
+
+                            <info.beastarman.e621.views.DTextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:id="@+id/description"/>
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/statistics_background_3"
+                            android:padding="12dp"
+                            android:layout_marginTop="12dp"
+                            android:id="@+id/parentWrapper"
+                            android:clickable="true">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:text="Go to parent post"
+                                android:id="@+id/textView5"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                android:id="@+id/parent_id"
+                                android:layout_toRightOf="@+id/textView5"
+                                android:layout_toEndOf="@+id/textView5"
+                                android:paddingStart="8dp"
+                                android:paddingLeft="8dp"
+                                android:textColor="@color/lightGray"
+                                android:layout_alignBaseline="@+id/textView5"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                android:id="@+id/parentTags"
+                                android:layout_alignParentLeft="true"
+                                android:layout_below="@+id/textView5"
+                                android:layout_toLeftOf="@+id/parentThumbnail"
+                                android:layout_marginLeft="8dp"
+                                android:visibility="gone"
+                                android:ellipsize="none"
+                                android:scrollHorizontally="false"/>
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:id="@+id/parentThumbnail"
+                                android:layout_centerVertical="true"
+                                android:layout_alignParentRight="true"
+                                android:layout_alignParentEnd="true"/>
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/statistics_background_3"
+                            android:layout_marginTop="12dp"
+                            android:padding="12dp"
+                            android:id="@+id/childrenWrapper"
+                            android:clickable="true">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:text="Search for children posts"
+                                android:id="@+id/childrenLabel"
+                                android:padding="4dp"
+                                android:clickable="true"/>
+
+                            <LinearLayout
+                                android:orientation="vertical"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/childrenLabel"
+                                android:id="@+id/childrenGroup">
+                            </LinearLayout>
+
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/statistics_background_3"
+                            android:padding="12dp"
+                            android:layout_marginTop="12dp"
+                            android:id="@+id/sourcesLayout">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:id="@+id/sourcesHeader"
+                                android:text="Sources"/>
+
+                            <LinearLayout
+                                android:orientation="vertical"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/sourcesHeader"
+                                android:id="@+id/sources"/>
+                        </RelativeLayout>
+                    </LinearLayout>
+                </ScrollView>
+
+                <RelativeLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:id="@+id/buttonArea"
+                    android:layout_marginLeft="18dp"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginRight="18dp"
+                    >
+
+                    <ImageButton
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:id="@+id/favButton"
+                        android:adjustViewBounds="true"
+                        android:cropToPadding="false"
+                        android:background="@drawable/fav_star_disabled"
+                        android:alpha="0.5"/>
+
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:id="@+id/saveButton"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignParentEnd="true"
+                        android:alpha="0.5"
+                        android:background="@drawable/save_icon_disabled"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:id="@+id/scoreTextView"
+                        android:layout_centerVertical="true"
+                        android:layout_centerHorizontal="true"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="8dp"/>
+
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:id="@+id/thumbsDown"
+                        android:layout_alignParentTop="true"
+                        android:layout_toLeftOf="@+id/scoreTextView"
+                        android:layout_toStartOf="@+id/scoreTextView"
+                        android:adjustViewBounds="false"
+                        android:alpha="0.5"
+                        android:background="@drawable/thumbs_down_disabled"
+                        android:visibility="gone"/>
+
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:id="@+id/thumbsUp"
+                        android:layout_alignParentTop="true"
+                        android:layout_toRightOf="@+id/scoreTextView"
+                        android:layout_toEndOf="@+id/scoreTextView"
+                        android:adjustViewBounds="false"
+                        android:alpha="0.5"
+                        android:background="@drawable/thumbs_up_disabled"
+                        android:visibility="gone"/>
+                </RelativeLayout>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/tags"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="12dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentBottom="true">
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/statistics_background_3"
+                        android:padding="12dp"
+                        android:id="@+id/tagsLayout">
+
+                        <ProgressBar
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:id="@+id/tagsLoading"/>
+
+                    </LinearLayout>
+
+                </ScrollView>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/comments"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="12dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentBottom="true"
+                    android:id="@+id/commentsScroll">
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="12dp"
+                        android:id="@+id/commentsLayout">
+
+                        <RelativeLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="12dp"
+                            android:id="@+id/postCommentArea"
+                            android:background="@drawable/statistics_background_3">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:text="Post a comment"
+                                android:id="@+id/postComment"
+                                android:textColor="@color/white"
+                                android:textStyle="bold"/>
+
+                            <EditText
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textMultiLine"
+                                android:ems="10"
+                                android:id="@+id/commentEditText"
+                                android:layout_below="@id/postComment"
+                                android:layout_alignLeft="@id/postComment"/>
+
+                            <Button
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@id/commentEditText"
+                                android:layout_alignLeft="@id/commentEditText"
+                                android:text="Post comment"
+                                android:enabled="false"
+                                android:onClick="postComment"
+                                android:id="@+id/postCommentButton"/>
+
+                        </RelativeLayout>
+
+                        <ProgressBar
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginTop="8dp"
+                            android:id="@+id/commentsLoading"/>
+
+                    </LinearLayout>
+
+                </ScrollView>
+
+            </RelativeLayout>
+        </FrameLayout>
+    </LinearLayout>
+</TabHost>
