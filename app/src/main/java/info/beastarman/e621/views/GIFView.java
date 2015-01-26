@@ -1,17 +1,20 @@
 package info.beastarman.e621.views;
 
-import info.beastarman.e621.R;
-
-import java.io.InputStream;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Movie;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
+
+import java.io.InputStream;
+
+import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621Middleware;
 
 public class GIFView extends View {
     
@@ -107,11 +110,47 @@ public class GIFView extends View {
 
         setMeasuredDimension(width, height);
     }
-    
+
+	private boolean playing = true;
+
+	public void play()
+	{
+		playing = true;
+		this.invalidate();
+	}
+
+	public void pause()
+	{
+		Log.d(E621Middleware.LOG_TAG,"PAUSE!");
+		playing = false;
+	}
+
+	public void toggle()
+	{
+		if(playing)
+		{
+			pause();
+		}
+		else
+		{
+			play();
+		}
+	}
+
+	private Paint getTextPaint()
+	{
+		Paint textPaint = new Paint();
+		textPaint.setARGB(200, 254, 0, 0);
+		textPaint.setTextAlign(Paint.Align.LEFT);
+		textPaint.setTextSize(32);
+
+		return textPaint;
+	}
+
     @Override
     protected void onDraw(Canvas canvas)
     {
-    	canvas.drawColor(Color.TRANSPARENT);
+		canvas.drawColor(Color.TRANSPARENT);
         super.onDraw(canvas);
         long now = android.os.SystemClock.uptimeMillis();
         
@@ -122,15 +161,28 @@ public class GIFView extends View {
         
         if (mMovie != null)
         {
-            int relTime = (int) ((now - movieStart) % (mMovie.duration()==0?1:mMovie.duration()));
-            mMovie.setTime(relTime);
+            if(playing)
+			{
+				int relTime = (int) ((now - movieStart) % (mMovie.duration()==0?1:mMovie.duration()));
+				mMovie.setTime(relTime);
+			}
             
             double scalex = (double) this.getWidth() / (double) mMovie.width();
             double scaley = (double) this.getHeight() / (double) mMovie.height();
-            canvas.scale((float) scalex, (float) scaley);
-            mMovie.draw(canvas, (float) scalex, (float) scaley);
+			canvas.save();
+			canvas.scale((float) scalex, (float) scaley);
+			mMovie.draw(canvas, (float) scalex, (float) scaley);
+			canvas.restore();
             
-            this.invalidate();
+            if(playing)
+			{
+				this.invalidate();
+			}
+			else
+			{
+				Paint t = getTextPaint();
+				canvas.drawText("Tap to play", 0, 32, t);
+			}
         }
     }
 }

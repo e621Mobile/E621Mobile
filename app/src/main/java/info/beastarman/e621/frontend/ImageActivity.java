@@ -212,7 +212,6 @@ public class ImageActivity extends BaseActivity implements OnClickListener
 		ImageView imageWrapper = (ImageView) findViewById(R.id.imageWrapper);
 		View progressBarLoader = findViewById(R.id.progressBarLoader);
 
-		//imageWrapper.setBackgroundResource(0);
 		progressBarLoader.setVisibility(View.VISIBLE);
 		
 		((View)imageWrapper.getParent()).invalidate();
