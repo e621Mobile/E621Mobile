@@ -432,7 +432,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			voteOut.obj = VOTE_UP;
 		}
 
-		updateScore(img,tabHost);
+		updateVote(voteOut.obj,img,tabHost);
 
 		new Thread(new Runnable()
 		{
@@ -451,7 +451,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 						@Override
 						public void run()
 						{
-							updateScore(img,tabHost);
+							updateVote(voteOut.obj,img,tabHost);
 						}
 					});
 				}
@@ -494,7 +494,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			voteOut.obj = VOTE_DOWN;
 		}
 
-		updateScore(img,tabHost);
+		updateVote(voteOut.obj,img,tabHost);
 
 		new Thread(new Runnable()
 		{
@@ -513,7 +513,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 						@Override
 						public void run()
 						{
-							updateScore(img,tabHost);
+							updateVote(voteOut.obj,img,tabHost);
 						}
 					});
 				}
@@ -536,16 +536,19 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			case NO_VOTE:
 				thumbsUp.setBackgroundResource(R.drawable.thumbs_up_disabled);
 				thumbsDown.setBackgroundResource(R.drawable.thumbs_down_disabled);
+				score.setText(img.score+"");
 				score.setTextColor(getResources().getColor(R.color.white));
 				break;
 			case VOTE_UP:
 				thumbsUp.setBackgroundResource(R.drawable.thumbs_up);
 				thumbsDown.setBackgroundResource(R.drawable.thumbs_down_disabled);
+				score.setText(img.score+"");
 				score.setTextColor(getResources().getColor(R.color.green));
 				break;
 			default:
 				thumbsUp.setBackgroundResource(R.drawable.thumbs_up_disabled);
 				thumbsDown.setBackgroundResource(R.drawable.thumbs_down);
+				score.setText(img.score+"");
 				score.setTextColor(getResources().getColor(R.color.red));
 				break;
 		}

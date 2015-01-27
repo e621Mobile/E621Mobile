@@ -340,7 +340,7 @@ public class E621Middleware extends E621
 		alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
 		alarmIntent = PendingIntent.getBroadcast(ctx, 0, intent, 0);
 
-		long interval = AlarmManager.INTERVAL_HOUR;
+		long interval = AlarmManager.INTERVAL_HOUR*3;
 
 		alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
 				SystemClock.elapsedRealtime() + interval,

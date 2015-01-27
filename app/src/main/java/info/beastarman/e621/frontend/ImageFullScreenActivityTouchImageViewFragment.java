@@ -1,15 +1,21 @@
 package info.beastarman.e621.frontend;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Point;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.io.IOException;
 
@@ -88,6 +94,17 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 
 			final E621Image img = E621Middleware.getInstance().post__show(image.getId());
 
+			while(getActivity() == null)
+			{
+				try
+				{
+					Thread.currentThread().sleep(1000);
+				} catch (InterruptedException e)
+				{
+					Thread.currentThread().interrupt();
+				}
+			}
+
 			if(img.file_ext.equals("jpg") ||
 				img.file_ext.equals("png") ||
 				(img.file_ext.equals("gif") && !E621Middleware.getInstance().playGifs()))
@@ -102,7 +119,7 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 					public void run()
 					{
 						final TouchImageView t = new TouchImageView(rl.getContext());
-						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
 						params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 						t.setLayoutParams(params);
 						rl.addView(t);
@@ -126,13 +143,13 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 						Point size = new Point();
 						display.getSize(size);
 
-						float scale = Math.max((float)img.width/size.x,(float)img.height/size.y);
+						float scale = Math.max((float) img.width / size.x, (float) img.height / size.y);
 
-						int w = (int)(img.width/scale);
-						int h = (int)(img.height/scale);
+						int w = (int) (img.width / scale);
+						int h = (int) (img.height / scale);
 
 						final GIFView gifView = new GIFView(rl.getContext());
-						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(w,h);
+						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(w, h);
 						params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 						gifView.setLayoutParams(params);
 						gifView.pause();
@@ -143,31 +160,64 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 							@Override
 							public boolean onLongClick(View view)
 							{
-								Activity a = getActivity();
-
-								if (a instanceof ImageFullScreenActivity)
-								{
-									((ImageFullScreenActivity) a).toggleVisibility();
-
-									return true;
-								}
-
-								return false;
-							}
-						});
-
-						gifView.setOnClickListener(new View.OnClickListener()
-						{
-							@Override
-							public void onClick(View view)
-							{
 								gifView.toggle();
+
+								return true;
 							}
 						});
 
-						GIFViewHandler handler = new GIFViewHandler(gifView,p);
+						gifView.setOnClickListener(toggleListener());
+
+						GIFViewHandler handler = new GIFViewHandler(gifView, p);
 
 						new Thread(new ImageLoadRunnable(handler, img, E621Middleware.getInstance(), E621Middleware.getInstance().getFileDownloadSize())).start();
+					}
+				});
+			}
+			else
+			{
+				getActivity().runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						final LinearLayout ll = new LinearLayout(rl.getContext());
+						ll.setOrientation(LinearLayout.VERTICAL);
+						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+						params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+						ll.setLayoutParams(params);
+						rl.addView(ll);
+
+						ll.setOnLongClickListener(new View.OnLongClickListener()
+						{
+							@Override
+							public boolean onLongClick(View view)
+							{
+								Intent i = new Intent();
+								i.setAction(Intent.ACTION_VIEW);
+								i.setData(Uri.parse(img.file_url));
+								startActivity(i);
+
+								return true;
+							}
+						});
+
+						ll.setOnClickListener(toggleListener());
+
+						ImageView error_image = new ImageView(rl.getContext());
+						error_image.setBackgroundResource(android.R.drawable.ic_menu_report_image);
+						LinearLayout.LayoutParams rel_params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+						rel_params.gravity = Gravity.CENTER_HORIZONTAL;
+						error_image.setLayoutParams(rel_params);
+						ll.addView(error_image);
+
+						TextView tv = new TextView(rl.getContext());
+						tv.setText("File not supported (yet).\nHold here to try opening it with another app.");
+						tv.setGravity(Gravity.CENTER_HORIZONTAL);
+						tv.setPadding(32, 32, 32, 32);
+						ll.addView(tv);
+
+						((ViewGroup) p.getParent()).removeView(p);
 					}
 				});
 			}

@@ -8,13 +8,11 @@ import android.graphics.Movie;
 import android.graphics.Paint;
 import android.net.Uri;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import java.io.InputStream;
 
 import info.beastarman.e621.R;
-import info.beastarman.e621.middleware.E621Middleware;
 
 public class GIFView extends View {
     
@@ -121,7 +119,6 @@ public class GIFView extends View {
 
 	public void pause()
 	{
-		Log.d(E621Middleware.LOG_TAG,"PAUSE!");
 		playing = false;
 	}
 
@@ -181,7 +178,7 @@ public class GIFView extends View {
 			else
 			{
 				Paint t = getTextPaint();
-				canvas.drawText("Tap to play", 0, 32, t);
+				canvas.drawText("Hold to play", 0, 32, t);
 			}
         }
     }

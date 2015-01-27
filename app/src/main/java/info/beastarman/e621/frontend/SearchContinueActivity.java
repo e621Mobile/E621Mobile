@@ -87,14 +87,14 @@ public class SearchContinueActivity extends SearchActivity
 	}
 
 	public void imageClick(View view) {
-		Intent intent = new Intent(this, ImageActivity.class);
-		intent.putExtra(ImageActivity.NAVIGATOR, new OnlineContinueImageNavigator(
+		Intent intent = new Intent(this, ImageFullScreenActivity.class);
+		intent.putExtra(ImageFullScreenActivity.NAVIGATOR, new OnlineContinueImageNavigator(
 				(E621Image) view.getTag(R.id.imageObject),
 				(Integer) view.getTag(R.id.imagePosition),
 				search,
 				limit,
 				e621Search));
-		intent.putExtra(ImageActivity.INTENT,getIntent());
+		intent.putExtra(ImageFullScreenActivity.INTENT,getIntent());
 		startActivity(intent);
 	}
 }

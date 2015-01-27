@@ -68,6 +68,8 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 	{
 		File[] f = base_path.listFiles();
 
+		if(f == null) f = new File[0];
+
 		Arrays.sort(f);
 
 		long num = 1;
