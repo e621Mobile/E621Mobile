@@ -38,6 +38,8 @@ import android.widget.ImageView;
 import android.widget.OverScroller;
 import android.widget.Scroller;
 
+import info.beastarman.e621.middleware.E621Middleware;
+
 public class TouchImageView extends ImageView {
 	
 	private static final String DEBUG = "DEBUG";
@@ -728,8 +730,9 @@ public class TouchImageView extends ImageView {
     public boolean canScrollHorizontally(int direction) {
     	matrix.getValues(m);
     	float x = m[Matrix.MTRANS_X];
-    	
-    	if (getImageWidth() < viewWidth) {
+
+    	if (getImageWidth() < viewWidth)
+		{
     		return false;
     		
     	} else if (x >= -1 && direction < 0) {

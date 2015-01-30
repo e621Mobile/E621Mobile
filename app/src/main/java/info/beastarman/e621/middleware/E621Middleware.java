@@ -343,7 +343,8 @@ public class E621Middleware extends E621
 		long interval = AlarmManager.INTERVAL_HOUR*3;
 
 		alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
-				SystemClock.elapsedRealtime() + interval,
+				//SystemClock.elapsedRealtime() + interval,
+				SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_HOUR/60,
 		        interval, alarmIntent);
 		
 		interrupt = new InterruptedSearchManager(interrupted_path);
@@ -2028,10 +2029,22 @@ public class E621Middleware extends E621
 		
 		return (int) Math.ceil(((double)download_manager.totalEntries(new SearchQuery(query))) / results_per_page);
 	}
+
+	public enum SyncState
+	{
+		REPORTS,
+		FAILED_DOWNLOADS,
+		CHECKING_FOR_UPDATES,
+		INTERRUPTED_SEARCHES,
+		BACKUP,
+		FINISHED,
+	}
 	
-	public void sync()
+	public void sync(EventManager eventManager)
 	{
 		Log.d(LOG_TAG,"Begin sync");
+
+		eventManager.trigger(SyncState.REPORTS);
 
 		for(String file : report_path.list())
 		{
@@ -2056,6 +2069,8 @@ public class E621Middleware extends E621
 			{
 			}
 		}
+
+		eventManager.trigger(SyncState.FAILED_DOWNLOADS);
 		
 		for(String file : failed_download_manager.getFiles())
 		{
@@ -2081,6 +2096,8 @@ public class E621Middleware extends E621
 				}).start();
 			}
 		}
+
+		eventManager.trigger(SyncState.CHECKING_FOR_UPDATES);
 		
 		AndroidAppVersion version = getAndroidAppUpdater().getLatestVersionInfo();
 		
@@ -2088,18 +2105,18 @@ public class E621Middleware extends E621
 		{
 			updateMostRecentVersion(version);
 		}
+
+		eventManager.trigger(SyncState.INTERRUPTED_SEARCHES);
 		
 		syncSearch();
+
+		eventManager.trigger(SyncState.BACKUP);
 		
 		backup();
 
-		update_some_metadata(new EventManager()
-		{
-			@Override
-			public void onTrigger(Object obj)
-			{
-			}
-		});
+		update_some_metadata(eventManager);
+
+		eventManager.trigger(SyncState.FINISHED);
 		
 		Log.d(LOG_TAG,"End sync");
 	}

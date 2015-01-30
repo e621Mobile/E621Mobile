@@ -1,9 +1,8 @@
 package info.beastarman.e621.api;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
-public class E621Search implements Serializable
+public class E621Search implements E621SearchInterface
 {
 	private static final long serialVersionUID = 2951933484510381506L;
 	
@@ -38,26 +37,31 @@ public class E621Search implements Serializable
 		}
 	}
 	
+	@Override
 	public boolean has_prev_page()
 	{
 		return current_page(1) > 1;
 	}
 	
+	@Override
 	public boolean has_next_page()
 	{
 		return current_page(1) < total_pages();
 	}
 	
+	@Override
 	public int current_page()
 	{
 		return current_page(0);
 	}
 	
+	@Override
 	public int current_page(int diff)
 	{
 		return (int) Math.floor(((double)offset)/((double)results_per_page)) + diff;
 	}
 	
+	@Override
 	public int total_pages()
 	{
 		return (int) Math.ceil(((double)count)/((double)results_per_page));

@@ -1,6 +1,8 @@
 package info.beastarman.e621.backend;
 
-public abstract class EventManager
+import java.io.Serializable;
+
+public abstract class EventManager implements Serializable
 {
 	public abstract void onTrigger(Object obj);
 	

@@ -1,12 +1,8 @@
 package info.beastarman.e621.middleware;
 
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.app.NotificationCompat;
-
-import info.beastarman.e621.R;
 
 public class E621SyncReciever extends BroadcastReceiver
 {
@@ -20,31 +16,9 @@ public class E621SyncReciever extends BroadcastReceiver
 			return;
 		}
 
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
-
-		builder.setSmallIcon(R.drawable.ic_launcher);
-		builder.setContentTitle("E621 Sync");
-		builder.setContentText("Sync in progress");
-		builder.setOngoing(true);
-
-		final NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-		notificationManager.notify(R.id.syncNotificationId,builder.build());
-		
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				try
-				{
-					e621.sync();
-				}
-				finally
-				{
-					notificationManager.cancel(R.id.syncNotificationId);
-				}
-			}
-		}).start();
+		Intent i = new Intent(context, E621SyncService.class);
+		context.startService(i);
 	}
+
+
 }

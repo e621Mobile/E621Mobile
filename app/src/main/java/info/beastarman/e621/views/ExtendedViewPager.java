@@ -18,7 +18,8 @@ public class ExtendedViewPager extends ViewPager
 	}
 
 	@Override
-	protected boolean canScroll(View v, boolean checkV, int dx, int x, int y) {
+	protected boolean canScroll(View v, boolean checkV, int dx, int x, int y)
+	{
 		if (v instanceof TouchImageView)
 		{
 			return ((TouchImageView) v).canScrollHorizontallyFroyo(-dx);

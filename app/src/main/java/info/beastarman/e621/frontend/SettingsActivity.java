@@ -300,7 +300,14 @@ public class SettingsActivity extends PreferenceActivity
 					{
 						public void run()
 						{
-							e621.sync();
+							e621.sync(new EventManager()
+							{
+								@Override
+								public void onTrigger(Object obj)
+								{
+
+								}
+							});
 
 							dialog.dismiss();
 						}

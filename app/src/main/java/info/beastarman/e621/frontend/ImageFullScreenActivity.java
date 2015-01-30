@@ -169,15 +169,22 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 	private void setupTabHost(final TabHost tabHost)
 	{
-		int resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
-		if (resourceId > 0)
+		tabHost.post(new Runnable()
 		{
-			int navigationHeight = getResources().getDimensionPixelSize(resourceId);
+			@Override
+			public void run()
+			{
+				int resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+				if (resourceId > 0)
+				{
+					int navigationHeight = getResources().getDimensionPixelSize(resourceId) + 24;
 
-			tabHost.findViewById(R.id.info).setPadding(0,0,0,navigationHeight);
-			tabHost.findViewById(R.id.tags).setPadding(0,0,0,navigationHeight);
-			tabHost.findViewById(R.id.comments).setPadding(0,0,0,navigationHeight);
-		}
+					tabHost.findViewById(R.id.info).setPadding(0,0,0,navigationHeight);
+					tabHost.findViewById(R.id.tags).setPadding(0,0,0,navigationHeight);
+					tabHost.findViewById(R.id.comments).setPadding(0,0,0,navigationHeight);
+				}
+			}
+		});
 
 		tabHost.setup();
 		tabHost.addTab(tabHost.newTabSpec("Info").setIndicator("Info").setContent(R.id.info));

@@ -118,6 +118,8 @@
 			    </intent-filter>
 			            
         </receiver>
+        <service android:name="info.beastarman.e621.middleware.E621SyncService"
+            android:enabled="true" />
         <activity
             android:name="info.beastarman.e621.frontend.DonateActivity"
             android:label="Donate"
