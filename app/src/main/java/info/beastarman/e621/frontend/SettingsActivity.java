@@ -294,7 +294,8 @@ public class SettingsActivity extends PreferenceActivity
 				@Override
 				public boolean onPreferenceClick(Preference arg0)
 				{
-					final ProgressDialog dialog = ProgressDialog.show(activity, "Synchronizing", "Please wait while sync is in progress", true, false);
+					final StepsProgressDialog dialog = new StepsProgressDialog(activity);
+					dialog.show();
 
 					new Thread(new Runnable()
 					{
@@ -302,14 +303,97 @@ public class SettingsActivity extends PreferenceActivity
 						{
 							e621.sync(new EventManager()
 							{
+								String lastMsg = "Sync in progress";
+								String extra = "";
+
 								@Override
 								public void onTrigger(Object obj)
 								{
+									if (obj instanceof E621Middleware.SyncState)
+									{
+										if (obj == E621Middleware.SyncState.REPORTS)
+										{
+											lastMsg = "Sending remaining reports";
+										}
+										else if (obj == E621Middleware.SyncState.FAILED_DOWNLOADS)
+										{
+											lastMsg = "Fixing failed downloads";
+										}
+										else if (obj == E621Middleware.SyncState.CHECKING_FOR_UPDATES)
+										{
+											lastMsg = "Checking for updates";
+										}
+										else if (obj == E621Middleware.SyncState.BACKUP)
+										{
+											lastMsg = "Creating new backup";
+										}
+										else if (obj == E621Middleware.SyncState.INTERRUPTED_SEARCHES)
+										{
+											lastMsg = "Updating interrupted searches";
+										}
+										else if (obj == E621Middleware.SyncState.FINISHED)
+										{
+											activity.runOnUiThread(new Runnable()
+											{
+												@Override
+												public void run()
+												{
+													dialog.setDone("Finished");
+												}
+											});
 
+											return;
+										}
+									}
+									else if (obj instanceof E621DownloadedImages.UpdateStates)
+									{
+										if (obj == E621DownloadedImages.UpdateStates.CLEANING)
+										{
+											lastMsg = "Cleaning metadata";
+										}
+										else if (obj == E621DownloadedImages.UpdateStates.TAG_SYNC)
+										{
+											lastMsg = "Synchronizing tags";
+										}
+										else if (obj == E621DownloadedImages.UpdateStates.TAG_ALIAS_SYNC)
+										{
+											lastMsg = "Synchronizing tag aliases";
+										}
+										else if (obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_SYNC)
+										{
+											lastMsg = "Synchronizing image tags";
+										}
+										else if (obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_DB)
+										{
+											lastMsg = "Saving image tags into database";
+										}
+									}
+
+									if (obj instanceof Pair)
+									{
+										Pair<String, String> pair = ((Pair<String, String>) obj);
+
+										extra = " (" + pair.left + "/" + pair.right + ")";
+
+										dialog.updateStep(lastMsg + extra);
+									}
+									else
+									{
+										dialog.addStep(lastMsg);
+									}
+
+									activity.runOnUiThread(new Runnable()
+									{
+										@Override
+										public void run()
+										{
+											dialog.showStepsMessage();
+										}
+									});
+
+									extra = "";
 								}
 							});
-
-							dialog.dismiss();
 						}
 					}).start();
 
