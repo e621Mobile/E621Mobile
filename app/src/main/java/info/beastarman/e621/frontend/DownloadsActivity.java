@@ -309,7 +309,6 @@ public class DownloadsActivity extends BaseActivity
 	public void imageClick(View view) {
 		Intent intent = new Intent(this, ImageFullScreenActivity.class);
 		intent.putExtra(ImageFullScreenActivity.NAVIGATOR, new OfflineImageNavigator(
-				(E621DownloadedImage) view.getTag(R.id.imageObject),
 				(Integer) view.getTag(R.id.imagePosition),
 				search));
 		intent.putExtra(ImageFullScreenActivity.INTENT,getIntent());

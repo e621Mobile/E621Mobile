@@ -5,7 +5,6 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
@@ -24,7 +23,6 @@ public class E621SyncService extends IntentService
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
 		super.onStartCommand(intent, startId, startId);
-		Log.i(E621Middleware.LOG_TAG, "Received start id " + startId + ": " + intent);
 
 		return START_STICKY;
 	}

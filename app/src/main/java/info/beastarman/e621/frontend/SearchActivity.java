@@ -101,7 +101,7 @@ public class SearchActivity extends BaseActivity
 		
 		if(e621SearchKey != -1)
 		{
-			e621Search = e621.getStorage().returnKey(e621SearchKey);
+			e621Search = (E621Search) e621.getStorage().returnKey(e621SearchKey);
 		}
 		
 		trySearch();

@@ -12,7 +12,6 @@ import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -23,19 +22,18 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.dtext.DTextBlockEnd;
 import info.beastarman.e621.api.dtext.DTextBlockStart;
 import info.beastarman.e621.api.dtext.DTextBreakLine;
 import info.beastarman.e621.api.dtext.DTextIntent;
 import info.beastarman.e621.api.dtext.DTextLink;
 import info.beastarman.e621.api.dtext.DTextObject;
+import info.beastarman.e621.api.dtext.DTextRuleEnd;
 import info.beastarman.e621.api.dtext.DTextRuleStart;
 import info.beastarman.e621.api.dtext.DTextString;
 import info.beastarman.e621.api.dtext.DTextThumb;
-import info.beastarman.e621.api.E621Image;
-import info.beastarman.e621.api.dtext.DTextRuleEnd;
 import info.beastarman.e621.frontend.ImageFullScreenActivity;
-import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
 
 public class DTextView extends LinearLayout
@@ -64,8 +62,6 @@ public class DTextView extends LinearLayout
 		{
 			for(DTextRuleStart r : rules.values())
 			{
-				Log.d(E621Middleware.LOG_TAG, s.toString() + " " + r.name);
-
 				r.apply(s,tv);
 			}
 		}

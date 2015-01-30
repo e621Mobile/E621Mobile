@@ -123,8 +123,8 @@ public class E621Middleware extends E621
 	BackupManager backupManager;
 	
 	private Semaphore updateTagsSemaphore = new Semaphore(1);
-	private ObjectStorage<E621Search> searchStorage = new ObjectStorage<E621Search>();
-	
+	private ObjectStorage<Object> searchStorage = new ObjectStorage<Object>();
+
 	private static E621Middleware instance;
 	
 	private static String DIRECTORY_SYNC = "sync/";
@@ -344,7 +344,7 @@ public class E621Middleware extends E621
 
 		alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
 				//SystemClock.elapsedRealtime() + interval,
-				SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_HOUR/60,
+				SystemClock.elapsedRealtime() + interval,
 		        interval, alarmIntent);
 		
 		interrupt = new InterruptedSearchManager(interrupted_path);
@@ -2906,8 +2906,6 @@ public class E621Middleware extends E621
 	public void continue_later(String search, String seen_past, String seen_until)
 	{
 		search= prepareQuery(search);
-
-		Log.d(E621Middleware.LOG_TAG,search);
 		
 		interrupt.addOrUpdateSearch(search, seen_past, seen_until);
 		
@@ -3712,7 +3710,7 @@ public class E621Middleware extends E621
 		}).start();
 	}
 	
-	public ObjectStorage<E621Search> getStorage()
+	public ObjectStorage<Object> getStorage()
 	{
 		return searchStorage;
 	}
