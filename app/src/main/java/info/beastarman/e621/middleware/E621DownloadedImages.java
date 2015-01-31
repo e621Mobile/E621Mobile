@@ -127,6 +127,11 @@ public class E621DownloadedImages
 						sql = sql + String.format(" rating=\"%1$s\" ", value);
 					}
 				}
+				else if(meta.equals("type"))
+				{
+					sql = sql + " AND";
+					sql = sql + String.format(" image_file LIKE \"%%.%1$s\" ", value);
+				}
 			}
 			else
 			{
@@ -152,7 +157,8 @@ public class E621DownloadedImages
 					String meta = s.split(":")[0];
 					String value= s.split(":")[1];
 					
-					if(meta.equals("rating"))					{
+					if(meta.equals("rating"))
+					{
 						value = value.substring(0, 1);
 						
 						if(value.equals(E621Image.SAFE) || value.equals(E621Image.QUESTIONABLE) || value.equals(E621Image.EXPLICIT))
@@ -160,6 +166,11 @@ public class E621DownloadedImages
 							sql = sql + " OR";
 							sql = sql + String.format(" rating=\"%1$s\" ", value);
 						}
+					}
+					else if(meta.equals("type"))
+					{
+						sql = sql + " OR";
+						sql = sql + String.format(" image_file LIKE \"%%.%1$s\" ", value);
 					}
 				}
 				else
@@ -199,6 +210,11 @@ public class E621DownloadedImages
 							sql = sql + String.format(" rating=\"%1$s\" ", value);
 						}
 					}
+					else if(meta.equals("type"))
+					{
+						sql = sql + " OR";
+						sql = sql + String.format(" image_file LIKE \"%%.%1$s\" ", value);
+					}
 				}
 				else
 				{
@@ -215,7 +231,7 @@ public class E621DownloadedImages
 			
 			sql = sql + " ) ";
 		}
-		
+
 		return sql;
 	}
 
@@ -459,8 +475,6 @@ public class E621DownloadedImages
 	
 	public void createOrUpdate(final E621Image img, final InputStream in, final String file_ext)
 	{
-		if(hasFile(img)) return;
-		
 		final String file_name = img.id + "." + file_ext;
 		
 		lock.write(new Runnable()
@@ -495,6 +509,49 @@ public class E621DownloadedImages
 		});
 		
 		images.createOrUpdate(file_name, in);
+	}
+
+	public void fixTags(E621Middleware e621, EventManager em)
+	{
+		final ArrayList<Integer> cur_ids = new ArrayList<Integer>();
+
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
+				Cursor c = null;
+
+				try
+				{
+					c = db.rawQuery("SELECT e621image.id AS id, COUNT(image_tag.image) AS tags FROM e621image INNER JOIN image_tag ON e621image.id = image_tag.image GROUP BY e621image.image_file HAVING (tags <= 5);", null);
+					//c = db.rawQuery("SELECT e621image.id AS id, COUNT(image_tag.image) AS tags FROM e621image INNER JOIN image_tag ON e621image.id = image_tag.image WHERE (e621image.image_file LIKE '%.jpg' OR e621image.image_file LIKE '%.png' OR e621image.image_file LIKE '%.gif') GROUP BY e621image.image_file HAVING (tags <= 5);", null);
+
+					if(c == null || !c.moveToFirst())
+					{
+						return;
+					}
+
+					while(!c.isAfterLast())
+					{
+						cur_ids.add(c.getInt(c.getColumnIndex("id")));
+
+						c.moveToNext();
+					}
+				}
+				finally
+				{
+					if(c != null) c.close();
+				}
+			}
+		});
+
+		if(cur_ids.size() == 0)
+		{
+			return;
+		}
+
+		retrieveMetadata(e621, em, cur_ids);
 	}
 
 	public enum UpdateStates

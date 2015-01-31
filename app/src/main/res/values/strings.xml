@@ -46,6 +46,8 @@
 		Developed by Douglas Vanny Bento (me@beastarman.info)
     </string>
     <string name="changelog">
+        Version 0.2a: Stability. Full screen images. DText. Post comments.
+        \n\n
         Version 0.1a.8: Blacklists, Highlight tags, Thumbnail size and improved response time
         \n\n
         Version 0.1a.4: Few bug fixes. Disable sync when not on Wifi. Faster navigation.

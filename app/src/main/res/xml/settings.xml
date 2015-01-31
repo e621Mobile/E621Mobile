@@ -123,6 +123,14 @@
             android:title="Restore backup"
             android:summary="Restore automatic backup"
             android:key="restoreBackup"/>
+        <Preference
+            android:title="Synchronize"
+            android:summary="Update saved searches, pending downloads and everything else"
+            android:key="sync"/>
+        <Preference
+            android:title="Fix inconsistencies"
+            android:summary="Redownloads corrupted files and fixes untagged images"
+            android:key="fixMe"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="Feedback">
         <Preference
@@ -133,10 +141,6 @@
             android:title="Change Log"
             android:summary="See what is new on this and previous versions"
             android:key="changeLog"/>
-        <Preference
-            android:title="Synchronize"
-            android:summary="Update saved searches, pending downloads and everything else"
-            android:key="sync"/>
         <Preference
             android:title="Update"
             android:summary="Look for newer versions and update"

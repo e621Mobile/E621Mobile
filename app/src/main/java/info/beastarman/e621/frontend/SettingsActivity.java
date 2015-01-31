@@ -401,6 +401,18 @@ public class SettingsActivity extends PreferenceActivity
 				}
 			});
 
+			Preference fixMe = (Preference) getPreferenceManager().findPreference("fixMe");
+			fixMe.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					fixInconsistencies();
+
+					return true;
+				}
+			});
+
 			Preference sendErrorReport = (Preference) getPreferenceManager().findPreference("sendErrorReport");
 			sendErrorReport.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 			{
@@ -448,6 +460,85 @@ public class SettingsActivity extends PreferenceActivity
 		{
 			Intent i = new Intent(activity, DonateActivity.class);
 			startActivity(i);
+		}
+
+		protected void fixInconsistencies()
+		{
+			final StepsProgressDialog dialog = new StepsProgressDialog(activity);
+			dialog.show();
+
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					e621.fixMe(new EventManager()
+					{
+						String lastMsg = "Fixing";
+						String extra = "";
+
+						@Override
+						public void onTrigger(Object obj)
+						{
+							if(obj instanceof E621Middleware.FixState)
+							{
+								if(obj == E621Middleware.FixState.TAGS)
+								{
+									lastMsg = "Looking for images with few tags";
+								}
+								else if(obj == E621Middleware.FixState.CORRUPT)
+								{
+									lastMsg = "Looking for corrupted image files";
+								}
+								else if(obj == E621Middleware.FixState.FIXING)
+								{
+									lastMsg = "Redownloading corrupted image files";
+								}
+							}
+							else if(obj instanceof E621DownloadedImages.UpdateStates)
+							{
+								if(obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_DB)
+								{
+									lastMsg = "Fixing images with few tags";
+								}
+							}
+
+							if (obj instanceof Pair)
+							{
+								Pair<String, String> pair = ((Pair<String, String>) obj);
+
+								extra = " (" + pair.left + "/" + pair.right + ")";
+
+								dialog.updateStep(lastMsg + extra);
+							}
+							else
+							{
+								dialog.addStep(lastMsg);
+							}
+
+							activity.runOnUiThread(new Runnable()
+							{
+								@Override
+								public void run()
+								{
+									dialog.showStepsMessage();
+								}
+							});
+
+							extra = "";
+						}
+					});
+
+					activity.runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							dialog.setDone("Done");
+						}
+					});
+				}
+			}).start();
 		}
 
 		private EventManager getTagUpdateEventManager(final StepsProgressDialog dialog)

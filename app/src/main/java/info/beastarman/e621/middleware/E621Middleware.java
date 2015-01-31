@@ -2030,6 +2030,125 @@ public class E621Middleware extends E621
 		return (int) Math.ceil(((double)download_manager.totalEntries(new SearchQuery(query))) / results_per_page);
 	}
 
+	public enum FixState
+	{
+		TAGS,
+		CORRUPT,
+		FIXING,
+	}
+
+	public void fixMe(EventManager eventManager)
+	{
+		eventManager.trigger(FixState.TAGS);
+
+		download_manager.fixTags(this,eventManager);
+
+		eventManager.trigger(FixState.CORRUPT);
+
+		ArrayList<E621DownloadedImage> images = localSearch(0,-1,"~type:jpg ~type:gif ~type:png");
+
+		ArrayList<Integer> redownload = new ArrayList<Integer>();
+
+		int i=0;
+
+		for(E621DownloadedImage image : images)
+		{
+			eventManager.trigger(new Pair<String,String>(""+(++i),""+images.size()));
+
+			try
+			{
+				Bitmap bmp = BitmapFactory.decodeStream(getDownloadedImage(image));
+
+				if (bmp == null || isBadBitmap(bmp))
+				{
+					redownload.add(image.getId());
+				}
+
+				if(bmp != null) bmp.recycle();
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+
+				redownload.add(image.getId());
+			}
+			catch(Error e)
+			{
+				e.printStackTrace();
+
+				redownload.add(image.getId());
+			}
+		}
+
+		eventManager.trigger(FixState.FIXING);
+
+		i=0;
+
+		for(int fix : redownload)
+		{
+			Log.d(LOG_TAG,"Fixing " + fix);
+
+			eventManager.trigger(new Pair<String, String>("" + (++i), "" + redownload.size()));
+
+			try
+			{
+				E621Image img = post__show(fix);
+
+				String url = img.file_url;
+
+				if(getFileDownloadSize() == E621Image.SAMPLE)
+				{
+					url = img.sample_url;
+				}
+				else if(getFileDownloadSize() == E621Image.PREVIEW)
+				{
+					url = img.preview_url;
+				}
+
+				final InputStream in = this.getImageFromInternet(url);
+
+				if(in != null)
+				{
+					String ext = img.file_ext;
+
+					if (getFileDownloadSize() != E621Image.FULL)
+					{
+						String[] temp = url.split("\\.");
+						ext = temp[temp.length - 1];
+					}
+
+					download_manager.createOrUpdate(img, in, ext);
+				}
+			} catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private boolean isBadBitmap(Bitmap bmp)
+	{
+		int pixels[] = new int[bmp.getWidth()*bmp.getHeight()];
+
+		bmp.getPixels(pixels, 0, bmp.getWidth(), 0, 0, bmp.getWidth(), bmp.getHeight());
+
+		int bad = 0;
+
+		for(int px : pixels)
+		{
+			if(px == 0xFFFFFF00 || px == 0xFFFFFFFF || px == 0x00000000 || px == 0x000000FF)
+			{
+				bad++;
+			}
+			else
+			{
+				bad = 0;
+			}
+		}
+
+		return bad > pixels.length*0.05;
+	}
+
 	public enum SyncState
 	{
 		REPORTS,
