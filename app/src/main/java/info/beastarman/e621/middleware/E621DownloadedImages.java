@@ -46,11 +46,7 @@ public class E621DownloadedImages
 		@Override
 		public void onCreate(SQLiteDatabase db)
 		{
-			if(db.getVersion() == 0)
-			{
-				db.setVersion(1);
-			}
-			else
+			try
 			{
 				db.execSQL("CREATE TABLE image_tag (" +
 								"image UNSIGNED INTEGER" +
@@ -78,6 +74,12 @@ public class E621DownloadedImages
 								");"
 				);
 			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+
+			onUpgrade(db,0,version);
 		}
 
 		@Override

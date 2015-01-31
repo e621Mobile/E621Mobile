@@ -3351,6 +3351,8 @@ public class E621Middleware extends E621
 								"seen_until UNSIGNED BIG INT" +
 								");"
 				);
+
+				onUpgrade(db,0,version);
 			}
 
 			@Override

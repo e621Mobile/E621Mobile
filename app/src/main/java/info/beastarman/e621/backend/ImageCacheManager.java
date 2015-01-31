@@ -47,19 +47,20 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		@Override
 		public void onCreate(SQLiteDatabase db)
 		{
-			if(db.getVersion() == 0)
-			{
-				db.setVersion(1);
-			}
-			else
+			try
 			{
 				db.execSQL("CREATE TABLE images (" +
 								"id TEXT PRIMARY KEY" +
 								", " +
 								"file_size UNSIGNED BIG INT" +
-								");"
-				);
+								");");
 			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+
+			onUpgrade(db,0,version);
 		}
 
 		@Override
@@ -418,11 +419,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 			@Override
 			public void onCreate(SQLiteDatabase db)
 			{
-				if(db.getVersion() == 0)
-				{
-					db.setVersion(1);
-				}
-				else
+				try
 				{
 					db.execSQL("CREATE TABLE access (" +
 									"id TEXT PRIMARY KEY" +
@@ -431,6 +428,12 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 									");"
 					);
 				}
+				catch(Exception e)
+				{
+					e.printStackTrace();
+				}
+
+				onUpgrade(db,0,version);
 			}
 
 			@Override
