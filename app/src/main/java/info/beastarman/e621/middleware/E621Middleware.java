@@ -3813,6 +3813,7 @@ public class E621Middleware extends E621
 				    	
 				    	Intent i = new Intent();
 				        i.setAction(Intent.ACTION_VIEW);
+						i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				        i.setDataAndType(Uri.fromFile(temp.obj),"application/vnd.android.package-archive");
 				        ctx.startActivity(i);
 				        
