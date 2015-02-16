@@ -26,6 +26,7 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.text.style.URLSpan;
+import android.util.Log;
 import android.util.Pair;
 import android.util.SparseArray;
 import android.view.Menu;
@@ -1083,7 +1084,16 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		uploader.setText(s);
 
 		TextView created_at = (TextView)tabHost.findViewById(R.id.createdAt);
-		created_at.setText(DateUtils.getRelativeTimeSpanString(img.created_at.getTime(), new Date().getTime(), 0));
+
+		if(img.created_at == null)
+		{
+			created_at.setText("-");
+			Log.d(E621Middleware.LOG_TAG + "_Suspect",img.created_at_raw);
+		}
+		else
+		{
+			created_at.setText(DateUtils.getRelativeTimeSpanString(img.created_at.getTime(), new Date().getTime(), 0));
+		}
 	}
 
 	private void updateSources(final E621Image img, final TabHost tabHost)
@@ -1470,7 +1480,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 		E621Search ret = e621.post__index("parent:"+img.id,0,100);
 
-		childrenCache.put(img.id,ret);
+		childrenCache.put(img.id, ret);
 
 		return ret;
 	}
@@ -1545,8 +1555,16 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	{
 		if(!e621.isLoggedIn())
 		{
-			ImageButton favButton = (ImageButton) tabHost.findViewById(R.id.favButton);
-			favButton.setImageResource(android.R.drawable.star_big_off);
+			final ImageButton favButton = (ImageButton) tabHost.findViewById(R.id.favButton);
+
+			favButton.post(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					favButton.setImageResource(android.R.drawable.star_big_off);
+				}
+			});
 
 			return;
 		}

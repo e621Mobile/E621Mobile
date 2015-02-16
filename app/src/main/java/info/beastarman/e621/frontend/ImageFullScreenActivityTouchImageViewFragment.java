@@ -6,6 +6,7 @@ import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -88,6 +89,11 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 
 	private void getImage(final RelativeLayout rl)
 	{
+		if(image == null)
+		{
+			return;
+		}
+
 		try
 		{
 			final ProgressBar p = (ProgressBar) rl.findViewById(R.id.progressBar);
@@ -112,6 +118,8 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 				final Pair<Integer, Integer> size = img.getSize(E621Middleware.getInstance().getFileDownloadSize());
 
 				final float scale = Math.max(1, Math.max(size.left / 2048f, size.right / 2048f));
+
+				Log.d(E621Middleware.LOG_TAG,""+scale);
 
 				getActivity().runOnUiThread(new Runnable()
 				{

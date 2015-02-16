@@ -1430,14 +1430,22 @@ public class E621Middleware extends E621
 					break;
 			}
 
-			InputStream inputStream = getImageFromInternet(url);
+			int tries = 5;
+			Bitmap bmp = null;
 
-			if (in == null || inputStream == null)
+			while(bmp == null && tries>0)
 			{
-				return null;
-			}
+				InputStream inputStream = getImageFromInternet(url);
 
-			Bitmap bmp = decodeFile(inputStream,width,height);
+				if (in == null || inputStream == null)
+				{
+					return null;
+				}
+
+				bmp = decodeFile(inputStream,width,height);
+
+				tries--;
+			}
 
 			return bmp;
 		}

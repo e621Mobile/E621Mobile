@@ -34,7 +34,9 @@ public class E621Image implements Serializable
 	public static String QUESTIONABLE = "q";
 	public static String SAFE = "s";
 
+	public String created_at_raw = "";
 	public Date created_at = null;
+
 	public String preview_url = "";
 	public String sample_url = "";
 	public String file_url = "";
@@ -181,6 +183,7 @@ public class E621Image implements Serializable
 
 		try
 		{
+			img.created_at_raw = String.valueOf(json.getJSONObject("created_at").optLong("s",-1));
 			img.created_at = new Date(json.getJSONObject("created_at").optLong("s",0)*1000);
 		} catch (JSONException e)
 		{
@@ -266,7 +269,8 @@ public class E621Image implements Serializable
 
 		try
 		{
-			img.created_at = DATE_FORMAT_XML.parse(xml.getAttribute("created_at"));
+			img.created_at_raw = xml.getAttribute("created_at");
+			img.created_at = DATE_FORMAT_XML.parse(img.created_at_raw);
 		} catch (ParseException e)
 		{
 			e.printStackTrace();
