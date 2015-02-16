@@ -66,7 +66,7 @@ public class DTextCompiler implements DTextCompilerConstants {
       } else if (jj_2_2(2)) {
         token = getList();
         {if (true) return token;}
-      } else if (jj_2_3(3)) {
+      } else if (jj_2_3(4)) {
         token = getPageLink();
         {if (true) return token;}
       } else if (jj_2_4(99999)) {
@@ -1055,6 +1055,7 @@ public class DTextCompiler implements DTextCompilerConstants {
     if (jj_scan_token(TAGNAME)) return true;
     if (jj_scan_token(SPACE)) return true;
     if (jj_scan_token(HASHTAG)) return true;
+    if (jj_scan_token(NUMBER)) return true;
     return false;
   }
 

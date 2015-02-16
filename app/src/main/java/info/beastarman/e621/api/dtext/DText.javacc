@@ -106,7 +106,7 @@ public DTextToken getNextDToken() :
         return token;
     }
     |
-    LOOKAHEAD(3) token=getPageLink()
+    LOOKAHEAD(4) token=getPageLink()
     {
         return token;
     }
