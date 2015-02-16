@@ -14,6 +14,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.StandardExceptionParser;
 import com.google.android.gms.analytics.Tracker;
 
 import org.apache.commons.io.IOUtils;
@@ -63,16 +64,32 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		return obj.getClass().getName();
 	}
 
-    public void sendAnalytics()
-    {
-        String analyticsPath = this.getClass().getName()+"?";
+	public void sendAnalytics()
+	{
+		String analyticsPath = this.getClass().getName();
 
-        Tracker t = ((E621Application) getApplication()).getTracker();
+		Tracker t = ((E621Application) getApplication()).getTracker();
 
-        t.setScreenName(analyticsPath);
+		t.setScreenName(analyticsPath);
 
-        t.send(new HitBuilders.AppViewBuilder().build());
-    }
+		t.send(new HitBuilders.AppViewBuilder().build());
+	}
+
+	public void sendAnalyticsError(Throwable e)
+	{
+		String analyticsPath = this.getClass().getName();
+
+		Tracker t = ((E621Application) getApplication()).getTracker();
+
+		t.setScreenName(analyticsPath);
+
+		t.send(new HitBuilders.ExceptionBuilder().
+			setDescription(new StandardExceptionParser(this, null).getDescription(analyticsPath, e)).
+			setFatal(false).
+			build()
+		);
+
+	}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -184,6 +201,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	public void uncaughtException()
 	{
         Intent intent = new Intent(getApplicationContext(), ErrorReportActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |   Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
 	}
 	
@@ -191,7 +209,9 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	public void uncaughtException(Thread thread, Throwable e)
 	{
 		Log.e(E621Middleware.LOG_TAG + "_Exception",Log.getStackTraceString(e));
-		
+
+		sendAnalyticsError(e);
+
 		uncaughtException();
 	}
 	

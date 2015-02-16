@@ -197,6 +197,7 @@ public class DownloadsActivity extends BaseActivity
 						{
 							Intent intent = new Intent(Intent.ACTION_VIEW);
 					        intent.setData(uri);
+							intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					        startActivity(intent);
 						}
 						

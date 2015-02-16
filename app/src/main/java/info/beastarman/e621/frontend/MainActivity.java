@@ -156,7 +156,7 @@ public class MainActivity extends SlideMenuBaseActivity
     
     public void search(View view)
     {
-    	EditText editText = (EditText) findViewById(R.id.searchInput);
+		EditText editText = (EditText) findViewById(R.id.searchInput);
     	String search = editText.getText().toString().trim();
     	
 		Intent intent = new Intent(this, SearchActivity.class);
