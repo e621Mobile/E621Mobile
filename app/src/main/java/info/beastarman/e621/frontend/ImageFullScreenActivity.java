@@ -854,12 +854,20 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 					@Override
 					public void run()
 					{
+						View loading = tabHost.findViewById(R.id.commentsLoading);
+						View post = tabHost.findViewById(R.id.postCommentArea);
+
+						loading.setVisibility(View.GONE);
+
+						commentsLayout.removeAllViews();
+
+						commentsLayout.addView(post);
+						commentsLayout.addView(loading);
+
 						for(View v : views)
 						{
 							commentsLayout.addView(v);
 						}
-
-						tabHost.findViewById(R.id.commentsLoading).setVisibility(View.GONE);
 					}
 				});
 			}
@@ -1013,7 +1021,13 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 					@Override
 					public void run()
 					{
-						tabHost.findViewById(R.id.tagsLoading).setVisibility(View.GONE);
+						View loading = tabHost.findViewById(R.id.tagsLoading);
+
+						loading.setVisibility(View.GONE);
+
+						tagsLayout.removeAllViews();
+
+						tagsLayout.addView(loading);
 
 						if(tabHost.getParent() != null) setTitle(newTitle);
 
