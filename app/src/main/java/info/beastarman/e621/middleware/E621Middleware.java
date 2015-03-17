@@ -138,7 +138,7 @@ public class E621Middleware extends E621
 	
 	private Boolean firstRun = null;
 	
-	public static final String LOG_TAG = "E621MobileLogging";
+	public static final String LOG_TAG = "E621MLogging";
 	
 	Context ctx;
 	
@@ -3918,24 +3918,13 @@ public class E621Middleware extends E621
         String log = "";
 
         try {
-            String[] get_pid = {
-                    "sh",
-                    "-c",
-                    "ps | grep info.beastarman.e621"
-            };
-
-            Process process = Runtime.getRuntime().exec(get_pid);
-            String pid = IOUtils.toString(process.getInputStream());
-
-            pid = pid.substring(10,15);
-
             String[] get_log = {
                     "sh",
                     "-c",
-                    "logcat -d -v time | grep -e " + pid + " -e " + LOG_TAG + " 2> /dev/null"
+                    "logcat -d -v time 2> /dev/null"
             };
 
-            process = Runtime.getRuntime().exec(get_log);
+            Process process = Runtime.getRuntime().exec(get_log);
             log += IOUtils.toString(process.getInputStream());
         }
         catch (IOException e1)

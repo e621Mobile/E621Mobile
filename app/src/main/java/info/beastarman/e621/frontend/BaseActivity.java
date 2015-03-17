@@ -81,8 +81,6 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 
 		Tracker t = ((E621Application) getApplication()).getTracker();
 
-		t.setScreenName(analyticsPath);
-
 		t.send(new HitBuilders.ExceptionBuilder().
 			setDescription(new StandardExceptionParser(this, null).getDescription(analyticsPath, e)).
 			setFatal(false).
