@@ -522,7 +522,15 @@ public class SearchActivity extends BaseActivity
 															@Override
 															public void run()
 															{
-																imgView.setImageBitmap(bmp);
+																if(bmp != null)
+                                                                {
+                                                                    imgView.setImageBitmap(bmp);
+                                                                }
+                                                                else
+                                                                {
+                                                                    imgView.setImageResource(R.drawable.bad_image);
+                                                                }
+
 																progressBar.setVisibility(View.GONE);
 
 																fadeInImage(imgView);
