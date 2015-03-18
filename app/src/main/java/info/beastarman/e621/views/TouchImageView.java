@@ -33,6 +33,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.OverScroller;
@@ -751,8 +752,17 @@ public class TouchImageView extends ImageView {
      * @author Ortiz
      *
      */
-    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
-    	
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener
+    {
+        int DOUBLE_TAP_TIMEOUT = 0;
+
+        public GestureListener()
+        {
+            super();
+
+            DOUBLE_TAP_TIMEOUT = ViewConfiguration.getDoubleTapTimeout();
+        }
+
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e)
         {
@@ -789,21 +799,27 @@ public class TouchImageView extends ImageView {
             if(doubleTapListener != null) {
             	consumed = doubleTapListener.onDoubleTap(e);
             }
-        	if (state == State.NONE) {
-	        	float targetZoom = (normalizedScale == minScale) ? maxScale : minScale;
-	        	DoubleTapZoom doubleTap = new DoubleTapZoom(targetZoom, e.getX(), e.getY(), false);
-	        	compatPostOnAnimation(doubleTap);
-	        	consumed = true;
-        	}
         	return consumed;
         }
 
         @Override
         public boolean onDoubleTapEvent(MotionEvent e) {
+            boolean consumed = false;
+
             if(doubleTapListener != null) {
-            	return doubleTapListener.onDoubleTapEvent(e);
+                consumed = doubleTapListener.onDoubleTapEvent(e);
             }
-            return false;
+
+            if(e.getAction() == MotionEvent.ACTION_UP &&
+                    (e.getEventTime() - e.getDownTime()) < DOUBLE_TAP_TIMEOUT)
+            {
+                float targetZoom = (normalizedScale == minScale) ? maxScale : minScale;
+                DoubleTapZoom doubleTap = new DoubleTapZoom(targetZoom, e.getX(), e.getY(), false);
+                compatPostOnAnimation(doubleTap);
+                consumed = true;
+            }
+
+            return consumed;
         }
     }
     
