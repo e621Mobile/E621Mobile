@@ -54,7 +54,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 			}
 		});
 
-		if(f.length > 0)
+		if(f != null && f.length > 0)
 		{
 			return f[0];
 		}

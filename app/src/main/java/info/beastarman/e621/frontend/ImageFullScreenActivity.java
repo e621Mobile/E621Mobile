@@ -156,6 +156,8 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 					{
 						final ImageNavigator i = image.getRelative(position-image.getPosition());
 
+                        image = i;
+
 						retrieveImage(i);
 					}
 				}).start();
@@ -300,7 +302,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			@Override
 			public void run()
 			{
-				retrieveImage(image);
+				if(image != null) retrieveImage(image);
 			}
 		});
 	}
