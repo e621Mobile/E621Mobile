@@ -13,6 +13,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.File;
+
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware.Mascot;
 
@@ -28,6 +30,8 @@ public class MainActivity extends SlideMenuBaseActivity
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_main);
+
+        File nomedia = e621.noMediaFile();
 		
 		if(e621.isFirstRun())
 		{
@@ -44,6 +48,10 @@ public class MainActivity extends SlideMenuBaseActivity
 			
 			confirmFullUpdateBuilder.create().show();
 		}
+        else if(e621.testNoMediaFile() && nomedia != null)
+        {
+            showNoMediaPopup(nomedia);
+        }
         else
         {
             show_donate_popup();
@@ -58,6 +66,30 @@ public class MainActivity extends SlideMenuBaseActivity
 		
 		change_mascot();
 	}
+
+    public void showNoMediaPopup(File nomedia)
+    {
+        AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(this);
+        confirmFullUpdateBuilder.setTitle(".nomedia file detected");
+        confirmFullUpdateBuilder.setMessage(String.format(getString(R.string.nomedia),nomedia.getAbsolutePath()));
+        confirmFullUpdateBuilder.setPositiveButton("Yes", new OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int which)
+            {
+                e621.removeNoMediaFile();
+            }
+        });
+        confirmFullUpdateBuilder.setNegativeButton("No", new OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int which)
+            {
+            }
+        });
+
+        confirmFullUpdateBuilder.create().show();
+    }
 
     public void show_donate_popup()
     {

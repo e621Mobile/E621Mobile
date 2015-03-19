@@ -3,7 +3,7 @@
     <PreferenceCategory android:title="Images">
         <CheckBoxPreference
             android:key="hideDownloadFolder"
-            android:summary="Hides downloaded images from apps such as Galery"
+            android:summary="Hides downloaded images from apps such as Gallery"
             android:title="Hide downloads" >
         </CheckBoxPreference>
         <info.beastarman.e621.views.IntListPreference
@@ -61,7 +61,7 @@
         </CheckBoxPreference>
         <CheckBoxPreference
             android:key="antecipateOnlyOnWiFi"
-            android:summary="Disable antecipated requests when device is not connected on WiFi"
+            android:summary="Disable anticipated requests when device is not connected on WiFi"
             android:title="Disable some requests on 3G" >
         </CheckBoxPreference>
     </PreferenceCategory>

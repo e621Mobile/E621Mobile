@@ -353,14 +353,53 @@ public class E621Middleware extends E621 {
     {
         if (getTimeSinceFirstRun() > WEEK)
         {
-        }
-        if(settings.getBoolean("showDonate",true))
-        {
-            settings.edit().putBoolean("showDonate",false).commit();
+            if(settings.getBoolean("showDonate",true))
+            {
+                settings.edit().putBoolean("showDonate",false).commit();
 
-            return true;
+                return true;
+            }
+            return false;
         }
+
         return false;
+    }
+
+    public File noMediaFile()
+    {
+        File f = download_path.getParentFile();
+
+        while(f != null && f.canRead())
+        {
+            File nomedia = new File(f,".nomedia");
+
+            if(nomedia.exists()) return nomedia;
+
+            f = f.getParentFile();
+        }
+
+        return null;
+    }
+
+    public boolean testNoMediaFile()
+    {
+        boolean b = settings.getBoolean("testNoMediaFile",true);
+
+        settings.edit().putBoolean("testNoMediaFile",false).commit();
+
+        return b;
+    }
+
+    public void removeNoMediaFile()
+    {
+        File f = noMediaFile();
+
+        if(f != null && f.exists())
+        {
+            f.delete();
+
+            settings.edit().putBoolean("testNoMediaFile",true).commit();
+        }
     }
 
 	@Override
