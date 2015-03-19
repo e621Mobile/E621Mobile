@@ -44,6 +44,10 @@ public class MainActivity extends SlideMenuBaseActivity
 			
 			confirmFullUpdateBuilder.create().show();
 		}
+        else
+        {
+            show_donate_popup();
+        }
 	}
 	
 	protected void onStart()
@@ -54,6 +58,34 @@ public class MainActivity extends SlideMenuBaseActivity
 		
 		change_mascot();
 	}
+
+    public void show_donate_popup()
+    {
+        if(e621.showDonatePopup())
+        {
+            AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(this);
+            confirmFullUpdateBuilder.setTitle("Spare some change please");
+            confirmFullUpdateBuilder.setMessage(getString(R.string.donate_plz));
+            confirmFullUpdateBuilder.setPositiveButton("There you go!", new OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int which)
+                {
+                    Intent intent = new Intent(MainActivity.this, DonateActivity.class);
+                    startActivity(intent);
+                }
+            });
+            confirmFullUpdateBuilder.setNegativeButton("Nope. Sorry.", new OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int which)
+                {
+                }
+            });
+
+            confirmFullUpdateBuilder.create().show();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

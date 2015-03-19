@@ -91,284 +91,278 @@ import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.views.StepsProgressDialog;
 
-public class E621Middleware extends E621
-{
-	HashMap<Integer,E621Image> e621ImageCache = new HashMap<Integer,E621Image>();
-	HashMap<String,Integer> searchCount = new HashMap<String,Integer>();
-	
-	File cache_path = null;
-	File full_cache_path = null;
-	File sd_path = null;
-	File download_path = null;
-	File export_path = null;
-	File report_path = null;
-	File interrupted_path = null;
-	File backup_path = null;
-	File emergency_backup = null;
-	FailedDownloadManager failed_download_manager = null;
-	
-	InterruptedSearchManager interrupt;
-	
-	public static final String PREFS_NAME = "E621MobilePreferences";
-	
-	SharedPreferences settings;
-	SharedPreferences.OnSharedPreferenceChangeListener settingsListener;
-	
-	HashSet<String> allowedRatings = new HashSet<String>(); 
-	
-	ImageCacheManagerInterface thumb_cache;
-	ImageCacheManagerInterface full_cache;
-	E621DownloadedImages download_manager;
-	
-	BackupManager backupManager;
-	
-	private Semaphore updateTagsSemaphore = new Semaphore(1);
-	private ObjectStorage<Object> searchStorage = new ObjectStorage<Object>();
+public class E621Middleware extends E621 {
+    HashMap<Integer, E621Image> e621ImageCache = new HashMap<Integer, E621Image>();
+    HashMap<String, Integer> searchCount = new HashMap<String, Integer>();
 
-	private static E621Middleware instance;
-	
-	private static String DIRECTORY_SYNC = "sync/";
-	private static String DIRECTORY_MISC = "misc/";
-	
-	private AlarmManager alarmMgr;
-	private PendingIntent alarmIntent;
-	
-	private String login = null;
-	private String password_hash = null;
-	
-	private Boolean firstRun = null;
-	
-	public static final String LOG_TAG = "E621MLogging";
-	
-	Context ctx;
-	
-	private static String CLIENT = "E621AndroidAppBstrm";
-	
-	protected E621Middleware(Context new_ctx)
-	{
-		super(CLIENT);
-		
-		if(new_ctx != null)
-		{
-			this.ctx = new_ctx;
-		}
-		
-		cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"cache/");
-		full_cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES),"full_cache/");
-		sd_path = new File(Environment.getExternalStorageDirectory(),"e621/");
-		download_path = new File(sd_path,"e621 Images/");
-		export_path = new File(sd_path,"export/");
-		report_path = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"reports/");
-		interrupted_path = new File(sd_path,"interrupt/");
-		backup_path = new File(sd_path,"backups/");
-		emergency_backup = new File(ctx.getExternalFilesDir(DIRECTORY_MISC),"emergency.json");
-		
-		backupManager = new BackupManager(backup_path,
-				new long[]{
-					AlarmManager.INTERVAL_HOUR*24,
-					AlarmManager.INTERVAL_HOUR*24*7,
-					AlarmManager.INTERVAL_HOUR*24*30,
-				});
-		
-		settings = ctx.getSharedPreferences(PREFS_NAME, 0);
-		
-		settingsListener = new SharedPreferences.OnSharedPreferenceChangeListener()
-		{
-			public void onSharedPreferenceChanged(SharedPreferences prefs, String key)
-			{
-				setup();
-			}
-		};
-		
-		settings.registerOnSharedPreferenceChangeListener(settingsListener);
-		
-		setup();
-	}
-	
-	public static E621Middleware getInstance()
-	{
-		return getInstance((Context)null);
-	}
-	
-	public static synchronized E621Middleware getInstance(Context ctx)
-	{
-		if(instance == null)
-		{
-			instance = new E621Middleware(ctx);
-		}
-		
-		return instance;
-	}
-	
-	public void setup()
-	{
-		if(!cache_path.exists())
-		{
-			cache_path.mkdirs();
-		}
-		else
-		{
-			if(new File(cache_path,".cache.sqlite3").exists())
-			{
-				for(File f : cache_path.listFiles())
-				{
-					f.delete();
-				}
-			}
-		}
-		
-		if(!full_cache_path.exists())
-		{
-			full_cache_path.mkdirs();
-		}
-		else
-		{
-			if(new File(full_cache_path,".cache.sqlite3").exists())
-			{
-				for(File f : full_cache_path.listFiles())
-				{
-					f.delete();
-				}
-			}
-		}
+    File cache_path = null;
+    File full_cache_path = null;
+    File sd_path = null;
+    File download_path = null;
+    File export_path = null;
+    File report_path = null;
+    File interrupted_path = null;
+    File backup_path = null;
+    File emergency_backup = null;
+    FailedDownloadManager failed_download_manager = null;
 
-		if(!sd_path.exists())
-		{
-			sd_path.mkdirs();
-		}
+    InterruptedSearchManager interrupt;
 
-		if(!download_path.exists())
-		{
-			download_path.mkdirs();
-		}
-		
-		if(!export_path.exists())
-		{
-			export_path.mkdirs();
-		}
-		
-		if(!report_path.exists())
-		{
-			report_path.mkdirs();
-		}
+    public static final String PREFS_NAME = "E621MobilePreferences";
 
-		if(!interrupted_path.exists())
-		{
-			interrupted_path.mkdirs();
-		}
+    SharedPreferences settings;
+    SharedPreferences.OnSharedPreferenceChangeListener settingsListener;
 
-		if(!backup_path.exists())
-		{
-			backup_path.mkdirs();
-		}
-		
-		if(settings.getBoolean("hideDownloadFolder", true))
-		{
-			File no_media = new File(download_path,".nomedia");
-			
-			try {
-				no_media.createNewFile();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		else
-		{
-			File no_media = new File(download_path,".nomedia");
-			
-			no_media.delete();
-		}
-		
-		if(thumb_cache == null)
-		{
-			thumb_cache = new DirectImageCacheManager(cache_path,0);
-		}
-		
-		thumb_cache.setMaxSize(1024L*1024*settings.getInt("thumbnailCacheSize", 5));
-		thumb_cache.clean();
-		
-		if(full_cache == null)
-		{
-			full_cache = new DirectImageCacheManager(full_cache_path,0);
-		}
-		
-		full_cache.setMaxSize(1024L*1024*settings.getInt("fullCacheSize", 10));
-		full_cache.clean();
-		
-		if(download_manager == null)
-		{
-			download_manager = new E621DownloadedImages(ctx, download_path);
-		}
-		
-		File failed_download_file = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC),"failed_downloads.txt");
-		
-		if(!failed_download_file.exists())
-		{
-			failed_download_file.getParentFile().mkdirs();
-			try {
-				failed_download_file.createNewFile();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		if(failed_download_manager == null)
-		{
-			failed_download_manager = new FailedDownloadManager(failed_download_file);
-		}
-		
-		HashSet<String> allowedRatingsTemp = (HashSet<String>) settings.getStringSet("allowedRatings",new HashSet<String>());
-		allowedRatings.clear();
-		
-		if(allowedRatingsTemp.contains(E621Image.SAFE))
-		{
-			allowedRatings.add(E621Image.SAFE);
-		}
-		if(allowedRatingsTemp.contains(E621Image.QUESTIONABLE))
-		{
-			allowedRatings.add(E621Image.QUESTIONABLE);
-		}
-		if(allowedRatingsTemp.contains(E621Image.EXPLICIT))
-		{
-			allowedRatings.add(E621Image.EXPLICIT);
-		}
-		
-		Intent intent = new Intent(ctx, E621SyncReciever.class);
-		
-		alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
-		alarmIntent = PendingIntent.getBroadcast(ctx, 0, intent, 0);
+    HashSet<String> allowedRatings = new HashSet<String>();
 
-		long interval = AlarmManager.INTERVAL_HOUR*3;
+    ImageCacheManagerInterface thumb_cache;
+    ImageCacheManagerInterface full_cache;
+    E621DownloadedImages download_manager;
 
-		alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
-				//SystemClock.elapsedRealtime() + interval,
-				SystemClock.elapsedRealtime() + interval,
-		        interval, alarmIntent);
-		
-		interrupt = new InterruptedSearchManager(interrupted_path);
-		
-		String savedLogin = settings.getString("userLogin",null);
-		String savedPasswordHash = settings.getString("userPasswordHash",null);
-		
-		if(savedLogin!=null && savedPasswordHash!=null)
-		{
-			login = savedLogin;
-			password_hash = savedPasswordHash;
-		}
-		
-		createExportFileObserver(export_path.getAbsolutePath());
-		
-		if(emergency_backup.exists())
-		{
-			restoreEmergencyBackup();
-		}
-		
-		if(firstRun == null) firstRun = settings.getBoolean("firstRun",true);
-		settings.edit().putBoolean("firstRun",false).apply();
-	}
-	
+    BackupManager backupManager;
+
+    private Semaphore updateTagsSemaphore = new Semaphore(1);
+    private ObjectStorage<Object> searchStorage = new ObjectStorage<Object>();
+
+    private static E621Middleware instance;
+
+    private static String DIRECTORY_SYNC = "sync/";
+    private static String DIRECTORY_MISC = "misc/";
+
+    private AlarmManager alarmMgr;
+    private PendingIntent alarmIntent;
+
+    private String login = null;
+    private String password_hash = null;
+
+    private Long timeSinceFirstRun = null;
+
+    public static final String LOG_TAG = "E621MLogging";
+
+    Context ctx;
+
+    private static String CLIENT = "E621AndroidAppBstrm";
+
+    protected E621Middleware(Context new_ctx) {
+        super(CLIENT);
+
+        if (new_ctx != null) {
+            this.ctx = new_ctx;
+        }
+
+        cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "cache/");
+        full_cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "full_cache/");
+        sd_path = new File(Environment.getExternalStorageDirectory(), "e621/");
+        download_path = new File(sd_path, "e621 Images/");
+        export_path = new File(sd_path, "export/");
+        report_path = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC), "reports/");
+        interrupted_path = new File(sd_path, "interrupt/");
+        backup_path = new File(sd_path, "backups/");
+        emergency_backup = new File(ctx.getExternalFilesDir(DIRECTORY_MISC), "emergency.json");
+
+        backupManager = new BackupManager(backup_path,
+                new long[]{
+                        AlarmManager.INTERVAL_HOUR * 24,
+                        AlarmManager.INTERVAL_HOUR * 24 * 7,
+                        AlarmManager.INTERVAL_HOUR * 24 * 30,
+                });
+
+        settings = ctx.getSharedPreferences(PREFS_NAME, 0);
+
+        settingsListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                setup();
+            }
+        };
+
+        settings.registerOnSharedPreferenceChangeListener(settingsListener);
+
+        setup();
+    }
+
+    public static E621Middleware getInstance() {
+        return getInstance((Context) null);
+    }
+
+    public static synchronized E621Middleware getInstance(Context ctx) {
+        if (instance == null) {
+            instance = new E621Middleware(ctx);
+        }
+
+        return instance;
+    }
+
+    public void setup() {
+        if (!cache_path.exists()) {
+            cache_path.mkdirs();
+        } else {
+            if (new File(cache_path, ".cache.sqlite3").exists()) {
+                for (File f : cache_path.listFiles()) {
+                    f.delete();
+                }
+            }
+        }
+
+        if (!full_cache_path.exists()) {
+            full_cache_path.mkdirs();
+        } else {
+            if (new File(full_cache_path, ".cache.sqlite3").exists()) {
+                for (File f : full_cache_path.listFiles()) {
+                    f.delete();
+                }
+            }
+        }
+
+        if (!sd_path.exists()) {
+            sd_path.mkdirs();
+        }
+
+        if (!download_path.exists()) {
+            download_path.mkdirs();
+        }
+
+        if (!export_path.exists()) {
+            export_path.mkdirs();
+        }
+
+        if (!report_path.exists()) {
+            report_path.mkdirs();
+        }
+
+        if (!interrupted_path.exists()) {
+            interrupted_path.mkdirs();
+        }
+
+        if (!backup_path.exists()) {
+            backup_path.mkdirs();
+        }
+
+        if (settings.getBoolean("hideDownloadFolder", true)) {
+            File no_media = new File(download_path, ".nomedia");
+
+            try {
+                no_media.createNewFile();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {
+            File no_media = new File(download_path, ".nomedia");
+
+            no_media.delete();
+        }
+
+        if (thumb_cache == null) {
+            thumb_cache = new DirectImageCacheManager(cache_path, 0);
+        }
+
+        thumb_cache.setMaxSize(1024L * 1024 * settings.getInt("thumbnailCacheSize", 5));
+        thumb_cache.clean();
+
+        if (full_cache == null) {
+            full_cache = new DirectImageCacheManager(full_cache_path, 0);
+        }
+
+        full_cache.setMaxSize(1024L * 1024 * settings.getInt("fullCacheSize", 10));
+        full_cache.clean();
+
+        if (download_manager == null) {
+            download_manager = new E621DownloadedImages(ctx, download_path);
+        }
+
+        File failed_download_file = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC), "failed_downloads.txt");
+
+        if (!failed_download_file.exists()) {
+            failed_download_file.getParentFile().mkdirs();
+            try {
+                failed_download_file.createNewFile();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+        if (failed_download_manager == null) {
+            failed_download_manager = new FailedDownloadManager(failed_download_file);
+        }
+
+        HashSet<String> allowedRatingsTemp = (HashSet<String>) settings.getStringSet("allowedRatings", new HashSet<String>());
+        allowedRatings.clear();
+
+        if (allowedRatingsTemp.contains(E621Image.SAFE)) {
+            allowedRatings.add(E621Image.SAFE);
+        }
+        if (allowedRatingsTemp.contains(E621Image.QUESTIONABLE)) {
+            allowedRatings.add(E621Image.QUESTIONABLE);
+        }
+        if (allowedRatingsTemp.contains(E621Image.EXPLICIT)) {
+            allowedRatings.add(E621Image.EXPLICIT);
+        }
+
+        Intent intent = new Intent(ctx, E621SyncReciever.class);
+
+        alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+        alarmIntent = PendingIntent.getBroadcast(ctx, 0, intent, 0);
+
+        long interval = AlarmManager.INTERVAL_HOUR * 3;
+
+        alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+                //SystemClock.elapsedRealtime() + interval,
+                SystemClock.elapsedRealtime() + interval,
+                interval, alarmIntent);
+
+        interrupt = new InterruptedSearchManager(interrupted_path);
+
+        String savedLogin = settings.getString("userLogin", null);
+        String savedPasswordHash = settings.getString("userPasswordHash", null);
+
+        if (savedLogin != null && savedPasswordHash != null) {
+            login = savedLogin;
+            password_hash = savedPasswordHash;
+        }
+
+        createExportFileObserver(export_path.getAbsolutePath());
+
+        if (emergency_backup.exists()) {
+            restoreEmergencyBackup();
+        }
+
+        if (timeSinceFirstRun == null) {
+            long now = (new Date()).getTime();
+            long firstRun = settings.getLong("firstRunTime", now);
+            timeSinceFirstRun = now - firstRun;
+
+            if (isFirstRun()) {
+                settings.edit().putLong("firstRunTime", now).commit();
+
+                if (settings.getBoolean("firstRun", true)) {
+                    timeSinceFirstRun = 1l;
+                }
+            }
+        }
+    }
+
+    public long getTimeSinceFirstRun()
+    {
+        return timeSinceFirstRun==null?0:timeSinceFirstRun;
+    }
+
+    private final long WEEK = 604800000*0;
+
+    public boolean showDonatePopup()
+    {
+        if (getTimeSinceFirstRun() > WEEK)
+        {
+        }
+        if(settings.getBoolean("showDonate",true))
+        {
+            settings.edit().putBoolean("showDonate",false).commit();
+
+            return true;
+        }
+        return false;
+    }
+
 	@Override
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
@@ -560,7 +554,7 @@ public class E621Middleware extends E621
 	
 	public boolean isFirstRun()
 	{
-		return firstRun;
+		return timeSinceFirstRun == 0;
 	}
 	
 	public int resultsPerPage()
