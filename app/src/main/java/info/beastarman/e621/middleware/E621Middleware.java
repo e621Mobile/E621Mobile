@@ -332,11 +332,15 @@ public class E621Middleware extends E621 {
             long firstRun = settings.getLong("firstRunTime", now);
             timeSinceFirstRun = now - firstRun;
 
-            if (isFirstRun()) {
+            if (timeSinceFirstRun == 0)
+            {
+                boolean f = settings.getBoolean("firstRun", true);
+
                 settings.edit().putLong("firstRunTime", now).commit();
 
-                if (settings.getBoolean("firstRun", true)) {
-                    timeSinceFirstRun = 1l;
+                if (!f)
+                {
+                    timeSinceFirstRun = 666l;
                 }
             }
         }
@@ -385,9 +389,12 @@ public class E621Middleware extends E621 {
     {
         boolean b = settings.getBoolean("testNoMediaFile",true);
 
-        settings.edit().putBoolean("testNoMediaFile",false).commit();
-
         return b;
+    }
+
+    public void stopTestingMediaFile()
+    {
+        settings.edit().putBoolean("testNoMediaFile",false).commit();
     }
 
     public void removeNoMediaFile()

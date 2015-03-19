@@ -85,6 +85,7 @@ public class MainActivity extends SlideMenuBaseActivity
             @Override
             public void onClick(DialogInterface dialogInterface, int which)
             {
+                e621.stopTestingMediaFile();
             }
         });
 

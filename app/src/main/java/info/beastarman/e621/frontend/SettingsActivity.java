@@ -18,6 +18,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.text.Html;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -77,6 +78,44 @@ public class SettingsActivity extends PreferenceActivity
 
 			CheckBoxPreference hideDownload = (CheckBoxPreference) findPreference("hideDownloadFolder");
 			hideDownload.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("hideDownloadFolder", true));
+
+            if(e621.noMediaFile() != null)
+            {
+                hideDownload.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+                {
+                    @Override
+                    public boolean onPreferenceClick(Preference preference)
+                    {
+                        File nomedia = e621.noMediaFile();
+
+                        if(nomedia == null) return false;
+
+                        AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(activity);
+                        confirmFullUpdateBuilder.setTitle(".nomedia file detected");
+                        confirmFullUpdateBuilder.setMessage(String.format(getString(R.string.nomedia),nomedia.getAbsolutePath()));
+                        confirmFullUpdateBuilder.setPositiveButton("Yes", new OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int which)
+                            {
+                                e621.removeNoMediaFile();
+                            }
+                        });
+                        confirmFullUpdateBuilder.setNegativeButton("No", new OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int which)
+                            {
+                                e621.stopTestingMediaFile();
+                            }
+                        });
+
+                        confirmFullUpdateBuilder.create().show();
+
+                        return false;
+                    }
+                });
+            }
 
 			CheckBoxPreference antecipateOnlyOnWiFi = (CheckBoxPreference) findPreference("antecipateOnlyOnWiFi");
 			antecipateOnlyOnWiFi.setChecked(e621.antecipateOnlyOnWiFi());
