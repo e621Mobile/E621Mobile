@@ -347,7 +347,7 @@ public class E621Middleware extends E621 {
         return timeSinceFirstRun==null?0:timeSinceFirstRun;
     }
 
-    private final long WEEK = 604800000*0;
+    private final long WEEK = 604800000;
 
     public boolean showDonatePopup()
     {
