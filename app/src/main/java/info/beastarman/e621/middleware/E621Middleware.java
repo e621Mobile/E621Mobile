@@ -409,6 +409,45 @@ public class E621Middleware extends E621 {
         }
     }
 
+	public int getOnlinePosts() throws IOException
+	{
+		int onlinePosts = settings.getInt("onlinePosts",0);
+
+		if(onlinePosts == 0)
+		{
+			onlinePosts = getSearchResultsCountForce("");
+		}
+		else
+		{
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					try
+					{
+						Integer newOnlinePosts = getSearchResultsCountForce("");
+
+						if(newOnlinePosts != null)
+						{
+							settings.edit().putInt("onlinePosts",newOnlinePosts).commit();
+						}
+					} catch(IOException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			}).start();
+		}
+
+		return onlinePosts;
+	}
+
+	public long getOfflinePostsSize()
+	{
+		return download_manager.totalSize();
+	}
+
 	@Override
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
@@ -2270,6 +2309,14 @@ public class E621Middleware extends E621 {
 		eventManager.trigger(SyncState.INTERRUPTED_SEARCHES);
 		
 		syncSearch();
+
+		try
+		{
+			getOnlinePosts();
+		} catch(IOException e)
+		{
+			e.printStackTrace();
+		}
 
 		eventManager.trigger(SyncState.BACKUP);
 		

@@ -923,4 +923,9 @@ public class E621DownloadedImages
 			}
 		});
 	}
+
+	public long totalSize()
+	{
+		return images.totalSize();
+	}
 }

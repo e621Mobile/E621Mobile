@@ -14,6 +14,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware.Mascot;
@@ -65,7 +68,98 @@ public class MainActivity extends SlideMenuBaseActivity
 		mascots = e621.getMascots();
 		
 		change_mascot();
+
+        updateStatistics();
 	}
+
+	private String getSize(double size)
+	{
+		if(size < 1024)
+		{
+			return new DecimalFormat("#.##").format(size) + " B";
+		}
+
+		size /= 1024;
+
+		if(size < 1024)
+		{
+			return new DecimalFormat("#.##").format(size) + " KB";
+		}
+
+		size /= 1024;
+
+		if(size < 1024)
+		{
+			return new DecimalFormat("#.##").format(size) + " MB";
+		}
+
+		size /= 1024;
+
+		return new DecimalFormat("#.##").format(size) + " GB";
+	}
+
+	String online = "- Posts Online";
+	String offline = "- Posts Offilne";
+    public void updateStatistics()
+    {
+        final TextView statistics = (TextView) findViewById(R.id.statisticsText);
+
+		DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+		symbols.setGroupingSeparator(' ');
+
+		final DecimalFormat df = new DecimalFormat();
+		df.setDecimalFormatSymbols(symbols);
+		df.setGroupingSize(3);
+		df.setMaximumFractionDigits(2);
+
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					online = df.format(e621.getOnlinePosts()) + "+ Posts Online";
+				} catch(IOException e)
+				{
+					e.printStackTrace();
+				}
+
+				synchronized(statistics)
+				{
+					statistics.post(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							statistics.setText(online + "\n" + offline);
+						}
+					});
+				}
+			}
+		}).start();
+
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				offline = df.format(e621.localSearchCount("")) + " Posts Offline (" + getSize(e621.getOfflinePostsSize()) + ")";
+
+				synchronized(statistics)
+				{
+					statistics.post(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							statistics.setText(online + "\n" + offline);
+						}
+					});
+				}
+			}
+		}).start();
+    }
 
     public void showNoMediaPopup(File nomedia)
     {
