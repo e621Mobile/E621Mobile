@@ -102,7 +102,18 @@ public class MainActivity extends SlideMenuBaseActivity
 	String offline = "- Posts Offilne";
     public void updateStatistics()
     {
-        final TextView statistics = (TextView) findViewById(R.id.statisticsText);
+		final TextView statistics = (TextView) findViewById(R.id.statisticsText);
+
+		if(!e621.showStatisticsInHome())
+		{
+			statistics.setVisibility(View.GONE);
+
+			return;
+		}
+		else
+		{
+			statistics.setVisibility(View.VISIBLE);
+		}
 
 		DecimalFormatSymbols symbols = new DecimalFormatSymbols();
 		symbols.setGroupingSeparator(' ');
@@ -269,9 +280,12 @@ public class MainActivity extends SlideMenuBaseActivity
     	
     	if(mascots.length == 0)
     	{
-    		mascot.setVisibility(View.INVISIBLE);
-    		mascot_blur.setVisibility(View.INVISIBLE);
+			mascot.setVisibility(View.VISIBLE);
+			mascot_blur.setVisibility(View.VISIBLE);
     		mascot_by.setVisibility(View.INVISIBLE);
+
+			mascot.setImageResource(R.drawable.e621_generic_pattern);
+			mascot_blur.setImageResource(R.drawable.e621_generic_pattern_blur);
     		
     		return;
     	}

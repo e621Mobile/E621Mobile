@@ -470,7 +470,19 @@ public class E621Middleware extends E621 {
 		
 		return super.tryHttpPost(url, pairs, tries);
 	}
-	
+
+	public boolean showStatisticsInHome()
+	{
+		return settings.getBoolean("showStatisticsInHome",true);
+	}
+
+	public boolean showStatisticsInHome(boolean newValue)
+	{
+		settings.edit().putBoolean("showStatisticsInHome",newValue).commit();
+
+		return newValue;
+	}
+
 	public boolean playGifs()
 	{
 		return settings.getBoolean("playGifs", true);

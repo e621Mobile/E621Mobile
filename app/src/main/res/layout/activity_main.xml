@@ -36,6 +36,8 @@
                 android:id="@+id/statisticsText"
                 android:layout_gravity="center_horizontal|bottom"
                 android:textColor="@color/white"
+                android:background="#80000000"
+                android:padding="4dp"
                 android:gravity="center" />
 
             <FrameLayout

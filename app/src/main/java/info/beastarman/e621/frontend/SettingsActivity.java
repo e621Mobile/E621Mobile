@@ -120,6 +120,9 @@ public class SettingsActivity extends PreferenceActivity
 			CheckBoxPreference antecipateOnlyOnWiFi = (CheckBoxPreference) findPreference("antecipateOnlyOnWiFi");
 			antecipateOnlyOnWiFi.setChecked(e621.antecipateOnlyOnWiFi());
 
+			CheckBoxPreference showStatisticsInHome = (CheckBoxPreference) findPreference("showStatisticsInHome");
+			showStatisticsInHome.setChecked(e621.showStatisticsInHome());
+
 			CheckBoxPreference syncOnlyOnWiFi = (CheckBoxPreference) findPreference("syncOnlyOnWiFi");
 			syncOnlyOnWiFi.setChecked(e621.syncOnlyOnWiFi());
 

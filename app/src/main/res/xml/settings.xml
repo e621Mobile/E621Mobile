@@ -81,6 +81,11 @@
             android:summary="Shows small download button for each image in search results"
             android:title="Download button in search" >
         </CheckBoxPreference>
+        <CheckBoxPreference
+            android:key="showStatisticsInHome"
+            android:summary="Shows post statistics in home screen"
+            android:title="Statistics in Home" >
+        </CheckBoxPreference>
         <Preference
             android:key="allowedMascots"
             android:summary="Select which mascots can appear in home screen"
