@@ -1014,6 +1014,34 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			@Override
 			public void run()
 			{
+				if(!e621.hasMetadata())
+				{
+					final LinearLayout tagsLayout = (LinearLayout)tabHost.findViewById(R.id.tagsLayout);
+
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							View loading = tabHost.findViewById(R.id.tagsLoading);
+
+							loading.setVisibility(View.GONE);
+
+							tagsLayout.removeAllViews();
+
+							tagsLayout.addView(loading);
+
+							TextView tv = new TextView(ImageFullScreenActivity.this);
+
+							tv.setText("No local tags found. Please go to the settings screen and click \"Force full metadata update\".");
+
+							tagsLayout.addView(tv);
+						}
+					});
+
+					return;
+				}
+
 				SparseArray<ArrayList<E621Tag>> catTags = prepareTags(img);
 
 				final LinearLayout tagsLayout = (LinearLayout)tabHost.findViewById(R.id.tagsLayout);
