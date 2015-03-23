@@ -122,6 +122,8 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 		setTitle("#" + image.getId());
 
+		findViewById(R.id.view_pager).setTag(-image.getId());
+
 		intent = (Intent) getIntent().getParcelableExtra(INTENT);
 
 		getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -155,6 +157,8 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 					public void run()
 					{
 						final ImageNavigator i = image.getRelative(position-image.getPosition());
+
+						findViewById(R.id.view_pager).setTag(-i.getId());
 
                         image = i;
 

@@ -11,9 +11,7 @@
     <info.beastarman.e621.views.ExtendedViewPager
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/view_pager">
-
-    </info.beastarman.e621.views.ExtendedViewPager>
+        android:id="@+id/view_pager"/>
 
     <include
         layout="@layout/image_full_screen_tab_host"/>

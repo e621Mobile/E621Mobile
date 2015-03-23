@@ -127,7 +127,8 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 					public void run()
 					{
 						final TouchImageView t = new TouchImageView(rl.getContext());
-						t.setId(R.id.touchImageView);
+						t.setId(R.id.image_id);
+						t.setTag(img.id);
 						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
 						params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 						t.setLayoutParams(params);

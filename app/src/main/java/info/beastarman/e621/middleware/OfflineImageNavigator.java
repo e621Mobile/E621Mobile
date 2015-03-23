@@ -70,7 +70,7 @@ public class OfflineImageNavigator extends ImageNavigator
 	@Override
 	public Integer getCount()
 	{
-		return images.size();
+		return getImages().size();
 	}
 
 	@Override
