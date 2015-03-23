@@ -1,16 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.R;
-import info.beastarman.e621.backend.EventManager;
-import info.beastarman.e621.backend.GTFO;
-import info.beastarman.e621.middleware.AndroidAppUpdater;
-import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
-import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
-import info.beastarman.e621.views.StepsProgressDialog;
-
-import java.util.ArrayList;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -20,6 +9,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Gravity;
@@ -43,17 +33,21 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
+import info.beastarman.e621.R;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.middleware.AndroidAppUpdater;
+import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
+import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
+import info.beastarman.e621.views.StepsProgressDialog;
+
 public class SlideMenuBaseActivity extends BaseActivity
 {
-	private static final int SWIPE_MIN_DISTANCE = 120;
-    private static final int SWIPE_MAX_OFF_PATH = 250;
-    private static final int SWIPE_THRESHOLD_VELOCITY = 200;
-    
-    public ArrayList<InterruptedSearch> saved_searches;
-	
-	private GestureDetector gestureDetector;
-    View.OnTouchListener gestureListener;
-    
+	public ArrayList<InterruptedSearch> saved_searches;
+
     EventManager event = new EventManager()
     {
     	@SuppressWarnings("unchecked")
@@ -74,17 +68,8 @@ public class SlideMenuBaseActivity extends BaseActivity
         super.setContentView(fullLayout);
         
         getActionBar().setDisplayHomeAsUpEnabled(true);
-        
-        gestureDetector = new GestureDetector(this, new MyGestureDetector());
-        gestureListener = new View.OnTouchListener()
-        {
-            public boolean onTouch(View v, MotionEvent event)
-            {
-                return gestureDetector.onTouchEvent(event);
-            }
-        };
-        
-        fullLayout.setOnTouchListener(gestureListener);
+
+		fullLayout.setOnTouchListener(new SidebarTouchListener());
     }
 	
 	protected void onStart()
@@ -501,20 +486,24 @@ public class SlideMenuBaseActivity extends BaseActivity
 		final FrameLayout wrapper = (FrameLayout) findViewById(R.id.sidemenu_wrapper);
 		final LinearLayout sidemenu = (LinearLayout) findViewById(R.id.sidemenu);
 		final FrameLayout close_sidemenu_area = (FrameLayout) findViewById(R.id.close_sidemenu_area);
-		
+
+		final int initialWidth = wrapper.getWidth();
+
 		Animation a = new Animation()
 		{
 		    @Override
 		    protected void applyTransformation(float interpolatedTime, Transformation t)
 		    {
 		    	RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
-		    	
+
 		    	int width = sidemenu.getWidth();
-		    	
-		        drawerParams.width = (int) (interpolatedTime * width);
+
+		        drawerParams.width = initialWidth + (int) (interpolatedTime * (width - initialWidth));
 		        wrapper.setLayoutParams(drawerParams);
-		        
-		        if(interpolatedTime < 0.001f)
+
+				float initialAlpha = ((float)initialWidth/width)/2;
+
+				if(initialAlpha < 0.001f)
 		        {
 		        	close_sidemenu_area.setVisibility(FrameLayout.GONE);
 		        }
@@ -522,8 +511,8 @@ public class SlideMenuBaseActivity extends BaseActivity
 		        {
 		        	close_sidemenu_area.setVisibility(FrameLayout.VISIBLE);
 		        }
-		        
-		        close_sidemenu_area.setAlpha(interpolatedTime/2f);
+
+		        close_sidemenu_area.setAlpha(initialAlpha + (interpolatedTime * (0.5f - initialAlpha)));
 		    }
 		};
 
@@ -548,7 +537,9 @@ public class SlideMenuBaseActivity extends BaseActivity
 		final FrameLayout wrapper = (FrameLayout) findViewById(R.id.sidemenu_wrapper);
 		final LinearLayout sidemenu = (LinearLayout) findViewById(R.id.sidemenu);
 		final FrameLayout close_sidemenu_area = (FrameLayout) findViewById(R.id.close_sidemenu_area);
-		
+
+		final int initialWidth = wrapper.getWidth();
+
 		Animation a = new Animation()
 		{
 		    @Override
@@ -557,10 +548,10 @@ public class SlideMenuBaseActivity extends BaseActivity
 		    	interpolatedTime = 1f - interpolatedTime;
 		    	
 		    	RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
-		    	
-		    	int width = sidemenu.getWidth();
-		    	
-		        drawerParams.width = (int) (interpolatedTime * width);
+
+				int width = sidemenu.getWidth();
+
+		        drawerParams.width = (int) (interpolatedTime * initialWidth);
 		        wrapper.setLayoutParams(drawerParams);
 		        
 		        if(interpolatedTime < 0.001f)
@@ -571,8 +562,10 @@ public class SlideMenuBaseActivity extends BaseActivity
 		        {
 		        	close_sidemenu_area.setVisibility(FrameLayout.VISIBLE);
 		        }
-		        
-		        close_sidemenu_area.setAlpha(interpolatedTime/2f);
+
+				float initialAlpha = ((float)initialWidth/width)/2;
+
+				close_sidemenu_area.setAlpha(((float)drawerParams.width/width)/2f);
 		    }
 		};
 
@@ -581,31 +574,26 @@ public class SlideMenuBaseActivity extends BaseActivity
 		
 		sidemenu_is_open = false;
 	}
-	
-	class MyGestureDetector extends SimpleOnGestureListener {
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            try {
-                if(
-                	(Math.abs(e1.getY() - e2.getY()) <= SWIPE_MAX_OFF_PATH) &&
-                	(e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE) &&
-                	(Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
-                )
-                {
-                    toggle_sidebar();
-                }
-            } catch (Exception e) {
-                // nothing
-            }
-            return false;
-        }
 
-        @Override
-        public boolean onDown(MotionEvent e)
-        {
-        	return true;
-        }
-    }
+	public void preview_sidebar(int position)
+	{
+		final FrameLayout wrapper = (FrameLayout) findViewById(R.id.sidemenu_wrapper);
+		final LinearLayout sidemenu = (LinearLayout) findViewById(R.id.sidemenu);
+		final FrameLayout close_sidemenu_area = (FrameLayout) findViewById(R.id.close_sidemenu_area);
+
+		RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
+
+		int width = sidemenu.getWidth();
+
+		float interpolatedTime = Math.max(0,Math.min(1,((float)position) / width));
+
+		drawerParams.width = (int) (interpolatedTime * width);
+		wrapper.setLayoutParams(drawerParams);
+
+		close_sidemenu_area.setVisibility(FrameLayout.VISIBLE);
+
+		close_sidemenu_area.setAlpha(interpolatedTime/2f);
+	}
 	 
 	public void login(View v)
 	{
@@ -957,5 +945,96 @@ public class SlideMenuBaseActivity extends BaseActivity
 			
 	        return builder.create();
 	    }
+	}
+
+	private class SidebarTouchListener implements View.OnTouchListener
+	{
+		int step = 0;
+
+		@Override
+		public boolean onTouch(View view, MotionEvent motionEvent)
+		{
+			if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+			{
+				return onDown(view,motionEvent);
+			}
+			else if(motionEvent.getAction() == MotionEvent.ACTION_MOVE)
+			{
+				if(step == 1)
+				{
+					onMoveStep1(view,motionEvent);
+				}
+				else if(step == 2)
+				{
+					onMoveStep2(view,motionEvent);
+				}
+			}
+			else if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+			{
+				return onUp(view,motionEvent);
+			}
+
+			return false;
+		}
+
+		float downX = 0;
+
+		public boolean onDown(View view, MotionEvent motionEvent)
+		{
+			step = 1;
+
+			downX = motionEvent.getX();
+
+			return true;
+		}
+
+		private final int STEP_1_THRESHOLD = 40;
+
+		public boolean onMoveStep1(View view, MotionEvent motionEvent)
+		{
+			int distance = (int)Math.max(0f,motionEvent.getX() - downX);
+
+			if(distance > STEP_1_THRESHOLD)
+			{
+				step = 2;
+				lastX = curX = downX = motionEvent.getX();
+			}
+
+			return true;
+		}
+
+		float lastX = 0;
+		float curX = 0;
+
+		public boolean onMoveStep2(View view, MotionEvent motionEvent)
+		{
+			lastX = curX;
+			curX = motionEvent.getX();
+
+			int distance = (int)Math.max(0f,curX - downX);
+
+			preview_sidebar(distance);
+
+			return true;
+		}
+
+		public boolean onUp(View view, MotionEvent motionEvent)
+		{
+			if(step == 2)
+			{
+				if(motionEvent.getX() > lastX)
+				{
+					open_sidemenu();
+				}
+				else
+				{
+					close_sidemenu();
+				}
+			}
+
+			step = 0;
+
+			return true;
+		}
 	}
 }
