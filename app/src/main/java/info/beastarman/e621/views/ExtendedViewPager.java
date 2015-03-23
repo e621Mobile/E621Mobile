@@ -11,12 +11,18 @@ import info.beastarman.e621.middleware.E621Middleware;
 
 public class ExtendedViewPager extends ViewPager
 {
-	public ExtendedViewPager(Context context) {
+	public ExtendedViewPager(Context context)
+	{
 		super(context);
+
+		setPageMargin(24);
 	}
 
-	public ExtendedViewPager(Context context, AttributeSet attrs) {
+	public ExtendedViewPager(Context context, AttributeSet attrs)
+	{
 		super(context, attrs);
+
+		setPageMargin(24);
 	}
 
 	@Override
