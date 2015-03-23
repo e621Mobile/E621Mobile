@@ -9,8 +9,7 @@
     <FrameLayout
         android:id="@+id/frameLayout1"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/mascot_area" >
+        android:layout_height="wrap_content">
 
         <ImageView
             android:id="@+id/mascot"
