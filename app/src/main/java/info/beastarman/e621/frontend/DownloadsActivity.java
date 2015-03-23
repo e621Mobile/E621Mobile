@@ -1,6 +1,7 @@
 package info.beastarman.e621.frontend;
 
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -78,10 +79,35 @@ public class DownloadsActivity extends BaseActivity
 		{
 			search = "";
 		}
+		else
+		{
+			search = search.trim();
+		}
 		page = getIntent().getIntExtra(SearchActivity.PAGE, 0);
 		limit = getIntent().getIntExtra(SearchActivity.LIMIT, e621.resultsPerPage());
 
 		((EditText) findViewById(R.id.searchInput)).setText(search);
+
+		warnNoTags();
+	}
+
+	public void warnNoTags()
+	{
+		if(!e621.hasMetadata() && search.length()>0)
+		{
+			AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(this);
+			confirmFullUpdateBuilder.setTitle("No tags found!");
+			confirmFullUpdateBuilder.setMessage(getString(R.string.no_metadata));
+			confirmFullUpdateBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener()
+			{
+				@Override
+				public void onClick(DialogInterface dialogInterface, int which)
+				{
+				}
+			});
+
+			confirmFullUpdateBuilder.create().show();
+		}
 	}
 
 	@Override

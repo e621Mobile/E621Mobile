@@ -4054,4 +4054,9 @@ public class E621Middleware extends E621 {
 
 		return query.trim();
 	}
+
+	public boolean hasMetadata()
+	{
+		return download_manager.hasTags();
+	}
 }

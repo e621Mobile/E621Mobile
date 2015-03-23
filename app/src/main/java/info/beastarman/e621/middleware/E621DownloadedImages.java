@@ -928,4 +928,13 @@ public class E621DownloadedImages
 	{
 		return images.totalSize();
 	}
+
+	public boolean hasTags()
+	{
+		E621Tag maxTag = tags.getMaxTag();
+
+		if(maxTag == null) return false;
+
+		return maxTag.getId() != 0;
+	}
 }

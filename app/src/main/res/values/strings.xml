@@ -81,6 +81,9 @@
         To do that however, please visit the settings page and click "Force full metadata update". This will download the whole
         tag base from E621, allowing you to search for your downloads using tags. You can do it whenever you want. 
     </string>
+    <string name="no_metadata">
+        It seems you have not downloaded any tags, so local searching may not work. Please go to the settings screen and click "Force full metadata update".
+    </string>
     <string name="look_for_update">Look for update</string>
     <string name="alpha_settings">Alpha Features</string>
     <string name="post_id_format">id: %1$s</string>
