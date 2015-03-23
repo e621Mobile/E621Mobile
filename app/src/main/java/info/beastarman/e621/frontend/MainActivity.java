@@ -136,9 +136,7 @@ public class MainActivity extends SlideMenuBaseActivity
 					e.printStackTrace();
 				}
 
-				synchronized(statistics)
-				{
-					statistics.post(new Runnable()
+				statistics.post(new Runnable()
 					{
 						@Override
 						public void run()
@@ -146,7 +144,6 @@ public class MainActivity extends SlideMenuBaseActivity
 							statistics.setText(online + "\n" + offline);
 						}
 					});
-				}
 			}
 		}).start();
 
@@ -157,9 +154,7 @@ public class MainActivity extends SlideMenuBaseActivity
 			{
 				offline = df.format(e621.localSearchCount("")) + " Posts Offline (" + getSize(e621.getOfflinePostsSize()) + ")";
 
-				synchronized(statistics)
-				{
-					statistics.post(new Runnable()
+				statistics.post(new Runnable()
 					{
 						@Override
 						public void run()
@@ -167,7 +162,6 @@ public class MainActivity extends SlideMenuBaseActivity
 							statistics.setText(online + "\n" + offline);
 						}
 					});
-				}
 			}
 		}).start();
     }

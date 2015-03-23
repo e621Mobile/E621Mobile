@@ -411,36 +411,23 @@ public class E621Middleware extends E621 {
 
 	public int getOnlinePosts() throws IOException
 	{
-		int onlinePosts = settings.getInt("onlinePosts",0);
+		Integer onlinePosts = settings.getInt("onlinePosts",0);
 
 		if(onlinePosts == 0)
 		{
 			onlinePosts = getSearchResultsCountForce("");
-		}
-		else
-		{
-			new Thread(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					try
-					{
-						Integer newOnlinePosts = getSearchResultsCountForce("");
 
-						if(newOnlinePosts != null)
-						{
-							settings.edit().putInt("onlinePosts",newOnlinePosts).commit();
-						}
-					} catch(IOException e)
-					{
-						e.printStackTrace();
-					}
-				}
-			}).start();
+			if(onlinePosts != null) settings.edit().putInt("onlinePosts",onlinePosts).commit();
 		}
 
 		return onlinePosts;
+	}
+
+	public void updateOnlinePosts() throws IOException
+	{
+		Integer onlinePosts = getSearchResultsCountForce("");
+
+		if(onlinePosts != null) settings.edit().putInt("onlinePosts",onlinePosts).commit();
 	}
 
 	public long getOfflinePostsSize()
@@ -2324,7 +2311,7 @@ public class E621Middleware extends E621 {
 
 		try
 		{
-			getOnlinePosts();
+			updateOnlinePosts();
 		} catch(IOException e)
 		{
 			e.printStackTrace();

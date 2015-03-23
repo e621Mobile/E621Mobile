@@ -115,13 +115,13 @@ public class SlideMenuBaseActivity extends BaseActivity
         
         updateButton();
 	}
-	
-	public void updateButton()
+
+	public boolean hasUpdate()
 	{
 		int lastVersion = e621.mostRecentKnownVersion();
-		
+
 		PackageInfo pInfo = null;
-		
+
 		try
 		{
 			pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
@@ -129,12 +129,17 @@ public class SlideMenuBaseActivity extends BaseActivity
 		catch (NameNotFoundException e)
 		{
 			e.printStackTrace();
-			return;
+			return false;
 		}
-		
+
 		int currentVersion = pInfo.versionCode;
-		
-		if(currentVersion < lastVersion)
+
+		return currentVersion < lastVersion;
+	}
+	
+	public void updateButton()
+	{
+		if(hasUpdate())
 		{
 			View updateArea = findViewById(R.id.updateArea);
 			updateArea.setVisibility(View.VISIBLE);
@@ -289,7 +294,7 @@ public class SlideMenuBaseActivity extends BaseActivity
         	{
         		View arrow = findViewById(R.id.sidebar_arrow);
         		
-        		if(e621.isFirstRun() && arrow!=null)
+        		if((e621.isFirstRun() || hasUpdate()) && arrow!=null)
         		{
         			arrow.setVisibility(View.VISIBLE);
         			
