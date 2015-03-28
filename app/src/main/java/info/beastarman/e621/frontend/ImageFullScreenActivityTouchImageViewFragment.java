@@ -3,6 +3,7 @@ package info.beastarman.e621.frontend;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Point;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,13 +11,16 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import java.io.IOException;
 
@@ -181,6 +185,63 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 						GIFViewHandler handler = new GIFViewHandler(gifView, p);
 
 						new Thread(new ImageLoadRunnable(handler, img, E621Middleware.getInstance(), E621Middleware.getInstance().getFileDownloadSize())).start();
+					}
+				});
+			}
+			else if(img.file_ext.equals("webm"))
+			{
+				getActivity().runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						final ProgressBar pb = new ProgressBar(rl.getContext());
+						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+						params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+						pb.setLayoutParams(params);
+
+						final VideoView t = new VideoView(rl.getContext());
+						params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+						params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+						t.setLayoutParams(params);
+						final MediaController mc = new MediaController(rl.getContext());
+						t.setMediaController(mc);
+						t.setVideoPath(img.file_url);
+						t.stopPlayback();
+
+						t.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
+						{
+							@Override
+							public void onPrepared(MediaPlayer mp)
+							{
+								mp.setLooping(true);
+								//t.setBackgroundResource(R.color.white);
+								pb.setVisibility(View.GONE);
+							}
+						});
+
+						t.setOnTouchListener(new View.OnTouchListener()
+						{
+							@Override
+							public boolean onTouch(View view, MotionEvent motionEvent)
+							{
+								if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+								{
+									if(mc.isShowing())
+									{
+										mc.hide();
+									} else
+									{
+										mc.show(5000);
+									}
+								}
+
+								return true;
+							}
+						});
+
+						rl.addView(t);
+						rl.addView(pb);
 					}
 				});
 			}
