@@ -49,7 +49,7 @@
             android:name="info.beastarman.e621.frontend.ImageFullScreenActivity"
             android:label="@string/title_activity_image"
             android:parentActivityName="info.beastarman.e621.frontend.MainActivity"
-            android:windowSoftInputMode="stateHidden"
+            android:windowSoftInputMode="stateHidden|adjustPan"
             android:theme="@style/CustomActionBarTheme">
 
             <intent-filter>
