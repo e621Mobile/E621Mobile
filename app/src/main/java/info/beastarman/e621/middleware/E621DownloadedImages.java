@@ -87,7 +87,7 @@ public class E621DownloadedImages
 		{
 		}
 	}
-	
+
 	public E621DownloadedImages(Context ctx, File base_path)
 	{
 		this.base_path = base_path;
@@ -129,11 +129,16 @@ public class E621DownloadedImages
 						sql = sql + String.format(" rating=\"%1$s\" ", value);
 					}
 				}
-				else if(meta.equals("type"))
-				{
-					sql = sql + " AND";
-					sql = sql + String.format(" image_file LIKE \"%%.%1$s\" ", value);
-				}
+                else if(meta.equals("type"))
+                {
+                    sql = sql + " AND";
+                    sql = sql + String.format(" image_file LIKE \"%%.%1$s\" ", value);
+                }
+                else if(meta.equals("id"))
+                {
+                    sql = sql + " AND";
+                    sql = sql + String.format(" id = \"%1$s\" ", value);
+                }
 			}
 			else
 			{
@@ -174,6 +179,11 @@ public class E621DownloadedImages
 						sql = sql + " OR";
 						sql = sql + String.format(" image_file LIKE \"%%.%1$s\" ", value);
 					}
+                    else if(meta.equals("id"))
+                    {
+                        sql = sql + " OR";
+                        sql = sql + String.format(" id = \"%1$s\" ", value);
+                    }
 				}
 				else
 				{
@@ -217,6 +227,11 @@ public class E621DownloadedImages
 						sql = sql + " OR";
 						sql = sql + String.format(" image_file LIKE \"%%.%1$s\" ", value);
 					}
+                    else if(meta.equals("id"))
+                    {
+                        sql = sql + " OR";
+                        sql = sql + String.format(" id = \"%1$s\" ", value);
+                    }
 				}
 				else
 				{

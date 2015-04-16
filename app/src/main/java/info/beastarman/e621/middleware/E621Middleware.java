@@ -1523,6 +1523,286 @@ public class E621Middleware extends E621 {
 		}
 	}
 
+    public InputStream getImage(final int img, final int size)
+    {
+        final GTFO<InputStream> in = new GTFO<InputStream>();
+
+        final Object lock = new Object();
+
+        List<Thread> threads = Collections.synchronizedList(new ArrayList<Thread>());
+
+        threads.add(new Thread(new Runnable()
+        {
+            public void run()
+            {
+                InputStream inTemp = download_manager.getFile(img);
+
+                if(inTemp != null)
+                {
+                    synchronized(lock)
+                    {
+                        if(in.obj == null)
+                        {
+                            in.obj = inTemp;
+                        }
+                    }
+                }
+            }
+        }));
+
+        threads.add(new Thread(new Runnable()
+        {
+            public void run()
+            {
+                InputStream inTemp = full_cache.getFile(String.valueOf(img));
+
+                if(inTemp != null)
+                {
+                    synchronized(lock)
+                    {
+                        if(in.obj == null)
+                        {
+                            in.obj = inTemp;
+                        }
+                    }
+                }
+            }
+        }));
+
+        if(size == E621Image.PREVIEW)
+        {
+            threads.add(new Thread(new Runnable()
+            {
+                public void run()
+                {
+                    InputStream inTemp = thumb_cache.getFile(String.valueOf(img));
+
+                    if(inTemp != null)
+                    {
+                        synchronized(lock)
+                        {
+                            if(in.obj == null)
+                            {
+                                in.obj = inTemp;
+                            }
+                        }
+                    }
+                }
+            }));
+        }
+
+        if(size == E621Image.FULL && getFileDownloadSize() == E621Image.SAMPLE)
+        {
+            threads.clear();
+        }
+
+        if(!(antecipateOnlyOnWiFi() && !isWifiConnected()))
+        {
+            threads.add(new Thread(new Runnable()
+            {
+                public void run()
+                {
+                    try
+                    {
+                        Thread.sleep(3000);
+
+                        synchronized (lock)
+                        {
+                            if (in.obj != null)
+                            {
+                                return;
+                            }
+                        }
+                    } catch (InterruptedException e)
+                    {
+                        e.printStackTrace();
+                        Thread.currentThread().interrupt();
+                    }
+
+                    String url;
+                    E621Image eImg;
+
+                    try
+                    {
+                        eImg = post__show(img);
+                    }
+                    catch (IOException e)
+                    {
+                        e.printStackTrace();
+                        return;
+                    }
+
+                    switch (size)
+                    {
+                        case E621Image.PREVIEW:
+                            url = eImg.preview_url;
+                            break;
+                        case E621Image.SAMPLE:
+                            url = eImg.sample_url;
+                            break;
+                        case E621Image.FULL:
+                        default:
+                            url = eImg.file_url;
+                            break;
+                    }
+
+                    InputStream inputStream = getImageFromInternet(url);
+
+                    if (in == null || inputStream == null)
+                    {
+                        return;
+                    }
+
+                    byte[] byteArray;
+
+                    try
+                    {
+                        byteArray = IOUtils.toByteArray(inputStream);
+                    }
+                    catch (IOException e)
+                    {
+                        e.printStackTrace();
+                        return;
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            inputStream.close();
+                        } catch (IOException e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    byte[] b2 = byteArray.clone();
+
+                    inputStream = new ByteArrayInputStream(byteArray);
+
+                    if (size == E621Image.PREVIEW)
+                    {
+                        thumb_cache.createOrUpdate(String.valueOf(img), inputStream);
+                    }
+                    else
+                    {
+                        full_cache.createOrUpdate(String.valueOf(img), inputStream);
+                    }
+
+                    inputStream = new ByteArrayInputStream(b2);
+
+                    synchronized (lock)
+                    {
+                        if (in.obj == null)
+                        {
+                            in.obj = inputStream;
+                        }
+                    }
+                }
+            }));
+        }
+
+        for(Thread t : threads)
+        {
+            t.start();
+        }
+
+        while(in.obj == null)
+        {
+            int i=0;
+
+            for(i=threads.size(); i>0; i--)
+            {
+                if(!threads.get(i-1).isAlive())
+                {
+                    threads.remove(i-1);
+                }
+            }
+
+            if(threads.size() == 0)
+            {
+                break;
+            }
+        }
+
+        if(in.obj == null)
+        {
+            String url;
+            E621Image eImg;
+
+            try
+            {
+                eImg = post__show(img);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+                return null;
+            }
+
+            switch (size)
+            {
+                case E621Image.PREVIEW:
+                    url = eImg.preview_url;
+                    break;
+                case E621Image.SAMPLE:
+                    url = eImg.sample_url;
+                    break;
+                case E621Image.FULL:
+                default:
+                    url = eImg.file_url;
+                    break;
+            }
+
+            InputStream inputStream = getImageFromInternet(url);
+
+            if (in == null || inputStream == null)
+            {
+                return null;
+            }
+
+            byte[] byteArray;
+
+            try
+            {
+                byteArray = IOUtils.toByteArray(inputStream);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+                return null;
+            }
+            finally
+            {
+                try
+                {
+                    inputStream.close();
+                } catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+
+            byte[] b2 = byteArray.clone();
+
+            inputStream = new ByteArrayInputStream(byteArray);
+
+            if (size == E621Image.PREVIEW)
+            {
+                thumb_cache.createOrUpdate(String.valueOf(img), inputStream);
+            }
+            else
+            {
+                full_cache.createOrUpdate(String.valueOf(img), inputStream);
+            }
+
+            inputStream = new ByteArrayInputStream(b2);
+
+            in.obj = inputStream;
+        }
+
+        return in.obj;
+    }
+
 	public InputStream getImage(final E621Image img, final int size)
 	{
 		final GTFO<InputStream> in = new GTFO<InputStream>();
@@ -1536,7 +1816,7 @@ public class E621Middleware extends E621 {
 			public void run()
 			{
 				InputStream inTemp = download_manager.getFile(img);
-				
+
 				if(inTemp != null)
 				{
 					synchronized(lock)
@@ -1880,6 +2160,20 @@ public class E621Middleware extends E621 {
 		
 		return tags;
 	}
+
+    public E621DownloadedImage localGet(int id)
+    {
+        ArrayList<E621DownloadedImage> images = download_manager.search(0, 1, new SearchQuery("id:"+id));
+
+        if(images.isEmpty())
+        {
+            return null;
+        }
+        else
+        {
+            return images.get(0);
+        }
+    }
 	
 	public ArrayList<E621DownloadedImage> localSearch(int page, int limit, String tags)
 	{

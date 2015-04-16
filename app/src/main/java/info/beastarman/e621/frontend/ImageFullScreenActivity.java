@@ -70,6 +70,7 @@ import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.api.dtext.DText;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.middleware.E621DownloadedImage;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.ImageNavilagorLazyRelative;
@@ -356,10 +357,26 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 				} catch (IOException e)
 				{
 					e.printStackTrace();
+
+                    updateImage(e621.localGet(imageNav.getId()),(TabHost)findViewById(R.id.tabHost));
 				}
 			}
 		}).start();
 	}
+
+    private void updateImage(E621DownloadedImage img, TabHost tabHost)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if(visible) hideUI();
+            }
+        });
+
+        updateInfo(img,tabHost);
+    }
 
 	private void updateImage(E621Image img, TabHost tabHost)
 	{
@@ -374,6 +391,18 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 		updateInfo(img,tabHost);
 	}
+
+    private void updateInfo(final E621DownloadedImage img, final TabHost tabHost)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                setTitle("#" + img.getId());
+            }
+        });
+    }
 
 	private void updateInfo(final E621Image img, final TabHost tabHost)
 	{

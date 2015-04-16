@@ -27,6 +27,7 @@ import java.io.IOException;
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.backend.Pair;
+import info.beastarman.e621.middleware.E621DownloadedImage;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.GIFViewHandler;
 import info.beastarman.e621.middleware.ImageLoadRunnable;
@@ -102,7 +103,7 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 		{
 			final ProgressBar p = (ProgressBar) rl.findViewById(R.id.progressBar);
 
-			final E621Image img = E621Middleware.getInstance().post__show(image.getId());
+            E621DownloadedImage dImg = E621Middleware.getInstance().localGet(image.getId());
 
 			while(getActivity() == null)
 			{
@@ -115,13 +116,33 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 				}
 			}
 
-			if(img.file_ext.equals("jpg") ||
-				img.file_ext.equals("png") ||
-				(img.file_ext.equals("gif") && !E621Middleware.getInstance().playGifs()))
-			{
-				final Pair<Integer, Integer> size = img.getSize(E621Middleware.getInstance().getFileDownloadSize());
+            final String file_ext;
+            final int id;
+            final Pair<Integer, Integer> imageSize;
+            final String file_url;
 
-				final float scale = Math.max(1, Math.max(size.left / 2048f, size.right / 2048f));
+            if(dImg == null)
+            {
+                final E621Image img = E621Middleware.getInstance().post__show(image.getId());
+
+                file_ext = img.file_ext;
+                id = img.id;
+                imageSize = img.getSize(E621Middleware.getInstance().getFileDownloadSize());
+                file_url = img.file_url;
+            }
+            else
+            {
+                file_ext = dImg.getType();
+                id = dImg.getId();
+                imageSize = new Pair<Integer, Integer>(dImg.width,dImg.height);
+                file_url = null;
+            }
+
+			if(file_ext.equals("jpg") ||
+				file_ext.equals("png") ||
+				(file_ext.equals("gif") && !E621Middleware.getInstance().playGifs()))
+			{
+				final float scale = Math.max(1, Math.max(imageSize.left / 2048f, imageSize.right / 2048f));
 
 				Log.d(E621Middleware.LOG_TAG,""+scale);
 
@@ -132,7 +153,7 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 					{
 						final TouchImageView t = new TouchImageView(rl.getContext());
 						t.setId(R.id.image_id);
-						t.setTag(img.id);
+						t.setTag(id);
 						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
 						params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 						t.setLayoutParams(params);
@@ -140,13 +161,13 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 
 						t.setOnClickListener(toggleListener());
 
-						TouchImageViewHandler handler = new TouchImageViewHandler(t, p, (int) (size.left / scale), (int) (size.right / scale));
+						TouchImageViewHandler handler = new TouchImageViewHandler(t, p, (int) (imageSize.left / scale), (int) (imageSize.right / scale));
 
-						new Thread(new ImageLoadRunnable(handler, img, E621Middleware.getInstance(), E621Middleware.getInstance().getFileDownloadSize())).start();
+						new Thread(new ImageLoadRunnable(handler, id, E621Middleware.getInstance(), E621Middleware.getInstance().getFileDownloadSize())).start();
 					}
 				});
 			}
-			else if(img.file_ext.equals("gif"))
+			else if(file_ext.equals("gif"))
 			{
 				getActivity().runOnUiThread(new Runnable()
 				{
@@ -157,10 +178,10 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 						Point size = new Point();
 						display.getSize(size);
 
-						float scale = Math.max((float) img.width / size.x, (float) img.height / size.y);
+						float scale = Math.max((float) imageSize.left / size.x, (float) imageSize.right / size.y);
 
-						int w = (int) (img.width / scale);
-						int h = (int) (img.height / scale);
+						int w = (int) (imageSize.left / scale);
+						int h = (int) (imageSize.right / scale);
 
 						final GIFView gifView = new GIFView(rl.getContext());
 						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(w, h);
@@ -184,11 +205,11 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 
 						GIFViewHandler handler = new GIFViewHandler(gifView, p);
 
-						new Thread(new ImageLoadRunnable(handler, img, E621Middleware.getInstance(), E621Middleware.getInstance().getFileDownloadSize())).start();
+						new Thread(new ImageLoadRunnable(handler, id, E621Middleware.getInstance(), E621Middleware.getInstance().getFileDownloadSize())).start();
 					}
 				});
 			}
-			else if(img.file_ext.equals("webm"))
+			else if(file_ext.equals("webm"))
 			{
 				getActivity().runOnUiThread(new Runnable()
 				{
@@ -206,7 +227,7 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 						t.setLayoutParams(params);
 						final MediaController mc = new MediaController(rl.getContext());
 						t.setMediaController(mc);
-						t.setVideoPath(img.file_url);
+						t.setVideoPath(file_url);
 						t.stopPlayback();
 
 						t.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
@@ -264,10 +285,40 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 							@Override
 							public boolean onLongClick(View view)
 							{
-								Intent i = new Intent();
+								final Intent i = new Intent();
 								i.setAction(Intent.ACTION_VIEW);
-								i.setData(Uri.parse(img.file_url));
-								startActivity(i);
+
+                                if(file_url != null)
+                                {
+                                    i.setData(Uri.parse(file_url));
+                                    startActivity(i);
+                                }
+                                else
+                                {
+                                    new Thread(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            try
+                                            {
+                                                E621Image img = E621Middleware.getInstance().post__show(id);
+                                                i.setData(Uri.parse(img.file_url));
+
+                                                getActivity().runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        startActivity(i);
+                                                    }
+                                                });
+                                            }
+                                            catch (IOException e)
+                                            {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }).start();
+                                }
 
 								return true;
 							}
