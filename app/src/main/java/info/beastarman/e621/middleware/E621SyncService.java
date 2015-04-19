@@ -12,8 +12,6 @@ import info.beastarman.e621.backend.Pair;
 
 public class E621SyncService extends IntentService
 {
-	public static String EVENTMANAGER = "EventManager";
-
 	public E621SyncService()
 	{
 		super("E621SyncService");

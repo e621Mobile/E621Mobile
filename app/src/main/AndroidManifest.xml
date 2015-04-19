@@ -51,37 +51,6 @@
             android:parentActivityName="info.beastarman.e621.frontend.MainActivity"
             android:windowSoftInputMode="stateHidden|adjustPan"
             android:theme="@style/CustomActionBarTheme">
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http"
-                      android:host="e621.net"
-                      android:pathPrefix="/post/show/" />
-                <data android:scheme="http"
-                      android:host="www.e621.net"
-                      android:pathPrefix="/post/show" />
-                <data android:scheme="http"
-                      android:host="e926.net"
-                      android:pathPrefix="/post/show/" />
-                <data android:scheme="http"
-                      android:host="www.e926.net"
-                      android:pathPrefix="/post/show/" />
-                <data android:scheme="https"
-                      android:host="e621.net"
-                      android:pathPrefix="/post/show/" />
-                <data android:scheme="https"
-                      android:host="www.e621.net"
-                      android:pathPrefix="/post/show" />
-                <data android:scheme="https"
-                      android:host="e926.net"
-                      android:pathPrefix="/post/show/" />
-                <data android:scheme="https"
-                      android:host="www.e926.net"
-                      android:pathPrefix="/post/show/" />
-            </intent-filter>
-
         </activity>
         <activity
             android:name="info.beastarman.e621.frontend.SettingsActivity"
@@ -109,15 +78,52 @@
             android:label="Feedback"
             android:windowSoftInputMode="stateHidden" >
         </activity>
-        
+
         <receiver
             android:name="info.beastarman.e621.middleware.E621SyncReciever"
             android:enabled="true">
-            	<intent-filter>
-			        <action android:name="android.intent.action.BOOT_COMPLETED"></action>
-			    </intent-filter>
-			            
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
+            </intent-filter>
         </receiver>
+
+        <activity
+            android:name="info.beastarman.e621.frontend.E621ViewReciever"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="stateHidden"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http"
+                    android:host="e621.net"
+                    android:pathPrefix="/post" />
+                <data android:scheme="http"
+                    android:host="www.e621.net"
+                    android:pathPrefix="/post" />
+                <data android:scheme="http"
+                    android:host="e926.net"
+                    android:pathPrefix="/post" />
+                <data android:scheme="http"
+                    android:host="www.e926.net"
+                    android:pathPrefix="/post" />
+                <data android:scheme="https"
+                    android:host="e621.net"
+                    android:pathPrefix="/post" />
+                <data android:scheme="https"
+                    android:host="www.e621.net"
+                    android:pathPrefix="/post" />
+                <data android:scheme="https"
+                    android:host="e926.net"
+                    android:pathPrefix="/post" />
+                <data android:scheme="https"
+                    android:host="www.e926.net"
+                    android:pathPrefix="/post" />
+            </intent-filter>
+			            
+        </activity>
+
         <service android:name="info.beastarman.e621.middleware.E621SyncService"
             android:enabled="true" />
         <activity
