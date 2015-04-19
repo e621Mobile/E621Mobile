@@ -26,6 +26,7 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Set;
 
+import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 
 public class BaseActivity extends Activity implements UncaughtExceptionHandler
@@ -42,6 +43,15 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 
 		return iv;
 	}
+
+    public Intent shareIntent(String str)
+    {
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, str);
+        sendIntent.setType("text/plain");
+        return sendIntent;
+    }
 	
 	protected int dpToPx(int dp)
 	{

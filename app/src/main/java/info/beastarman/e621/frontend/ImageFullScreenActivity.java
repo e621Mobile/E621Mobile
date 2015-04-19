@@ -45,6 +45,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.SearchView;
+import android.widget.ShareActionProvider;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -231,11 +232,15 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 	SearchView searchView = null;
 	Menu mMenu = null;
+    ShareActionProvider mShareActionProvider;
 
-	@Override
+    @Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		getMenuInflater().inflate(R.menu.image_full_screen, menu);
+
+        mShareActionProvider = (ShareActionProvider) menu.findItem(R.id.action_share).getActionProvider();
+        mShareActionProvider.setShareIntent(shareIntent());
 
 		mMenu = menu;
 
@@ -345,6 +350,11 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 	private void retrieveImage(final ImageNavigator imageNav)
 	{
+        if(mShareActionProvider != null)
+        {
+            mShareActionProvider.setShareIntent(shareIntent());
+        }
+
 		new Thread(new Runnable()
 		{
 			@Override
@@ -1828,6 +1838,11 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		intent = new Intent(this, SettingsActivity.class);
 		startActivity(intent);
 	}
+
+    public Intent shareIntent()
+    {
+        return super.shareIntent(String.format("%1$s/post/show/?id=%2$d&ref=%3$s", e621.getDomain(), image.getId(), e621.client));
+    }
 
 	public void goUp()
 	{

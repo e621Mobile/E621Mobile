@@ -25,6 +25,7 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Set;
 
+import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 
 public class BaseFragmentActivity extends FragmentActivity implements UncaughtExceptionHandler
@@ -41,6 +42,15 @@ public class BaseFragmentActivity extends FragmentActivity implements UncaughtEx
 
 		return iv;
 	}
+
+    public Intent shareIntent(String str)
+    {
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, str);
+        sendIntent.setType("text/plain");
+        return sendIntent;
+    }
 	
 	protected int dpToPx(int dp)
 	{
@@ -78,6 +88,8 @@ public class BaseFragmentActivity extends FragmentActivity implements UncaughtEx
 	protected void onCreate(Bundle savedInstanceState)
 	{
         Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onCreate() " + this.getClass().getName());
+
+        e621 = E621Middleware.getInstance(getApplicationContext());
 		
 		Intent intent = getIntent();
 		if(intent != null)

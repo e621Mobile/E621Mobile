@@ -12,4 +12,11 @@
         android:orderInCategory="100"
         android:showAsAction="ifRoom"
         android:title="@string/action_settings" android:icon="@android:drawable/ic_menu_manage"/>
+
+    <item
+        android:id="@+id/action_share"
+        android:orderInCategory="200"
+        android:showAsAction="ifRoom"
+        android:title="@string/share" android:icon="@android:drawable/ic_menu_share"
+        android:actionProviderClass="android.widget.ShareActionProvider"/>
 </menu>

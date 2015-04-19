@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.ShareActionProvider;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -956,13 +957,24 @@ public class SearchActivity extends BaseActivity
 
 		startActivity(intent);
 	}
+
+    ShareActionProvider mShareActionProvider;
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.search, menu);
+
+        mShareActionProvider = (ShareActionProvider) menu.findItem(R.id.action_share).getActionProvider();
+        mShareActionProvider.setShareIntent(shareIntent());
+
 		return true;
 	}
+
+    public Intent shareIntent()
+    {
+        return super.shareIntent(String.format("%1$s/post/index/?tags=%2$s&page=%3$d&limit=%4$d&ref=%5$s", e621.getDomain(), search, page+1, limit, e621.client));
+    }
 
 	public void skipToPage(View view)
 	{

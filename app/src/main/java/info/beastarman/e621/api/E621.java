@@ -40,7 +40,7 @@ import javax.xml.parsers.ParserConfigurationException;
 public class E621
 {
 	String DOMAIN_NAME = "https://e621.net";
-	String client = "";
+	public final String client;
 	private static E621 instance = null;
 	public int TIMEOUT = 5000;
 	
@@ -48,7 +48,12 @@ public class E621
 	{
 		this.client = client;
 	}
-	
+
+    public String getDomain()
+    {
+        return this.DOMAIN_NAME;
+    }
+
 	public static E621 getInstance(String client)
 	{
 		if(instance == null)
