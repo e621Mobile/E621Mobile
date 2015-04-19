@@ -43,7 +43,7 @@ public class E621SyncService extends IntentService
 			builder.setSmallIcon(R.drawable.ic_launcher);
 			builder.setContentTitle("E621 Sync");
 			builder.setContentText("Sync in progress");
-			builder.setOngoing(true);
+			builder.setOngoing(false);
 
 			notificationManager.notify(R.id.syncNotificationId, builder.build());
 

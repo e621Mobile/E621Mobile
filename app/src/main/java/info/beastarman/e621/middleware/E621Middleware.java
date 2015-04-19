@@ -129,9 +129,6 @@ public class E621Middleware extends E621 {
     private static String DIRECTORY_SYNC = "sync/";
     private static String DIRECTORY_MISC = "misc/";
 
-    private AlarmManager alarmMgr;
-    private PendingIntent alarmIntent;
-
     private String login = null;
     private String password_hash = null;
 
@@ -301,15 +298,17 @@ public class E621Middleware extends E621 {
 
         Intent intent = new Intent(ctx, E621SyncReciever.class);
 
-        alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
-        alarmIntent = PendingIntent.getBroadcast(ctx, 0, intent, 0);
+        if (PendingIntent.getBroadcast(ctx, 0, intent, PendingIntent.FLAG_NO_CREATE) == null)
+        {
+            AlarmManager alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+            PendingIntent alarmIntent = PendingIntent.getBroadcast(ctx, 0, intent, 0);
 
-        long interval = AlarmManager.INTERVAL_HOUR * 3;
+            long interval = AlarmManager.INTERVAL_HOUR * 3;
 
-        alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
-                //SystemClock.elapsedRealtime() + interval,
-                SystemClock.elapsedRealtime() + interval,
-                interval, alarmIntent);
+            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+                    SystemClock.elapsedRealtime() + interval,
+                    interval, alarmIntent);
+        }
 
         interrupt = new InterruptedSearchManager(interrupted_path);
 

@@ -670,9 +670,13 @@ public class E621DownloadedImages
 
 			tags = null;
 
-			while(tags == null)
+            int tries = 5;
+
+            while(tags == null && tries > 0)
 			{
 				tags = e621.tag__index(10000, page, null, null, max_id, null, null);
+
+                tries--;
 			}
 			
 			this.tags.addTag((E621Tag[])tags.toArray(new E621Tag[tags.size()]));
