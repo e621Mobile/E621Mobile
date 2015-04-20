@@ -973,7 +973,7 @@ public class SearchActivity extends BaseActivity
 
     public Intent shareIntent()
     {
-        return super.shareIntent(String.format("%1$s/post/index/?tags=%2$s&page=%3$d&limit=%4$d&ref=%5$s", e621.getDomain(), search, page+1, limit, e621.client));
+        return super.shareIntent(String.format("%2$s - %1$s/post/index/?tags=%6$s&page=%3$d&limit=%4$d&ref=%5$s via E621 Mobile", e621.getDomain(), search, page+1, limit, e621.client, search.replace(" ","+")));
     }
 
 	public void skipToPage(View view)

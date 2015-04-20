@@ -24,13 +24,21 @@ public class E621ViewReciever extends Activity
             final Uri data = getIntent().getData();
             List<String> path = data.getPathSegments();
 
-            if (path.size() >= 3 &&
+            if (path.size() >= 2 &&
                 path.get(0).toLowerCase().equals("post") &&
-                path.get(1).toLowerCase().equals("show") &&
-                path.get(2).matches("^\\d*$"))
+                path.get(1).toLowerCase().equals("show"))
             {
-                i = new Intent(getApplicationContext(), ImageFullScreenActivity.class);
-                i.putExtra(ImageFullScreenActivity.NAVIGATOR, new NowhereToGoImageNavigator(Integer.parseInt(path.get(2))));
+                if(path.size() >= 3 && path.get(2).matches("^\\d*$"))
+                {
+                    i = new Intent(getApplicationContext(), ImageFullScreenActivity.class);
+                    i.putExtra(ImageFullScreenActivity.NAVIGATOR, new NowhereToGoImageNavigator(Integer.parseInt(path.get(2))));
+                }
+                else if(data.getQueryParameter("id") != null &&
+                        data.getQueryParameter("id").matches("^\\d*$"))
+                {
+                    i = new Intent(getApplicationContext(), ImageFullScreenActivity.class);
+                    i.putExtra(ImageFullScreenActivity.NAVIGATOR, new NowhereToGoImageNavigator(Integer.parseInt(data.getQueryParameter("id"))));
+                }
             }
             else if(path.size() >= 1 &&
                     path.get(0).toLowerCase().equals("post"))
@@ -51,7 +59,7 @@ public class E621ViewReciever extends Activity
                     }
 
                     if(data.getQueryParameter("limit") != null &&
-                            data.getQueryParameter("limit").matches("^\\d*$"))
+                       data.getQueryParameter("limit").matches("^\\d*$"))
                     {
                         i.putExtra(SearchActivity.LIMIT,Integer.parseInt(data.getQueryParameter("limit")));
                     }

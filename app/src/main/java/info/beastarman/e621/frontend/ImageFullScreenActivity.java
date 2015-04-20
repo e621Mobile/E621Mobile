@@ -176,7 +176,15 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		});
 	}
 
-	private void setupTabHost(final TabHost tabHost)
+    @Override
+    public void setTitle(CharSequence title)
+    {
+        super.setTitle(title);
+
+        if(mShareActionProvider != null) mShareActionProvider.setShareIntent(shareIntent());
+    }
+
+    private void setupTabHost(final TabHost tabHost)
 	{
 		tabHost.post(new Runnable()
 		{
@@ -1841,7 +1849,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
     public Intent shareIntent()
     {
-        return super.shareIntent(String.format("%1$s/post/show/?id=%2$d&ref=%3$s", e621.getDomain(), image.getId(), e621.client));
+        return super.shareIntent(String.format("%1$s - %2$s/post/show/?id=%3$d&ref=%4$s via E621 Mobile", getTitle(), e621.getDomain(), image.getId(), e621.client));
     }
 
 	public void goUp()
