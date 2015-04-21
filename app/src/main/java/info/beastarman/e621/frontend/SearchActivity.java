@@ -965,16 +965,8 @@ public class SearchActivity extends BaseActivity
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.search, menu);
 
-        mShareActionProvider = (ShareActionProvider) menu.findItem(R.id.action_share).getActionProvider();
-        mShareActionProvider.setShareIntent(shareIntent());
-
 		return true;
 	}
-
-    public Intent shareIntent()
-    {
-        return super.shareIntent(String.format("%2$s - %1$s/post/index/?tags=%6$s&page=%3$d&limit=%4$d&ref=%5$s via E621 Mobile", e621.getDomain(), search, page+1, limit, e621.client, search.replace(" ","+")));
-    }
 
 	public void skipToPage(View view)
 	{
