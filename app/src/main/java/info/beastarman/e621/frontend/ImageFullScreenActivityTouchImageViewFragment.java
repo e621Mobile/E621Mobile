@@ -39,6 +39,7 @@ import info.beastarman.e621.middleware.ImageNavilagorLazyRelative;
 import info.beastarman.e621.middleware.TouchImageViewHandler;
 import info.beastarman.e621.views.GIFView;
 import info.beastarman.e621.views.MediaInputStreamPlayer;
+import info.beastarman.e621.views.SurfaceViewDetach;
 import info.beastarman.e621.views.TouchImageView;
 import info.beastarman.e621.views.VideoControllerView;
 
@@ -232,7 +233,14 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
                         final MediaInputStreamPlayer player = new MediaInputStreamPlayer();
                         final VideoControllerView controller = new VideoControllerView(rl.getContext());
 
-                        final SurfaceView videoSurface = (SurfaceView) v.findViewById(R.id.videoSurface);
+                        final SurfaceViewDetach videoSurface = (SurfaceViewDetach) v.findViewById(R.id.videoSurface);
+                        videoSurface.setOnDetachedFromWindowListener(new SurfaceViewDetach.OnDetachedFromWindowListener() {
+                            @Override
+                            public void onDetach(View v) {
+                                player.close();
+                            }
+                        });
+
                         SurfaceHolder videoHolder = videoSurface.getHolder();
                         videoHolder.addCallback(new SurfaceHolder.Callback() {
                             @Override
@@ -277,7 +285,14 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 
                                     @Override
                                     public int getCurrentPosition() {
-                                        return player.getCurrentPosition();
+                                        try
+                                        {
+                                            return player.getCurrentPosition();
+                                        }
+                                        catch (Throwable t)
+                                        {
+                                            return 0;
+                                        }
                                     }
 
                                     @Override

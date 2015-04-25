@@ -16,7 +16,31 @@ import java.util.UUID;
 
 public class MediaInputStreamPlayer extends MediaPlayer
 {
+    final String UNIQUE_ID = "1KB6R4492MA4VYN05QKI";
+    static File directory = null;
     File _f = null;
+
+    public MediaInputStreamPlayer()
+    {
+        super();
+
+        synchronized (MediaInputStreamPlayer.class)
+        {
+            if(directory == null) {
+                directory = new File(Environment.getExternalStoragePublicDirectory("VideoInputStreamView"), UNIQUE_ID);
+
+                if(!directory.exists())
+                {
+                    directory.mkdirs();
+                }
+
+                for(File f : directory.listFiles())
+                {
+                   f.delete();
+                }
+            }
+        }
+    }
 
     private File getNewFile() throws IOException {
         if(_f != null && _f.exists())
@@ -24,13 +48,7 @@ public class MediaInputStreamPlayer extends MediaPlayer
             _f.delete();
         }
 
-        _f = Environment.getExternalStoragePublicDirectory("VideoInputStreamView");
-        if(!_f.exists())
-        {
-            _f.mkdirs();
-        }
-
-        _f = new File(_f, UUID.randomUUID().toString());
+        _f = new File(directory, UUID.randomUUID().toString());
         if(_f.exists())
         {
             _f.delete();
@@ -39,17 +57,6 @@ public class MediaInputStreamPlayer extends MediaPlayer
         _f.createNewFile();
 
         return _f;
-    }
-
-    private File getFile() throws IOException {
-        if(_f != null)
-        {
-            return _f;
-        }
-        else
-        {
-            return getNewFile();
-        }
     }
 
     public void setVideoInputStream(final InputStream in) throws IOException
@@ -87,8 +94,12 @@ public class MediaInputStreamPlayer extends MediaPlayer
         }).start();
     }
 
-    protected void close()
+    public void close()
     {
+        seekTo(0);
+        stop();
+        release();
+
         if(_f != null && _f.exists())
         {
             _f.delete();
