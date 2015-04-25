@@ -49,6 +49,7 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -1800,6 +1801,15 @@ public class E621Middleware extends E621 {
         }
 
         return in.obj;
+    }
+
+    public InputStream getVideo(final int img) throws IOException {
+        return getVideo(post__show(img));
+    }
+
+    public InputStream getVideo(final E621Image img)
+    {
+        return getImageFromInternet(img.file_url);
     }
 
 	public InputStream getImage(final E621Image img, final int size)

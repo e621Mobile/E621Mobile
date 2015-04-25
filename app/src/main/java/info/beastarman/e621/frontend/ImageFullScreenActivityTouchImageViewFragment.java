@@ -3,6 +3,7 @@ package info.beastarman.e621.frontend;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Point;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,17 +13,19 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.VideoView;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
@@ -35,7 +38,9 @@ import info.beastarman.e621.middleware.ImageNavigator;
 import info.beastarman.e621.middleware.ImageNavilagorLazyRelative;
 import info.beastarman.e621.middleware.TouchImageViewHandler;
 import info.beastarman.e621.views.GIFView;
+import info.beastarman.e621.views.MediaInputStreamPlayer;
 import info.beastarman.e621.views.TouchImageView;
+import info.beastarman.e621.views.VideoControllerView;
 
 public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 {
@@ -72,7 +77,7 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 		};
 	}
 
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState)
+	public View onCreateView(final LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState)
 	{
 		final RelativeLayout rl = (RelativeLayout) inflater.inflate(R.layout.image_full_screen_static_image, container, false);
 
@@ -85,14 +90,14 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 			public void run()
 			{
 				image = ((ImageNavilagorLazyRelative) getArguments().getSerializable(LAZY_POSITION)).getImageNavigator();
-				getImage(rl);
+				getImage(inflater,rl);
 			}
 		}).start();
 
 		return rl;
 	}
 
-	private void getImage(final RelativeLayout rl)
+	private void getImage(final LayoutInflater inflater, final RelativeLayout rl)
 	{
 		if(image == null)
 		{
@@ -211,60 +216,165 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 			}
 			else if(file_ext.equals("webm"))
 			{
-				getActivity().runOnUiThread(new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						final ProgressBar pb = new ProgressBar(rl.getContext());
-						RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-						params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-						pb.setLayoutParams(params);
+                getActivity().runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        final int screenWidth = getActivity().getWindowManager().getDefaultDisplay().getWidth();
+                        final int screenHeight = getActivity().getWindowManager().getDefaultDisplay().getHeight();
 
-						final VideoView t = new VideoView(rl.getContext());
-						params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-						params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-						t.setLayoutParams(params);
-						final MediaController mc = new MediaController(rl.getContext());
-						t.setMediaController(mc);
-						t.setVideoPath(file_url);
-						t.stopPlayback();
+                        final View v = inflater.inflate(R.layout.image_full_screen_video_layout,null);
+                        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,RelativeLayout.LayoutParams.WRAP_CONTENT);
+                        params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+                        v.setLayoutParams(params);
 
-						t.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
-						{
-							@Override
-							public void onPrepared(MediaPlayer mp)
-							{
-								mp.setLooping(true);
-								//t.setBackgroundResource(R.color.white);
-								pb.setVisibility(View.GONE);
-							}
-						});
+                        final MediaInputStreamPlayer player = new MediaInputStreamPlayer();
+                        final VideoControllerView controller = new VideoControllerView(rl.getContext());
 
-						t.setOnTouchListener(new View.OnTouchListener()
-						{
-							@Override
-							public boolean onTouch(View view, MotionEvent motionEvent)
-							{
-								if(motionEvent.getAction() == MotionEvent.ACTION_UP)
-								{
-									if(mc.isShowing())
-									{
-										mc.hide();
-									} else
-									{
-										mc.show(5000);
-									}
-								}
+                        final SurfaceView videoSurface = (SurfaceView) v.findViewById(R.id.videoSurface);
+                        SurfaceHolder videoHolder = videoSurface.getHolder();
+                        videoHolder.addCallback(new SurfaceHolder.Callback() {
+                            @Override
+                            public void surfaceCreated(SurfaceHolder surfaceHolder) {
 
-								return true;
-							}
-						});
+                            }
 
-						rl.addView(t);
-						rl.addView(pb);
-					}
-				});
+                            @Override
+                            public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3)
+                            {
+                                player.setDisplay(surfaceHolder);
+                            }
+
+                            @Override
+                            public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+
+                            }
+                        });
+
+                        player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            @Override
+                            public void onPrepared(MediaPlayer mediaPlayer) {
+                                controller.setMediaPlayer(new VideoControllerView.MediaPlayerControl() {
+                                    public boolean canPause() {
+                                        return true;
+                                    }
+
+                                    @Override
+                                    public boolean canSeekBackward() {
+                                        return true;
+                                    }
+
+                                    @Override
+                                    public boolean canSeekForward() {
+                                        return true;
+                                    }
+
+                                    @Override
+                                    public int getBufferPercentage() {
+                                        return 0;
+                                    }
+
+                                    @Override
+                                    public int getCurrentPosition() {
+                                        return player.getCurrentPosition();
+                                    }
+
+                                    @Override
+                                    public int getDuration() {
+                                        return player.getDuration();
+                                    }
+
+                                    @Override
+                                    public boolean isPlaying() {
+                                        return player.isPlaying();
+                                    }
+
+                                    @Override
+                                    public void pause() {
+                                        player.pause();
+                                    }
+
+                                    @Override
+                                    public void seekTo(int i) {
+                                        player.seekTo(i);
+                                    }
+
+                                    @Override
+                                    public void start() {
+                                        player.start();
+                                    }
+
+                                    @Override
+                                    public boolean isFullScreen() {
+                                        return false;
+                                    }
+
+                                    @Override
+                                    public void toggleFullScreen() {
+
+                                    }
+                                });
+                                controller.setAnchorView((FrameLayout) v);
+                                controller.show(0);
+                                player.setLooping(true);
+
+                                int videoWidth = player.getVideoWidth();
+                                int videoHeight = player.getVideoHeight();
+                                float videoProportion = (float) videoWidth / (float) videoHeight;
+
+                                float screenProportion = (float) screenWidth / (float) screenHeight;
+
+                                // Get the SurfaceView layout parameters
+                                final android.view.ViewGroup.LayoutParams lp = videoSurface.getLayoutParams();
+                                if (videoProportion > screenProportion) {
+                                    lp.width = screenWidth;
+                                    lp.height = (int) ((float) screenWidth / videoProportion);
+                                } else {
+                                    lp.width = (int) (videoProportion * (float) screenHeight);
+                                    lp.height = screenHeight;
+                                }
+                                // Commit the layout parameters
+                                videoSurface.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        videoSurface.setLayoutParams(lp);
+                                    }
+                                });
+                            }
+                        });
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run()
+                            {
+                                try
+                                {
+                                    InputStream in = E621Middleware.getInstance().getVideo(id);
+
+                                    if(in != null)
+                                    {
+                                        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                                        player.setVideoInputStream(in);
+                                    }
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
+
+                        v.setOnTouchListener(new View.OnTouchListener() {
+                            @Override
+                            public boolean onTouch(View view, MotionEvent motionEvent) {
+                                controller.show();
+
+                                return true;
+                            }
+                        });
+
+                        rl.addView(v);
+                    }
+                });
 			}
 			else
 			{
