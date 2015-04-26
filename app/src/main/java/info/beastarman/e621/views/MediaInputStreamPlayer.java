@@ -59,6 +59,16 @@ public class MediaInputStreamPlayer extends MediaPlayer
         return _f;
     }
 
+    public String getFilePath()
+    {
+        if(_f != null)
+        {
+            return _f.getAbsolutePath();
+        }
+
+        return null;
+    }
+
     public void setVideoInputStream(final InputStream in) throws IOException
     {
         final File f = getNewFile();
@@ -85,11 +95,10 @@ public class MediaInputStreamPlayer extends MediaPlayer
 
                 try {
                     setDataSource(f.getAbsolutePath());
+                    prepareAsync();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                prepareAsync();
             }
         }).start();
     }

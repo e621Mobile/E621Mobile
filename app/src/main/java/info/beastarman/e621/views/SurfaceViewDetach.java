@@ -43,4 +43,24 @@ public class SurfaceViewDetach extends SurfaceView {
     {
         public void onDetach(View v);
     }
+
+    OnSeekListener slistener = null;
+
+    public void setOnSeekListener(OnSeekListener _slistener)
+    {
+        slistener = _slistener;
+    }
+
+    public void seek(int i)
+    {
+        if(slistener != null)
+        {
+            slistener.onSeek(this,i);
+        }
+    }
+
+    public static interface OnSeekListener
+    {
+        public void onSeek(View v, int position);
+    }
 }

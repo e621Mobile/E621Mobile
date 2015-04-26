@@ -234,6 +234,14 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
                         final VideoControllerView controller = new VideoControllerView(rl.getContext());
 
                         final SurfaceViewDetach videoSurface = (SurfaceViewDetach) v.findViewById(R.id.videoSurface);
+                        videoSurface.setTag(id);
+                        videoSurface.setOnSeekListener(new SurfaceViewDetach.OnSeekListener() {
+                            @Override
+                            public void onSeek(View v, int position) {
+                                player.seekTo(position);
+                                player.start();
+                            }
+                        });
                         videoSurface.setOnDetachedFromWindowListener(new SurfaceViewDetach.OnDetachedFromWindowListener() {
                             @Override
                             public void onDetach(View v) {
@@ -297,7 +305,14 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 
                                     @Override
                                     public int getDuration() {
-                                        return player.getDuration();
+                                        try
+                                        {
+                                            return player.getDuration();
+                                        }
+                                        catch (Throwable t)
+                                        {
+                                            return 1;
+                                        }
                                     }
 
                                     @Override
@@ -326,8 +341,17 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
                                     }
 
                                     @Override
-                                    public void toggleFullScreen() {
+                                    public void toggleFullScreen()
+                                    {
+                                        pause();
 
+                                        String path = player.getFilePath();
+                                        int position = getCurrentPosition();
+
+                                        Intent i = new Intent(getActivity(),FullScreenVideoActivity.class);
+                                        i.putExtra(FullScreenVideoActivity.VIDEO_PATH,path);
+                                        i.putExtra(FullScreenVideoActivity.VIDEO_POSITION,position);
+                                        startActivityForResult(i,FullScreenVideoActivity.RESULT_VIDEO_POSITION);
                                     }
                                 });
                                 controller.setAnchorView((FrameLayout) v);

@@ -78,6 +78,7 @@ import info.beastarman.e621.middleware.ImageNavilagorLazyRelative;
 import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
 import info.beastarman.e621.views.DTextView;
+import info.beastarman.e621.views.SurfaceViewDetach;
 
 public class ImageFullScreenActivity extends BaseFragmentActivity
 {
@@ -1888,7 +1889,25 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		visible = false;
 	}
 
-	private class OnTagClickListener implements View.OnClickListener
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if(resultCode == FullScreenVideoActivity.RESULT_VIDEO_POSITION)
+        {
+            int position = data.getIntExtra(FullScreenVideoActivity.VIDEO_POSITION,0);
+
+            View v = getWindow().getDecorView().findViewWithTag(lastImg.id);
+
+            if(v != null && v instanceof SurfaceViewDetach)
+            {
+                ((SurfaceViewDetach) v).seek(position);
+            }
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private class OnTagClickListener implements View.OnClickListener
 	{
 		String tagName;
 

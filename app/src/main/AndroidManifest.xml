@@ -53,6 +53,14 @@
             android:theme="@style/CustomActionBarTheme">
         </activity>
         <activity
+            android:name="info.beastarman.e621.frontend.FullScreenVideoActivity"
+            android:label="@string/title_activity_image"
+            android:parentActivityName="info.beastarman.e621.frontend.MainActivity"
+            android:windowSoftInputMode="stateHidden|adjustPan"
+            android:theme="@style/CustomActionBarTheme"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity
             android:name="info.beastarman.e621.frontend.SettingsActivity"
             android:parentActivityName="info.beastarman.e621.frontend.MainActivity"
             android:label="@string/title_activity_settings" >

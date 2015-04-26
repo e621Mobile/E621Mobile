@@ -32,14 +32,12 @@ public class ExtendedViewPager extends ViewPager
 		{
 			return ((TouchImageView) v).canScrollHorizontallyFroyo(-dx);
 		}
-		else if(getTag()!=null && v.findViewWithTag(-((Integer)getTag())) != null)
+		else if(getTag()!=null && v.findViewWithTag(-((Integer)getTag())) != null && v.findViewWithTag(-((Integer)getTag())) instanceof TouchImageView)
 		{
-			Log.d(E621Middleware.LOG_TAG, String.valueOf(v.findViewWithTag(-((Integer)getTag())).getTag()));
 			return ((TouchImageView) v.findViewWithTag(-((Integer)getTag()))).canScrollHorizontallyFroyo(-dx);
 		}
-		else if(v.findViewById(R.id.touchImageView) != null)
+		else if(v.findViewById(R.id.touchImageView) != null && v.findViewById(R.id.touchImageView) instanceof TouchImageView)
 		{
-			Log.d(E621Middleware.LOG_TAG, String.valueOf(v.findViewById(R.id.touchImageView).getTag()));
 			return ((TouchImageView) v.findViewById(R.id.touchImageView)).canScrollHorizontallyFroyo(-dx);
 		}
 		else
