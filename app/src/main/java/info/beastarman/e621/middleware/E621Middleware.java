@@ -2651,16 +2651,21 @@ public class E621Middleware extends E621 {
 						e.printStackTrace();
 						Thread.currentThread().interrupt();
 					}
-					
+
 					update_new_image_count(interrupted.search);
-					
+
 					searchCountSemaphore.release();
-					
+
 					InputStream in = null;
-					
+
 					ArrayList<E621DownloadedImage> images = localSearch(0, 1, interrupted.search);
 					int width = 64;
 					int height = 64;
+
+                    while(images.size()>0 && !(images.get(0).getType().toLowerCase().equals("jpg") || images.get(0).getType().toLowerCase().equals("png") || images.get(0).getType().toLowerCase().equals("gif")))
+                    {
+                        images.remove(0);
+                    }
 					
 					if(images.size() > 0)
 					{
