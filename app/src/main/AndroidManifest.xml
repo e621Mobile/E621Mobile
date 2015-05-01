@@ -86,6 +86,12 @@
             android:label="Feedback"
             android:windowSoftInputMode="stateHidden" >
         </activity>
+        <activity
+            android:name="info.beastarman.e621.frontend.RunDebugActivity"
+            android:label="Debug"
+            android:exported="true"
+            android:windowSoftInputMode="stateHidden" >
+        </activity>
 
         <receiver
             android:name="info.beastarman.e621.middleware.E621SyncReciever"
