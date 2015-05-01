@@ -840,6 +840,8 @@ public class SearchActivity extends BaseActivity
 		{
 			detailsText += "<font color=#FF0000>↓" + String.valueOf(img.score) + "</font>";
 		}
+
+		detailsText += " ♥"+String.valueOf(img.fav_count);
 		
 		if(img.has_comments)
 		{

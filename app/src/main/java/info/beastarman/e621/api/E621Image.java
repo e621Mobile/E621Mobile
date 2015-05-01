@@ -64,6 +64,7 @@ public class E621Image implements Serializable
 	public boolean has_children = false;
 	
 	public int score = 0;
+	public int fav_count = 0;
 
 	public int preview_width = 0;
 	public int preview_height = 0;
@@ -96,8 +97,10 @@ public class E621Image implements Serializable
 		tags = new ArrayList<E621Tag>(that.tags);
 		children = new ArrayList<String>(that.children);
 		sources = new ArrayList<String>(that.sources);
+		artist = new ArrayList<String>(that.artist);
 		has_children = that.has_children;
 		score = that.score;
+		fav_count = that.fav_count;
 		preview_width = that.preview_width;
 		preview_height = that.preview_height;
 		sample_width = that.sample_width;
@@ -159,7 +162,8 @@ public class E621Image implements Serializable
 		}
 		
 		img.score = json.optInt("score",0);
-		
+		img.fav_count = json.optInt("fav_count",0);
+
 		String status = json.optString("status","active");
 		if(status.equals("active"))
 		{
@@ -373,6 +377,9 @@ public class E621Image implements Serializable
 		} catch (NumberFormatException e) {}
 		try{
 			img.score = Integer.parseInt(xml.getAttribute("score"));
+		} catch (NumberFormatException e) {}
+		try{
+			img.fav_count = Integer.parseInt(xml.getAttribute("fav_count"));
 		} catch (NumberFormatException e) {}
 		for(String tag : xml.getAttribute("tags").split("\\s"))
 		{
