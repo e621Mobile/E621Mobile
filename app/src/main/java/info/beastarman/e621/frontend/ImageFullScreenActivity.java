@@ -132,7 +132,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.BackgroundColorTransparent)));
 
-		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+		getWindow().getDecorView().setSystemUiVisibility(getUIInvisible());
 
 		final TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
 
@@ -390,11 +390,11 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
             @Override
             public void run()
             {
-                if(visible) hideUI();
+               if(visible) hideUI();
             }
         });
 
-        updateInfo(img,tabHost);
+        updateInfo(img, tabHost);
     }
 
 	private void updateImage(E621Image img, TabHost tabHost)
@@ -408,20 +408,42 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			}
 		});
 
-		updateInfo(img,tabHost);
+		updateInfo(img, tabHost);
 	}
 
     private void updateInfo(final E621DownloadedImage img, final TabHost tabHost)
     {
-        runOnUiThread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                setTitle("#" + img.getId());
-            }
-        });
+        runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				setTitle("#" + img.getId());
+			}
+		});
     }
+
+	private void setTitle(final E621Image img)
+	{
+		String artistTitle = "";
+
+		for(String artist : img.artist)
+		{
+			if(artistTitle.length() > 0)
+			{
+				artistTitle += ",";
+			}
+
+			artistTitle+=artist;
+		}
+
+		if(artistTitle.length() > 0)
+		{
+			setTitle("#" + img.id + ": " + artistTitle);
+		}
+		else
+		{
+			setTitle("#" + img.id);
+		}
+	}
 
 	private void updateInfo(final E621Image img, final TabHost tabHost)
 	{
@@ -432,7 +454,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			@Override
 			public void run()
 			{
-				setTitle("#" + img.id);
+				setTitle(img);
 
 				updateDownload(img,tabHost);
 
@@ -556,7 +578,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			voteOut.obj = VOTE_DOWN;
 		}
 
-		updateVote(voteOut.obj,img,tabHost);
+		updateVote(voteOut.obj, img, tabHost);
 
 		new Thread(new Runnable()
 		{
@@ -618,20 +640,16 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		final GTFO<Integer> voteOut = new GTFO<Integer>();
 		voteOut.obj = vote;
 
-		thumbsUp.setOnClickListener(new View.OnClickListener()
-		{
+		thumbsUp.setOnClickListener(new View.OnClickListener() {
 			@Override
-			public void onClick(View view)
-			{
-				voteUp(voteOut,img,tabHost);
+			public void onClick(View view) {
+				voteUp(voteOut, img, tabHost);
 			}
 		});
 
-		thumbsDown.setOnClickListener(new View.OnClickListener()
-		{
+		thumbsDown.setOnClickListener(new View.OnClickListener() {
 			@Override
-			public void onClick(View view)
-			{
+			public void onClick(View view) {
 				voteDown(voteOut, img, tabHost);
 			}
 		});
@@ -833,7 +851,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			});
 		}
 
-		commentsCache.put(img.id,comments);
+		commentsCache.put(img.id, comments);
 
 		return comments;
 	}
@@ -927,12 +945,10 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			}
 		}).start();
 
-		tabHost.findViewById(R.id.postCommentButton).setOnClickListener(new View.OnClickListener()
-		{
+		tabHost.findViewById(R.id.postCommentButton).setOnClickListener(new View.OnClickListener() {
 			@Override
-			public void onClick(View view)
-			{
-				postComment(img,tabHost);
+			public void onClick(View view) {
+				postComment(img, tabHost);
 			}
 		});
 	}
@@ -1031,30 +1047,6 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		return views;
 	}
 
-	private String getNewTitle(ArrayList<E621Tag> tags, final E621Image img)
-	{
-		String title = "";
-
-		if(tags == null)
-		{
-			return "#" + img.id;
-		}
-		else
-		{
-			for(E621Tag tag : tags)
-			{
-				if(title.length() > 0)
-				{
-					title += ", ";
-				}
-
-				title += tag.getTag();
-			}
-
-			return "#" + img.id + " " + title;
-		}
-	}
-
 	private void updateTags(final E621Image img, final TabHost tabHost)
 	{
 		new Thread(new Runnable()
@@ -1096,8 +1088,6 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 				final ArrayList<View> views = getTagViews(catTags);
 
-				final String newTitle = getNewTitle(catTags.get(E621Tag.ARTIST),img);
-
 				runOnUiThread(new Runnable()
 				{
 					@Override
@@ -1110,8 +1100,6 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 						tagsLayout.removeAllViews();
 
 						tagsLayout.addView(loading);
-
-						if(tabHost.getParent() != null) setTitle(newTitle);
 
 						for(View v : views)
 						{

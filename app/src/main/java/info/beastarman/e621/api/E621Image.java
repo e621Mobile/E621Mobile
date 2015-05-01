@@ -60,6 +60,7 @@ public class E621Image implements Serializable
 	public ArrayList<E621Tag> tags = new ArrayList<E621Tag>();
 	public ArrayList<String> children = new ArrayList<String>();
 	public ArrayList<String> sources = new ArrayList<String>();
+	public ArrayList<String> artist = new ArrayList<String>();
 	public boolean has_children = false;
 	
 	public int score = 0;
@@ -127,13 +128,13 @@ public class E621Image implements Serializable
 
 		img.description = json.optString("description","").trim();
 
-		img.id = json.optInt("id",666);
+		img.id = json.optInt("id", 666);
 		
-		img.rating = json.optString("rating",EXPLICIT);
+		img.rating = json.optString("rating", EXPLICIT);
 		
 		img.file_ext = json.optString("file_ext","jpg");
 		
-		img.preview_width = json.optInt("preview_width",1);
+		img.preview_width = json.optInt("preview_width", 1);
 		
 		img.preview_height = json.optInt("preview_height",1);
 		
@@ -145,12 +146,12 @@ public class E621Image implements Serializable
 		
 		img.height = json.optInt("height",1);
 		
-		img.has_children = json.optBoolean("has_children",false);
+		img.has_children = json.optBoolean("has_children", false);
 
-		img.creator_id = json.optInt("creator_id",0);
-		img.author = json.optString("author","");
+		img.creator_id = json.optInt("creator_id", 0);
+		img.author = json.optString("author", "");
 
-		img.file_size = json.optInt("file_size",0);
+		img.file_size = json.optInt("file_size", 0);
 		
 		if(!json.isNull(("parent_id")))
 		{
@@ -204,6 +205,17 @@ public class E621Image implements Serializable
 			for(int i=0; i<sources.length(); i++)
 			{
 				img.sources.add(sources.optString(i,"").trim());
+			}
+		}
+
+		JSONArray artist = json.optJSONArray("artist");
+		img.artist = new ArrayList<String>();
+
+		if(artist != null)
+		{
+			for(int i=0; i<artist.length(); i++)
+			{
+				img.artist.add(artist.optString(i,"").trim());
 			}
 		}
 		
@@ -287,13 +299,33 @@ public class E621Image implements Serializable
 
 		if(sources.length() > 0)
 		{
-            try
+			try
 			{
 				JSONArray sourcesArray = new JSONArray(sources);
 
 				for(int i=0; i<sourcesArray.length(); i++)
 				{
 					img.sources.add(sourcesArray.optString(i,"").trim());
+				}
+			}
+			catch (JSONException e)
+			{
+				e.printStackTrace();
+			}
+		}
+
+		String artist = StringEscapeUtils.unescapeXml(xml.getAttribute("artist"));
+		img.artist = new ArrayList<String>();
+
+		if(artist.length() > 0)
+		{
+			try
+			{
+				JSONArray artistArray = new JSONArray(artist);
+
+				for(int i=0; i<artistArray.length(); i++)
+				{
+					img.artist.add(artistArray.optString(i,"").trim());
 				}
 			}
 			catch (JSONException e)
