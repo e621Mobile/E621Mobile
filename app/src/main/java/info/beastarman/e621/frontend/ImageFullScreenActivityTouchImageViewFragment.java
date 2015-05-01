@@ -316,23 +316,54 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
                                     }
 
                                     @Override
-                                    public boolean isPlaying() {
-                                        return player.isPlaying();
+                                    public boolean isPlaying()
+                                    {
+                                        try
+                                        {
+                                            return player.isPlaying();
+                                        }
+                                        catch(Throwable t)
+                                        {
+                                            return true;
+                                        }
                                     }
 
                                     @Override
-                                    public void pause() {
-                                        player.pause();
+                                    public void pause()
+                                    {
+                                        try
+                                        {
+                                            player.pause();
+                                        }
+                                        catch(Throwable t)
+                                        {
+
+                                        }
                                     }
 
                                     @Override
-                                    public void seekTo(int i) {
-                                        player.seekTo(i);
+                                    public void seekTo(int i)
+                                    {
+                                        try
+                                        {
+                                            player.seekTo(i);
+                                        }
+                                        catch(Throwable t)
+                                        {
+
+                                        }
                                     }
 
                                     @Override
                                     public void start() {
-                                        player.start();
+                                        try
+                                        {
+                                            player.start();
+                                        }
+                                        catch(Throwable t)
+                                        {
+
+                                        }
                                     }
 
                                     @Override

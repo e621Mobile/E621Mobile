@@ -90,6 +90,7 @@ import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.backend.PersistentHttpClient;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
+import info.beastarman.e621.views.MediaInputStreamPlayer;
 import info.beastarman.e621.views.StepsProgressDialog;
 
 public class E621Middleware extends E621 {
@@ -147,6 +148,8 @@ public class E621Middleware extends E621 {
         if (new_ctx != null) {
             this.ctx = new_ctx;
         }
+
+        new MediaInputStreamPlayer();
 
         cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "cache/");
         full_cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "full_cache/");

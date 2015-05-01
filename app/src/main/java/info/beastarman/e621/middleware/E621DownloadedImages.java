@@ -679,7 +679,14 @@ public class E621DownloadedImages
                 tries--;
 			}
 			
-			this.tags.addTag((E621Tag[])tags.toArray(new E621Tag[tags.size()]));
+			if(tags != null)
+            {
+                this.tags.addTag((E621Tag[])tags.toArray(new E621Tag[tags.size()]));
+            }
+            else
+            {
+                break;
+            }
 			
 			page++;
 		}
