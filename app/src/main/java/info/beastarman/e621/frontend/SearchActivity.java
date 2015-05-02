@@ -526,6 +526,11 @@ public class SearchActivity extends BaseActivity
 																if(bmp != null)
                                                                 {
                                                                     imgView.setImageBitmap(bmp);
+
+																	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+																			bmp.getWidth(),
+																			bmp.getHeight());
+																	imgView.setLayoutParams(lp);
                                                                 }
                                                                 else
                                                                 {

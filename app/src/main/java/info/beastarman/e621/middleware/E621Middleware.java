@@ -630,9 +630,13 @@ public class E621Middleware extends E621 {
 
 	public int getFileThummbnailSize(E621Image img)
 	{
-		if(!img.file_ext.equals("png") && !img.file_ext.equals("jpg")) return E621Image.PREVIEW;
+		if(img.file_ext.equals("gif")) return E621Image.PREVIEW;
 
-		return settings.getInt("prefferedFilePreviewSize", E621Image.PREVIEW);
+		int ret = settings.getInt("prefferedFilePreviewSize", E621Image.PREVIEW);
+
+        if(img.file_ext.equals("webm") && ret == E621Image.FULL) ret = E621Image.SAMPLE;
+
+        return ret;
 	}
 	public int getFileDownloadSize()
 	{
@@ -690,6 +694,17 @@ public class E621Middleware extends E621 {
 		else
 		{
 			E621Image img = super.post__show(id);
+
+            if(img.file_ext.equals("webm"))
+            {
+                img.preview_url = "http://beastarman.info/media/E621Webm/thumb/"+img.id+".jpg";
+                img.preview_height = 120;
+                img.preview_width = 120;
+
+                img.sample_url = "http://beastarman.info/media/E621Webm/image/"+img.id+".jpg";
+                img.sample_height = 480;
+                img.sample_width = 480;
+            }
 			
 			e621ImageCache.put(img.id, img);
 			
@@ -708,6 +723,17 @@ public class E621Middleware extends E621 {
 		{
 			for(E621Image img : ret.images)
 			{
+                if(img.file_ext.equals("webm"))
+                {
+                    img.preview_url = "http://beastarman.info/media/E621Webm/thumb/"+img.id+".jpg";
+                    img.preview_height = 120;
+                    img.preview_width = 120;
+
+                    img.sample_url = "http://beastarman.info/media/E621Webm/image/"+img.id+".jpg";
+                    img.sample_height = 480;
+                    img.sample_width = 480;
+                }
+
 				e621ImageCache.put(img.id, img);
 			}
 			
@@ -1248,7 +1274,78 @@ public class E621Middleware extends E621 {
 		}
 	}
 
-	public static Bitmap decodeFile(InputStream in, int width, int height) {
+    public static Bitmap decodeFileKeepRatio(InputStream in, int width, int height)
+    {
+        byte[] bytes = null;
+
+        try {
+            bytes = IOUtils.toByteArray(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+
+            return null;
+        }
+
+        in = new ByteArrayInputStream(bytes);
+
+        //Decode image size
+        BitmapFactory.Options o = new BitmapFactory.Options();
+        o.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(in, null, o);
+
+        try {
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+
+            return null;
+        }
+
+        //Find the correct scale value. It should be the power of 2.
+        int scale = 1;
+        while (o.outWidth / scale / 2 >= width && o.outHeight / scale / 2 >= height) {
+            scale *= 2;
+        }
+
+        in = new ByteArrayInputStream(bytes);
+
+        //Decode with inSampleSize
+        BitmapFactory.Options o2 = new BitmapFactory.Options();
+        o2.inSampleSize = scale;
+        Bitmap bitmap_temp = BitmapFactory.decodeStream(in, null, o2);
+
+        try {
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        bytes = null;
+        System.gc();
+
+        if (bitmap_temp == null)
+        {
+            return null;
+        }
+        else if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())
+        {
+            return bitmap_temp;
+        }
+        else
+        {
+            float ratio = ((float)bitmap_temp.getWidth())/width;
+            height = (int)(bitmap_temp.getHeight()/ratio);
+
+            Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+
+            bitmap_temp.recycle();
+
+            return ret;
+        }
+    }
+
+	public static Bitmap decodeFile(InputStream in, int width, int height)
+    {
         byte[] bytes = null;
 
         try {
@@ -1330,7 +1427,7 @@ public class E621Middleware extends E621 {
 			{
 				InputStream inTemp = download_manager.getFile(id);
 
-				Bitmap bmp = decodeFile(inTemp, width, height);
+				Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
 
 				if(inTemp != null)
 				{
@@ -1351,7 +1448,7 @@ public class E621Middleware extends E621 {
 			{
 				InputStream inTemp = full_cache.getFile(String.valueOf(id));
 
-				Bitmap bmp = decodeFile(inTemp, width, height);
+				Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
 
 				if(inTemp != null)
 				{
@@ -1372,7 +1469,7 @@ public class E621Middleware extends E621 {
 			{
 				InputStream inTemp = thumb_cache.getFile(String.valueOf(id));
 
-				Bitmap bmp = decodeFile(inTemp, width, height);
+				Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
 
 				if(inTemp != null)
 				{
@@ -1436,7 +1533,7 @@ public class E621Middleware extends E621 {
 							break;
 						case E621Image.FULL:
 						default:
-							url = img.file_url;
+                            url = img.file_url;
 							break;
 					}
 
@@ -1447,7 +1544,7 @@ public class E621Middleware extends E621 {
 						return;
 					}
 
-					Bitmap bmp = decodeFile(inputStream,width,height);
+					Bitmap bmp = decodeFileKeepRatio(inputStream, width, height);
 
 					synchronized (lock)
 					{
@@ -1517,7 +1614,7 @@ public class E621Middleware extends E621 {
 					return null;
 				}
 
-				bmp = decodeFile(inputStream,width,height);
+				bmp = decodeFileKeepRatio(inputStream,width,height);
 
 				tries--;
 			}
