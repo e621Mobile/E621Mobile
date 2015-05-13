@@ -630,7 +630,7 @@ public class E621Middleware extends E621 {
 
 	public int getFileThummbnailSize(E621Image img)
 	{
-		if(img.file_ext.equals("gif")) return E621Image.PREVIEW;
+		if(img.file_ext.equals("gif") || img.file_ext.equals("swf")) return E621Image.PREVIEW;
 
 		int ret = settings.getInt("prefferedFilePreviewSize", E621Image.PREVIEW);
 
