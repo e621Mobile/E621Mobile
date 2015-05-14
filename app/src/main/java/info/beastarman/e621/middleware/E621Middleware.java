@@ -1941,8 +1941,13 @@ public class E621Middleware extends E621 {
         return in.obj;
     }
 
-    public InputStream getVideo(final int img) throws IOException {
-        return getVideo(post__show(img));
+    public InputStream getVideo(final int img) {
+        try {
+            return getVideo(post__show(img));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public InputStream getVideo(final E621Image img)

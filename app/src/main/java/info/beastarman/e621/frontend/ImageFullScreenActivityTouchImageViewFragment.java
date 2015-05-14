@@ -150,8 +150,6 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 			{
 				final float scale = Math.max(1, Math.max(imageSize.left / 2048f, imageSize.right / 2048f));
 
-				Log.d(E621Middleware.LOG_TAG,""+scale);
-
 				getActivity().runOnUiThread(new Runnable()
 				{
 					@Override
@@ -427,6 +425,8 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
                                         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
                                         player.setVideoInputStream(in);
                                     }
+
+                                    p.setVisibility(View.GONE);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -460,28 +460,20 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 						ll.setLayoutParams(params);
 						rl.addView(ll);
 
-						ll.setOnLongClickListener(new View.OnLongClickListener()
-						{
-							@Override
-							public boolean onLongClick(View view)
-							{
-								final Intent i = new Intent();
-								i.setAction(Intent.ACTION_VIEW);
+						ll.setOnLongClickListener(new View.OnLongClickListener() {
+                            @Override
+                            public boolean onLongClick(View view) {
+                                final Intent i = new Intent();
+                                i.setAction(Intent.ACTION_VIEW);
 
-                                if(file_url != null)
-                                {
+                                if (file_url != null) {
                                     i.setData(Uri.parse(file_url));
                                     startActivity(i);
-                                }
-                                else
-                                {
-                                    new Thread(new Runnable()
-                                    {
+                                } else {
+                                    new Thread(new Runnable() {
                                         @Override
-                                        public void run()
-                                        {
-                                            try
-                                            {
+                                        public void run() {
+                                            try {
                                                 E621Image img = E621Middleware.getInstance().post__show(id);
                                                 i.setData(Uri.parse(img.file_url));
 
@@ -491,18 +483,16 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
                                                         startActivity(i);
                                                     }
                                                 });
-                                            }
-                                            catch (IOException e)
-                                            {
+                                            } catch (IOException e) {
                                                 e.printStackTrace();
                                             }
                                         }
                                     }).start();
                                 }
 
-								return true;
-							}
-						});
+                                return true;
+                            }
+                        });
 
 						ll.setOnClickListener(toggleListener());
 
