@@ -1768,7 +1768,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}).start();
 	}
 
-	private boolean visible = true;
+	public boolean visible = true;
 
 	public void toggleVisibility()
 	{
@@ -1783,7 +1783,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		}
 	}
 
-	private void showUI()
+	public void showUI()
 	{
 		getWindow().getDecorView().setSystemUiVisibility(getUIVisible());
 
@@ -1852,7 +1852,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		startActivity(intent);
 	}
 
-	private void hideUI()
+	public void hideUI()
 	{
 		getWindow().getDecorView().setSystemUiVisibility(getUIInvisible());
 

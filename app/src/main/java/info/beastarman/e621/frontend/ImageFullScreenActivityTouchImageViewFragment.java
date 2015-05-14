@@ -449,6 +449,15 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
                         v.setOnTouchListener(new View.OnTouchListener() {
                             @Override
                             public boolean onTouch(View view, MotionEvent motionEvent) {
+                                Activity a = getActivity();
+
+                                if (a instanceof ImageFullScreenActivity)
+                                {
+                                    ImageFullScreenActivity act = ((ImageFullScreenActivity) a);
+
+                                    if(act.visible) act.hideUI();
+                                }
+
                                 controller.show();
 
                                 return true;
