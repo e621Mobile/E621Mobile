@@ -6,6 +6,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +20,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.E621Middleware.Mascot;
 
 public class MainActivity extends SlideMenuBaseActivity
@@ -26,7 +28,7 @@ public class MainActivity extends SlideMenuBaseActivity
 	Mascot[] mascots;
 	
 	int previous_mascot = -1;
-	
+
 	@Override
     protected void onCreate(Bundle savedInstanceState)
 	{
@@ -35,6 +37,8 @@ public class MainActivity extends SlideMenuBaseActivity
 		setContentView(R.layout.activity_main);
 
         File nomedia = e621.noMediaFile();
+
+		int newVersion = e621.isNewVersion();
 		
 		if(e621.isFirstRun())
 		{
@@ -50,6 +54,10 @@ public class MainActivity extends SlideMenuBaseActivity
 			});
 			
 			confirmFullUpdateBuilder.create().show();
+		}
+		else if(newVersion > 0)
+		{
+			newVersionPopup(newVersion);
 		}
         else if(e621.testNoMediaFile() && nomedia != null)
         {
@@ -70,6 +78,30 @@ public class MainActivity extends SlideMenuBaseActivity
 		change_mascot();
 
         updateStatistics();
+	}
+
+	private void newVersionPopup(int version)
+	{
+		String message = null;
+
+		switch (version)
+		{
+			case 17:
+				message = getString(R.string.version_17);
+		}
+
+		if(message == null) return;
+
+		AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(this);
+		confirmFullUpdateBuilder.setTitle("News");
+		confirmFullUpdateBuilder.setMessage(message);
+		confirmFullUpdateBuilder.setPositiveButton("Dismiss", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialogInterface, int which) {
+			}
+		});
+
+		confirmFullUpdateBuilder.create().show();
 	}
 
 	private String getSize(double size)
@@ -136,14 +168,14 @@ public class MainActivity extends SlideMenuBaseActivity
 					e.printStackTrace();
 				}
 
-				statistics.post(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							statistics.setText(online + "\n" + offline);
-						}
-					});
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						statistics.setText(online + "\n" + offline);
+					}
+				});
+
+				statistics.invalidate();
 			}
 		}).start();
 
@@ -154,14 +186,14 @@ public class MainActivity extends SlideMenuBaseActivity
 			{
 				offline = df.format(e621.localSearchCount("")) + " Posts Offline (" + getSize(e621.getOfflinePostsSize()) + ")";
 
-				statistics.post(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							statistics.setText(online + "\n" + offline);
-						}
-					});
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						statistics.setText(online + "\n" + offline);
+					}
+				});
+
+				statistics.invalidate();
 			}
 		}).start();
     }

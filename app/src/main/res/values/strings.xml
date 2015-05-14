@@ -46,6 +46,8 @@
 		Developed by Douglas Vanny Bento (me@beastarman.info)
     </string>
     <string name="changelog">
+        Version 0.2a.6: Video Playback. Disable Sync or set custom interval. Sharing.
+        \n\n
         Version 0.2a: Stability. Full screen images. DText. Post comments.
         \n\n
         Version 0.1a.8: Blacklists, Highlight tags, Thumbnail size and improved response time
@@ -93,4 +95,11 @@
     <string name="share">Share</string>
     <string name="description">Media Controls</string>
     <string name="error_message">Something went wrong. Please don\'t hate me.</string>
+
+    <string name="version_17">Video support arrived!\n
+    Please keep in mind that Android currently does not support playback for some .webm files.
+    \n\n
+    Sync can now have a custom interval or be disabled completely.
+    \n\n
+    Posts now can be shared easily.</string>
 </resources>

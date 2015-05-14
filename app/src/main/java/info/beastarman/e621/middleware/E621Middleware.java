@@ -381,6 +381,36 @@ public class E621Middleware extends E621 {
         }
     }
 
+    public int isNewVersion()
+    {
+        PackageManager manager = ctx.getPackageManager();
+        PackageInfo info = null;
+
+        try
+        {
+            info = manager.getPackageInfo (ctx.getPackageName(), 0);
+        }
+        catch(PackageManager.NameNotFoundException e)
+        {
+        }
+
+        if(info != null)
+        {
+            int currentVersion = info.versionCode;
+
+            int lastRunningVersion = settings.getInt("lastRunningVersion",-1);
+
+            if(currentVersion > lastRunningVersion)
+            {
+                settings.edit().putInt("lastRunningVersion",currentVersion).commit();
+
+                return currentVersion;
+            }
+        }
+
+        return -1;
+    }
+
     public long getTimeSinceFirstRun()
     {
         return timeSinceFirstRun==null?0:timeSinceFirstRun;
