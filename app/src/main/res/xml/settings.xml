@@ -54,6 +54,15 @@
             android:summary="Select tags that appear on each search result's post" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Data Usage">
+        <info.beastarman.e621.views.SeekBarDialogPreference
+            android:key="syncFrequency"
+            android:defaultValue="3"
+            android:dialogMessage="Please select how often you want to synchronize:"
+            android:summary="How often sync runs"
+            android:max="24"
+            android:title="Sync Frequency"
+            custom:progressTextSuffix=" Hours"
+            custom:min="0" />
         <CheckBoxPreference
             android:key="syncOnlyOnWiFi"
             android:summary="Disable requests sent on background sync when device is not connected on WiFi"

@@ -508,8 +508,6 @@ public class SlideMenuBaseActivity extends BaseActivity
 
 				float initialAlpha = ((float)drawerParams.width/width)/2;
 
-				Log.d(E621Middleware.LOG_TAG,initialAlpha+"");
-
 				if(initialAlpha < 0.001f)
 		        {
 		        	close_sidemenu_area.setVisibility(FrameLayout.GONE);

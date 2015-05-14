@@ -25,7 +25,7 @@
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sorry. I&apos;m afraid I can&apos;t do that."
+                android:text="@string/error_message"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textColor="@color/white" />
 

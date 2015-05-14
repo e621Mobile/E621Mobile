@@ -13,7 +13,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -50,7 +49,6 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -325,16 +323,9 @@ public class E621Middleware extends E621 {
 
         Intent intent = new Intent(ctx, E621SyncReciever.class);
 
-        if (PendingIntent.getBroadcast(ctx, 0, intent, PendingIntent.FLAG_NO_CREATE) == null)
+        if (PendingIntent.getBroadcast(ctx, 0, intent, PendingIntent.FLAG_NO_CREATE) == null || getSyncFrequency()==0)
         {
-            AlarmManager alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
-            PendingIntent alarmIntent = PendingIntent.getBroadcast(ctx, 0, intent, 0);
-
-            long interval = AlarmManager.INTERVAL_HOUR * 3;
-
-            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
-                    SystemClock.elapsedRealtime() + interval,
-                    interval, alarmIntent);
+            setupSync();
         }
 
         interrupt = new InterruptedSearchManager(interrupted_path);
@@ -369,6 +360,24 @@ public class E621Middleware extends E621 {
                     timeSinceFirstRun = 666l;
                 }
             }
+        }
+    }
+
+    private void setupSync()
+    {
+        Intent intent = new Intent(ctx, E621SyncReciever.class);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(ctx, 0, intent, 0);
+
+        AlarmManager alarmMgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+
+        alarmMgr.cancel(alarmIntent);
+
+        long interval = AlarmManager.INTERVAL_HOUR * getSyncFrequency();
+
+        if(interval > 0) {
+            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+                    SystemClock.elapsedRealtime() + interval,
+                    interval, alarmIntent);
         }
     }
 
@@ -413,7 +422,7 @@ public class E621Middleware extends E621 {
 
     public boolean testNoMediaFile()
     {
-        boolean b = settings.getBoolean("testNoMediaFile",true);
+        boolean b = settings.getBoolean("testNoMediaFile", true);
 
         return b;
     }
@@ -437,7 +446,7 @@ public class E621Middleware extends E621 {
 
 	public int getOnlinePosts() throws IOException
 	{
-		Integer onlinePosts = settings.getInt("onlinePosts",0);
+		Integer onlinePosts = settings.getInt("onlinePosts", 0);
 
 		if(onlinePosts == 0)
 		{
@@ -486,7 +495,7 @@ public class E621Middleware extends E621 {
 
 	public boolean showStatisticsInHome()
 	{
-		return settings.getBoolean("showStatisticsInHome",true);
+		return settings.getBoolean("showStatisticsInHome", true);
 	}
 
 	public boolean showStatisticsInHome(boolean newValue)
@@ -511,6 +520,18 @@ public class E621Middleware extends E621 {
 		settings.edit().putInt("updateBreak", i).commit();
 	}
 
+    public void setSyncFrequency(int frequency)
+    {
+        settings.edit().putInt("syncFrequency",Math.max(0,frequency)).commit();
+
+        setupSync();
+    }
+
+    public int getSyncFrequency()
+    {
+        return settings.getInt("syncFrequency",3);
+    }
+
 	public static enum BlacklistMethod
 	{
 		DISABLED(0),
@@ -525,7 +546,7 @@ public class E621Middleware extends E621 {
 			return value;
 		}
 
-		private BlacklistMethod(int value)
+		BlacklistMethod(int value)
 		{
 			this.value = value;
 		}

@@ -100,8 +100,14 @@ public class SeekBarDialogPreference extends DialogPreference
             {
                 // update text that displays the current SeekBar progress value
                 // note: this does not persist the progress value. that is only ever done in setProgress()
-                String progressStr = String.valueOf(progress + mMinProgress);
-                mProgressText.setText(mProgressTextSuffix == null ? progressStr : progressStr.concat(mProgressTextSuffix.toString()));
+                String text = String.valueOf(progress);
+
+                if(mTextUpdate != null)
+                {
+                    text = mTextUpdate.onTextUpdate(SeekBarDialogPreference.this, progress);
+                }
+
+                mProgressText.setText(text);
             }
         });
         mSeekBar.setMax(mMaxProgress - mMinProgress);
@@ -253,5 +259,32 @@ public class SeekBarDialogPreference extends DialogPreference
                 return new SavedState[size];
             }
         };
+    }
+
+    public static abstract class TextUpdate
+    {
+        public abstract String onTextUpdate(SeekBarDialogPreference preference, int progress);
+    }
+
+    TextUpdate mTextUpdate = new TextUpdate()
+    {
+        public String onTextUpdate(SeekBarDialogPreference preference, int progress)
+        {
+            String progressStr = String.valueOf(progress + mMinProgress);
+            return (mProgressTextSuffix == null ? progressStr : progressStr.concat(mProgressTextSuffix.toString()));
+        }
+    };
+
+    public void setTextUpdate(TextUpdate textUpdate) {
+        this.mTextUpdate = textUpdate;
+
+        String text = String.valueOf(mProgress);
+
+        if(mTextUpdate != null)
+        {
+            text = mTextUpdate.onTextUpdate(SeekBarDialogPreference.this, mProgress);
+        }
+
+        if(mProgressText != null) mProgressText.setText(text);
     }
 }

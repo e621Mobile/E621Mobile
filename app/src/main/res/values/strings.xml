@@ -92,4 +92,5 @@
     <string name="nomedia">A .nomedia file was detected on %1$s. This prevents downloaded images from showing up on your gallery. Would you like to remove this file?</string>
     <string name="share">Share</string>
     <string name="description">Media Controls</string>
+    <string name="error_message">Something went wrong. Please don\'t hate me.</string>
 </resources>

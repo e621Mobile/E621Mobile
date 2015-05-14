@@ -259,11 +259,9 @@ public class SettingsActivity extends PreferenceActivity
 			restoreBackup.setDefaultValue(null);
 			restoreBackup.setEntries(entries);
 			restoreBackup.setEntryValues(entriesValues);
-			restoreBackup.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener()
-			{
+			restoreBackup.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
 				@Override
-				public boolean onPreferenceChange(Preference preference, Object newValue)
-				{
+				public boolean onPreferenceChange(Preference preference, Object newValue) {
 					restoreBackup(new Date(Long.parseLong(newValue.toString())));
 
 					return false;
@@ -271,11 +269,9 @@ public class SettingsActivity extends PreferenceActivity
 			});
 
 			Preference allowedMascots = (Preference) getPreferenceManager().findPreference("allowedMascots");
-			allowedMascots.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
-			{
+			allowedMascots.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
 				@Override
-				public boolean onPreferenceClick(Preference arg0)
-				{
+				public boolean onPreferenceClick(Preference arg0) {
 					E621MascotSelect fragment = new E621MascotSelect();
 					fragment.show(getFragmentManager(), "MascotSelect");
 
@@ -320,13 +316,41 @@ public class SettingsActivity extends PreferenceActivity
 			});
 
 			Preference update = (Preference) getPreferenceManager().findPreference("update");
-			update.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
-			{
+			update.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
 				@Override
-				public boolean onPreferenceClick(Preference arg0)
-				{
+				public boolean onPreferenceClick(Preference arg0) {
 					update();
 					return true;
+				}
+			});
+
+			final SeekBarDialogPreference syncFrequency = (SeekBarDialogPreference) findPreference("syncFrequency");
+			syncFrequency.setProgress(e621.getSyncFrequency());
+			syncFrequency.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+				@Override
+				public boolean onPreferenceChange(Preference preference, Object o) {
+					e621.setSyncFrequency((Integer) o);
+
+					return true;
+				}
+			});
+			syncFrequency.setTextUpdate(new SeekBarDialogPreference.TextUpdate()
+			{
+				@Override
+				public String onTextUpdate(SeekBarDialogPreference preference, int progress)
+				{
+					if(progress == 0)
+					{
+						return "Disabled";
+					}
+					else if(progress == 1)
+					{
+						return "1 Hour";
+					}
+					else
+					{
+						return progress + " Hours";
+					}
 				}
 			});
 
