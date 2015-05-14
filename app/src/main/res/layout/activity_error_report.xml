@@ -11,109 +11,118 @@
     android:visibility="visible"
     tools:context=".ErrorReportActivity" >
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentTop="true"
+        android:id="@+id/linearLayout2">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/error_message"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:text="Unfortunately a problem happened in the execution of this program. Would you like to submit the error report below so we can try to fix it?"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/white"
+            android:layout_marginBottom="2dp"/>
+
+    </LinearLayout>
+
     <ScrollView
-        android:id="@+id/parent_scroll"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
+        android:id="@+id/child_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/detailsBackgroundColor"
+        android:visibility="visible"
+        android:padding="8dp"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
+        android:layout_above="@+id/linearLayout"
+        android:layout_below="@+id/linearLayout2">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="vertical"
+            android:onClick="showStatistics">
 
             <TextView
-                android:id="@+id/title"
+                android:id="@+id/logcat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/error_message"
-                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:lineSpacingExtra="2dp"
+                android:text="Click here to show statistics"
+                android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="@color/white" />
-
-            <TextView
-                android:id="@+id/text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="8dp"
-                android:text="Unfortunately a problem happened in the execution of this program. Would you like to submit the error report below so we can try to fix it?"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textColor="@color/white" />
-
-            <ScrollView
-                android:id="@+id/child_scroll"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_margin="12dp"
-                android:background="@color/detailsBackgroundColor"
-                android:visibility="visible"
-                android:padding="8dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:onClick="showStatistics">
-
-                    <TextView
-                        android:id="@+id/logcat"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:lineSpacingExtra="2dp"
-                        android:text="Click here to show statistics"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="@color/white" />
-
-                </LinearLayout>
-            </ScrollView>
-
-            <CheckBox
-                android:id="@+id/sendStatistics"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="Send usage statistics"
-                android:textColor="@color/white" />
-
-            <EditText
-                android:id="@+id/errorDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:hint="Describe you problem here (Optional)"
-                android:inputType="textMultiLine"
-                android:textColor="@color/white" />
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
-
-                <Button
-                    android:id="@+id/dont_send_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_toLeftOf="@+id/view1"
-                    android:onClick="doNotSendReport"
-                    android:text="Don&apos;t Send" />
-
-                <View
-                    android:id="@+id/view1"
-                    android:layout_width="1dp"
-                    android:layout_height="1dp"
-                    android:layout_centerHorizontal="true" />
-
-                <Button
-                    android:id="@+id/send_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_toRightOf="@+id/view1"
-                    android:onClick="sendReport"
-                    android:text="Send" />
-
-            </RelativeLayout>
 
         </LinearLayout>
-
     </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/linearLayout">
+
+        <CheckBox
+            android:id="@+id/sendStatistics"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Send usage statistics"
+            android:textColor="@color/white" />
+
+        <EditText
+            android:id="@+id/errorDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Describe you problem here (Optional)"
+            android:inputType="textMultiLine"
+            android:textColor="@color/white"
+            android:maxHeight="128dp"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/dont_send_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_toLeftOf="@+id/view1"
+                android:onClick="doNotSendReport"
+                android:text="Don&apos;t Send" />
+
+            <View
+                android:id="@+id/view1"
+                android:layout_width="1dp"
+                android:layout_height="1dp"
+                android:layout_centerHorizontal="true" />
+
+            <Button
+                android:id="@+id/send_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_toRightOf="@+id/view1"
+                android:onClick="sendReport"
+                android:text="Send" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
 
 </RelativeLayout>

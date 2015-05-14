@@ -18,8 +18,7 @@ public class RunDebugActivity extends Activity
 
         if(isDebuggable)
         {
-            //intent = new Intent(this,DownloadsActivity.class);
-            //intent.putExtra(SearchActivity.SEARCH,"type:webm");
+            intent = new Intent(this,ErrorReportActivity.class);
         }
 
         startActivity(intent);

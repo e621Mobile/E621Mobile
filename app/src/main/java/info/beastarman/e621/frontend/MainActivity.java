@@ -174,8 +174,6 @@ public class MainActivity extends SlideMenuBaseActivity
 						statistics.setText(online + "\n" + offline);
 					}
 				});
-
-				statistics.invalidate();
 			}
 		}).start();
 
@@ -192,8 +190,6 @@ public class MainActivity extends SlideMenuBaseActivity
 						statistics.setText(online + "\n" + offline);
 					}
 				});
-
-				statistics.invalidate();
 			}
 		}).start();
     }

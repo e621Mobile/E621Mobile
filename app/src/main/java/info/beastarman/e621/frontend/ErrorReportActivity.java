@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -53,36 +54,6 @@ public class ErrorReportActivity extends Activity
 				log = l;
 			}
 		}).start();
-	}
-	
-	@Override
-	protected void onStart()
-	{
-		super.onStart();
-
-		ScrollView parentScrollView = (ScrollView) findViewById(R.id.parent_scroll);
-		ScrollView childScrollView = (ScrollView) findViewById(R.id.child_scroll);
-		
-		parentScrollView.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				findViewById(R.id.child_scroll).getParent().requestDisallowInterceptTouchEvent(false);
-		        return false;
-			}
-		});
-		
-		childScrollView.setOnTouchListener(new View.OnTouchListener()
-		{
-
-	        @Override
-	        public boolean onTouch(View v, MotionEvent event)
-	        {
-		        v.getParent().requestDisallowInterceptTouchEvent(true);
-		        return false;
-		    }
-		});
 	}
 	
 	public void doNotSendReport(View v)
