@@ -1120,7 +1120,16 @@ public class E621Middleware extends E621 {
 		
 		failed_download_manager.addFile(String.valueOf(img.id));
 		
-		final InputStream in = getImage(img,getFileDownloadSize(img.file_ext));
+		final InputStream in;
+
+        if(img.file_ext.equals("webm"))
+        {
+            in = getVideo(img.id);
+        }
+        else
+        {
+            in = getImage(img, getFileDownloadSize(img.file_ext));
+        }
 		
 		if(in != null)
 		{
