@@ -506,7 +506,9 @@ public class SlideMenuBaseActivity extends BaseActivity
 		        drawerParams.width = initialWidth + (int) (interpolatedTime * (width - initialWidth));
 		        wrapper.setLayoutParams(drawerParams);
 
-				float initialAlpha = ((float)initialWidth/width)/2;
+				float initialAlpha = ((float)drawerParams.width/width)/2;
+
+				Log.d(E621Middleware.LOG_TAG,initialAlpha+"");
 
 				if(initialAlpha < 0.001f)
 		        {
