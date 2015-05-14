@@ -13,6 +13,7 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -219,15 +220,29 @@ public class DownloadsActivity extends BaseActivity
 					@Override
 					public void onScanCompleted(String path, Uri uri)
 					{
+						Intent intent = new Intent(Intent.ACTION_VIEW);
+
 						if(uri != null)
 						{
-							Intent intent = new Intent(Intent.ACTION_VIEW);
-					        intent.setData(uri);
-							intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					        startActivity(intent);
+							intent.setData(uri);
 						}
-						
-						connection.obj.disconnect();
+
+						intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+						try
+						{
+							startActivity(intent);
+						}
+						catch(Throwable t)
+						{
+							intent.setData(null);
+							intent.setType("image/*");
+							startActivity(intent);
+						}
+						finally
+						{
+							connection.obj.disconnect();
+						}
 					}
 				});
 				connection.obj.connect();
