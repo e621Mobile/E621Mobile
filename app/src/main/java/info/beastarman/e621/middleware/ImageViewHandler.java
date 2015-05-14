@@ -1,5 +1,6 @@
 package info.beastarman.e621.middleware;
 
+import android.app.ActionBar;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
@@ -7,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.apache.commons.io.IOUtils;
 
@@ -14,6 +16,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.Semaphore;
+
+import info.beastarman.e621.R;
 
 public class ImageViewHandler extends ImageHandler
 {
@@ -30,7 +34,7 @@ public class ImageViewHandler extends ImageHandler
 	
 	private Bitmap decodeFile(InputStream in, int width, int height)
 	{
-		if(width == 0 || height == 0)
+		if(width == 0 || height == 0 || in == null)
 		{
 			return null;
 		}
@@ -71,6 +75,8 @@ public class ImageViewHandler extends ImageHandler
 
 			return null;
 		}
+
+		height = (int) (width * (((double)o.outHeight) / o.outWidth));
 
 		//Find the correct scale value. It should be the power of 2.
 		int scale=1;
@@ -132,8 +138,20 @@ public class ImageViewHandler extends ImageHandler
 			double scale = Math.max(1,Math.max(width/2048,height/2048));
 			
 			Bitmap bitmap = decodeFile(in, (int)(width/scale), (int)(height/scale));
-			
-			this.imgView.setImageBitmap(bitmap);
+
+			if(bitmap != null)
+			{
+				ViewGroup.LayoutParams params = this.imgView.getLayoutParams();
+				params.width = imgView.getWidth();
+				params.height = (int) (params.width * (((double)bitmap.getHeight()) / bitmap.getWidth()));
+				this.imgView.setLayoutParams(params);
+
+				this.imgView.setImageBitmap(bitmap);
+			}
+			else
+			{
+				this.imgView.setImageResource(R.drawable.bad_image);
+			}
 		}
 		catch (Exception e)
 		{

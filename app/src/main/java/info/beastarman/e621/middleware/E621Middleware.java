@@ -101,6 +101,7 @@ public class E621Middleware extends E621 {
     File full_cache_path = null;
     File sd_path = null;
     File download_path = null;
+    File webm_thumbnail_path = null;
     File export_path = null;
     File report_path = null;
     File interrupted_path = null;
@@ -120,6 +121,7 @@ public class E621Middleware extends E621 {
     ImageCacheManagerInterface thumb_cache;
     ImageCacheManagerInterface full_cache;
     E621DownloadedImages download_manager;
+    ImageCacheManagerInterface webm_thumbnails;
 
     BackupManager backupManager;
 
@@ -155,6 +157,7 @@ public class E621Middleware extends E621 {
         full_cache_path = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "full_cache/");
         sd_path = new File(Environment.getExternalStorageDirectory(), "e621/");
         download_path = new File(sd_path, "e621 Images/");
+        webm_thumbnail_path = new File(sd_path, "Webm Thumbs/");
         export_path = new File(sd_path, "export/");
         report_path = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC), "reports/");
         interrupted_path = new File(sd_path, "interrupt/");
@@ -222,6 +225,22 @@ public class E621Middleware extends E621 {
             download_path.mkdirs();
         }
 
+        if (!webm_thumbnail_path.exists())
+        {
+            webm_thumbnail_path.mkdirs();
+        }
+
+        File webm_nomedia = new File(webm_thumbnail_path,".nomedia");
+
+        if(!webm_nomedia.exists())
+        {
+            try {
+                webm_nomedia.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         if (!export_path.exists()) {
             export_path.mkdirs();
         }
@@ -244,7 +263,6 @@ public class E621Middleware extends E621 {
             try {
                 no_media.createNewFile();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         } else {
@@ -269,6 +287,10 @@ public class E621Middleware extends E621 {
 
         if (download_manager == null) {
             download_manager = new E621DownloadedImages(ctx, download_path);
+        }
+
+        if (webm_thumbnails == null) {
+            webm_thumbnails = new DirectImageCacheManager(webm_thumbnail_path, 0);
         }
 
         File failed_download_file = new File(ctx.getExternalFilesDir(DIRECTORY_SYNC), "failed_downloads.txt");
@@ -684,6 +706,16 @@ public class E621Middleware extends E621 {
 		return settings.getInt("commentsSorting", DATE_ASC);
 	}
 
+    private String getWebmPreviewUrl(int id)
+    {
+        return "http://beastarman.info/media/E621Webm/thumb/"+id+".jpg";
+    }
+
+    private String getWebmSampleUrl(int id)
+    {
+        return "http://beastarman.info/media/E621Webm/image/"+id+".jpg";
+    }
+
 	@Override
 	public E621Image post__show(Integer id) throws IOException
 	{
@@ -697,11 +729,11 @@ public class E621Middleware extends E621 {
 
             if(img.file_ext.equals("webm"))
             {
-                img.preview_url = "http://beastarman.info/media/E621Webm/thumb/"+img.id+".jpg";
+                img.preview_url = getWebmPreviewUrl(img.id);
                 img.preview_height = 120;
                 img.preview_width = 120;
 
-                img.sample_url = "http://beastarman.info/media/E621Webm/image/"+img.id+".jpg";
+                img.sample_url = getWebmSampleUrl(img.id);
                 img.sample_height = 480;
                 img.sample_width = 480;
             }
@@ -872,7 +904,7 @@ public class E621Middleware extends E621 {
 				Set<EventManager> set = new HashSet<EventManager>();
 				set.add(event);
 				
-				downloads.put(id,set);
+				downloads.put(id, set);
 			}
 		}
 		
@@ -1119,6 +1151,15 @@ public class E621Middleware extends E621 {
 					}
 				}
 			}
+
+            if(img.file_ext.equals("webm")) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        generateWebmThumbnail(img.id);
+                    }
+                }).start();
+            }
 			
 			return true;
 		}
@@ -1221,6 +1262,8 @@ public class E621Middleware extends E621 {
 				}
 			}
 		}
+
+        webm_thumbnails.removeFile(String.valueOf(id));
 	}
 	
 	Semaphore getImageSemaphore = new Semaphore(10);
@@ -1463,27 +1506,22 @@ public class E621Middleware extends E621 {
 			}
 		}));
 
-		threads.add(new Thread(new Runnable()
-		{
-			public void run()
-			{
-				InputStream inTemp = thumb_cache.getFile(String.valueOf(id));
+		threads.add(new Thread(new Runnable() {
+            public void run() {
+                InputStream inTemp = thumb_cache.getFile(String.valueOf(id));
 
-				Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
+                Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
 
-				if(inTemp != null)
-				{
-					synchronized(lock)
-					{
-						if(in.obj == null)
-						{
-							storeInCache.obj = false;
-							in.obj = bmp;
-						}
-					}
-				}
-			}
-		}));
+                if (inTemp != null) {
+                    synchronized (lock) {
+                        if (in.obj == null) {
+                            storeInCache.obj = false;
+                            in.obj = bmp;
+                        }
+                    }
+                }
+            }
+        }));
 
 		if(!(antecipateOnlyOnWiFi() && !isWifiConnected()))
 		{
@@ -2169,12 +2207,35 @@ public class E621Middleware extends E621 {
 		
 		return in.obj;
 	}
-	
-	public InputStream getDownloadedImage(Integer id)
-	{
-		return download_manager.getFile(id);
-	}
-	
+
+    public void generateWebmThumbnail(int id)
+    {
+        webm_thumbnails.createOrUpdate(String.valueOf(id), getImageFromInternet(getWebmSampleUrl(id)));
+    }
+
+    public InputStream getDownloadedImageThumb(final E621DownloadedImage id)
+    {
+        if(id.getType().equals("jpg") || id.getType().equals("png") || id.getType().equals("gif"))
+        {
+            return getDownloadedImage(id);
+        }
+        else if(id.getType().equals("webm"))
+        {
+            InputStream ret = webm_thumbnails.getFile(String.valueOf(id.id));
+
+            if(ret == null && isWifiConnected())
+            {
+                generateWebmThumbnail(id.id);
+
+                ret = webm_thumbnails.getFile(String.valueOf(id.id));
+            }
+
+            return ret;
+        }
+
+        return null;
+    }
+
 	public InputStream getDownloadedImage(E621DownloadedImage id)
 	{
 		return download_manager.getFile(id);
@@ -2709,7 +2770,9 @@ public class E621Middleware extends E621 {
 		}
 
 		eventManager.trigger(SyncState.INTERRUPTED_SEARCHES);
-		
+
+        eraseWebmThumbnails();
+
 		syncSearch();
 
 		try
@@ -2730,6 +2793,19 @@ public class E621Middleware extends E621 {
 		
 		Log.d(LOG_TAG,"End sync");
 	}
+
+    private void eraseWebmThumbnails()
+    {
+        String[] thumbs = webm_thumbnails.fileList();
+
+        for(String webm : thumbs)
+        {
+            if(!download_manager.hasFile(Integer.parseInt(webm)))
+            {
+                webm_thumbnails.removeFile(webm);
+            }
+        }
+    }
 	
 	Semaphore searchCountSemaphore = new Semaphore(10);
 	
@@ -2761,15 +2837,10 @@ public class E621Middleware extends E621 {
 					ArrayList<E621DownloadedImage> images = localSearch(0, 1, interrupted.search);
 					int width = 64;
 					int height = 64;
-
-                    while(images.size()>0 && !(images.get(0).getType().toLowerCase().equals("jpg") || images.get(0).getType().toLowerCase().equals("png") || images.get(0).getType().toLowerCase().equals("gif")))
-                    {
-                        images.remove(0);
-                    }
 					
 					if(images.size() > 0)
 					{
-						in = getDownloadedImage(images.get(0));
+						in = getDownloadedImageThumb(images.get(0));
 						
 						if(in == null) return;
 						

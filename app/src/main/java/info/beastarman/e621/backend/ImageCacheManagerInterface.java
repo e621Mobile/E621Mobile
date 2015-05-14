@@ -21,6 +21,8 @@ public interface ImageCacheManagerInterface {
 
 	public abstract long totalSize();
 
+	public abstract String[] fileList();
+
 	public void setMaxSize(long maxSize);
 
 	void removeFiles(String[] ids);

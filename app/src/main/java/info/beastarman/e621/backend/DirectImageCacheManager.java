@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,10 +45,24 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 		clean();
 	}
 
+	private File[] listFiles()
+	{
+		File[] ret = base_path.listFiles(new FilenameFilter(){
+			@Override
+			public boolean accept(File file, String s) {
+				return !s.equals(".nomedia");
+			}
+		});
+
+		if(ret == null) ret = new File[0];
+
+		return ret;
+	}
+
 	private File getFileObj(String id)
 	{
 		final Pattern p = Pattern.compile("\\d+ " + Pattern.quote(id)); // careful: could also throw an exception!
-		File[] f = base_path.listFiles(new FileFilter(){
+		File[] f = base_path.listFiles(new FileFilter() {
 			@Override
 			public boolean accept(File file) {
 				return p.matcher(file.getName()).matches();
@@ -66,9 +81,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 
 	private synchronized File generateFile(String id)
 	{
-		File[] f = base_path.listFiles();
-
-		if(f == null) f = new File[0];
+		File[] f = listFiles();
 
 		Arrays.sort(f);
 
@@ -206,7 +219,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 	{
 		HashMap<String,Long> ret = new HashMap<String,Long>();
 
-		for(File f : base_path.listFiles())
+		for(File f : listFiles())
 		{
 			ret.put(f.getName().split("\\s",2)[1],f.length());
 		}
@@ -217,7 +230,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 	@Override
 	public void clear()
 	{
-		for(File f : base_path.listFiles())
+		for(File f : listFiles())
 		{
 			removeFile(f.getName().split("\\s",2)[1]);
 		}
@@ -238,7 +251,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 		{
 			final long remove_until = (long) Math.floor(max_size*0.8);
 
-			File[] files = base_path.listFiles();
+			File[] files = listFiles();
 
 			Arrays.sort(files);
 
@@ -261,12 +274,29 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 	{
 		long size = 0;
 
-		for(File f : base_path.listFiles())
+		for(File f : listFiles())
 		{
 			size += f.length();
 		}
 
 		return size;
+	}
+
+	@Override
+	public String[] fileList()
+	{
+		File[] ff = listFiles();
+
+		String[] s = new String[ff.length];
+
+		int i=0;
+
+		for(File f : ff)
+		{
+			s[i++] = f.getName().split("\\s")[1];
+		}
+
+		return s;
 	}
 
 	@Override

@@ -127,19 +127,13 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	{
 		final GTFO<InputStream> ret = new GTFO<InputStream>();
 
-		lock.read(new Runnable()
-		{
-			public void run()
-			{
-				if(hasFile(id))
-				{
-					try
-					{
-						ret.obj = new BufferedInputStream(new FileInputStream(new File(base_path,id)));
+		lock.read(new Runnable() {
+			public void run() {
+				if (hasFile(id)) {
+					try {
+						ret.obj = new BufferedInputStream(new FileInputStream(new File(base_path, id)));
 						ret.obj = new ByteArrayInputStream(IOUtils.toByteArray(ret.obj));
-					}
-					catch (IOException e)
-					{
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
@@ -229,27 +223,20 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 	public void removeFiles(final String[] ids)
 	{
-		lock.write(new Runnable()
-		{
-			public void run()
-			{
+		lock.write(new Runnable() {
+			public void run() {
 				SQLiteDatabase db = imageDbHelper.getWritableDatabase();
 				db.beginTransaction();
 
-				try
-				{
-					for(String id : ids)
-					{
-						if(db.delete("images", "id = ?", new String[]{id}) > 0)
-						{
-							new File(base_path,id).delete();
+				try {
+					for (String id : ids) {
+						if (db.delete("images", "id = ?", new String[]{id}) > 0) {
+							new File(base_path, id).delete();
 						}
 					}
 
 					db.setTransactionSuccessful();
-				}
-				finally
-				{
+				} finally {
 					db.endTransaction();
 				}
 			}
@@ -263,24 +250,19 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		final GTFO<HashMap<String,Long>> ret = new GTFO<HashMap<String,Long>>();
 		ret.obj = new HashMap<String,Long>();
 
-		lock.read(new Runnable()
-		{
-			public void run()
-			{
+		lock.read(new Runnable() {
+			public void run() {
 				SQLiteDatabase db = imageDbHelper.getReadableDatabase();
 				Cursor c = null;
 
-				try
-				{
-					c = db.rawQuery("SELECT id, file_size FROM images",null);
+				try {
+					c = db.rawQuery("SELECT id, file_size FROM images", null);
 
-					if(c==null || !c.moveToFirst())
-					{
+					if (c == null || !c.moveToFirst()) {
 						return;
 					}
 
-					while(!c.isAfterLast())
-					{
+					while (!c.isAfterLast()) {
 						ret.obj.put(
 								c.getString(c.getColumnIndex("id")),
 								c.getLong(c.getColumnIndex("file_size"))
@@ -288,10 +270,8 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 						c.moveToNext();
 					}
-				}
-				finally
-				{
-					if(c != null) c.close();
+				} finally {
+					if (c != null) c.close();
 				}
 			}
 		});
@@ -400,6 +380,13 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		});
 
 		return ret.obj;
+	}
+
+	@Override
+	public String[] fileList() {
+		HashMap<String,Long> files = getAllFiles();
+
+		return files.keySet().toArray(new String[files.keySet().size()]);
 	}
 
 	private class AccessWatcher

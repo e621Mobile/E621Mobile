@@ -293,7 +293,12 @@ public class DownloadsActivity extends BaseActivity
 					ProgressBar bar = new ProgressBar(getApplicationContext());
 					
 					int image_height = (int) (layout_width * (((double)img.height) / img.width));
-					
+
+					if(image_height == 0)
+					{
+						image_height = layout_width;
+					}
+
 					LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
 							layout_width,
 							image_height);
@@ -416,7 +421,7 @@ public class DownloadsActivity extends BaseActivity
 		@Override
 		public void run()
 		{
-			InputStream in = e621.getDownloadedImage(id);
+			InputStream in = e621.getDownloadedImageThumb(id);
 	    	Message msg = handler.obtainMessage();
 	    	msg.obj = in;
 	    	
