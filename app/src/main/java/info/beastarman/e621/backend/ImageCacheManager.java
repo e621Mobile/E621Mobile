@@ -144,12 +144,12 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	}
 
 	@Override
-	public void createOrUpdate(final String id, final InputStream in)
+	public boolean createOrUpdate(final String id, final InputStream in)
 	{
-		lock.write(new Runnable()
-		{
-			public void run()
-			{
+		final boolean[] ret = new boolean[]{false};
+
+		lock.write(new Runnable() {
+			public void run() {
 				byte[] data;
 
 				try {
@@ -166,22 +166,20 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 				SQLiteDatabase db = imageDbHelper.getWritableDatabase();
 
-				try
-				{
-					try
-					{
-						db.insert("images", null, values);
-					}
-					catch(SQLiteException e)
-					{
-						values.remove("id");
-						db.update("images", values, "(SELECT id FROM images WHERE id = ?)", query_params);
-					}
-
+				try {
 					try {
-						BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(new File(base_path,id)));
+						BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(new File(base_path, id)));
 						out.write(data);
 						out.close();
+
+						try {
+							db.insert("images", null, values);
+						} catch (SQLiteException e) {
+							values.remove("id");
+							db.update("images", values, "(SELECT id FROM images WHERE id = ?)", query_params);
+						}
+
+						ret[0] = true;
 					} catch (FileNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -189,15 +187,15 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}
-				finally
-				{
+				} finally {
 					clean();
 				}
 			}
 		});
 
 		if(max_size > 0) accessWatcher.insert(id);
+
+		return ret[0];
 	}
 
 	@Override

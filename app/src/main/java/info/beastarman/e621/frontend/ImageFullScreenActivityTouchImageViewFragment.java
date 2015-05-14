@@ -133,7 +133,7 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 
                 file_ext = img.file_ext;
                 id = img.id;
-                imageSize = img.getSize(E621Middleware.getInstance().getFileDownloadSize());
+                imageSize = img.getSize(E621Middleware.getInstance().getFileDownloadSize(file_ext));
                 file_url = img.file_url;
             }
             else
@@ -167,7 +167,7 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 
 						TouchImageViewHandler handler = new TouchImageViewHandler(t, p, (int) (imageSize.left / scale), (int) (imageSize.right / scale));
 
-						new Thread(new ImageLoadRunnable(handler, id, E621Middleware.getInstance(), E621Middleware.getInstance().getFileDownloadSize())).start();
+						new Thread(new ImageLoadRunnable(handler, id, E621Middleware.getInstance(), E621Middleware.getInstance().getFileDownloadSize(file_ext))).start();
 					}
 				});
 			}
@@ -209,7 +209,7 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 
 						GIFViewHandler handler = new GIFViewHandler(gifView, p);
 
-						new Thread(new ImageLoadRunnable(handler, id, E621Middleware.getInstance(), E621Middleware.getInstance().getFileDownloadSize())).start();
+						new Thread(new ImageLoadRunnable(handler, id, E621Middleware.getInstance(), E621Middleware.getInstance().getFileDownloadSize(file_ext))).start();
 					}
 				});
 			}
@@ -420,13 +420,26 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
                                 {
                                     InputStream in = E621Middleware.getInstance().getVideo(id);
 
+                                    player.setInputStreamCheckListener(new MediaInputStreamPlayer.InputStreamCheckListener() {
+                                        @Override
+                                        public void onCheck(boolean isOk) {
+                                            if(!isOk)
+                                            {
+                                                p.post(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        p.setVisibility(View.GONE);
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    });
+
                                     if(in != null)
                                     {
                                         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
                                         player.setVideoInputStream(in);
                                     }
-
-                                    p.setVisibility(View.GONE);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }

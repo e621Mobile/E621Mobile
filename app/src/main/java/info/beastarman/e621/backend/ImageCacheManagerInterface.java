@@ -13,7 +13,7 @@ public interface ImageCacheManagerInterface {
 
 	public abstract InputStream getFile(String id);
 
-	public abstract void createOrUpdate(String id, InputStream in);
+	public abstract boolean createOrUpdate(String id, InputStream in);
 
 	public abstract void removeFile(String id);
 

@@ -96,8 +96,12 @@ public class MediaInputStreamPlayer extends MediaPlayer
                 try {
                     setDataSource(f.getAbsolutePath());
                     prepareAsync();
+
+                    if(inputStreamCheckListener != null) inputStreamCheckListener.onCheck(true);
                 } catch (IOException e) {
                     e.printStackTrace();
+
+                    if(inputStreamCheckListener != null) inputStreamCheckListener.onCheck(false);
                 }
             }
         }).start();
@@ -113,5 +117,16 @@ public class MediaInputStreamPlayer extends MediaPlayer
         {
             _f.delete();
         }
+    }
+
+    InputStreamCheckListener inputStreamCheckListener = null;
+
+    public void setInputStreamCheckListener(InputStreamCheckListener inputStreamCheckListener) {
+        this.inputStreamCheckListener = inputStreamCheckListener;
+    }
+
+    public static abstract class InputStreamCheckListener
+    {
+        public abstract void onCheck(boolean isOk);
     }
 }

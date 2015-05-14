@@ -13,6 +13,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -660,8 +661,13 @@ public class E621Middleware extends E621 {
 
         return ret;
 	}
-	public int getFileDownloadSize()
+	public int getFileDownloadSize(String ext)
 	{
+        if(ext.equals("webm"))
+        {
+            return E621Image.FULL;
+        }
+
 		return settings.getInt("prefferedFileDownloadSize", E621Image.SAMPLE);
 	}
 	
@@ -1114,19 +1120,27 @@ public class E621Middleware extends E621 {
 		
 		failed_download_manager.addFile(String.valueOf(img.id));
 		
-		final InputStream in = getImage(img,getFileDownloadSize());
+		final InputStream in = getImage(img,getFileDownloadSize(img.file_ext));
 		
 		if(in != null)
 		{
 			String ext = img.file_ext;
 			
-			if(getFileDownloadSize() == E621Image.SAMPLE)
+			if(getFileDownloadSize(img.file_ext) == E621Image.SAMPLE)
 			{
 				String[] temp = img.sample_url.split("\\.");
 				ext = temp[temp.length-1];
 			}
 			
-			download_manager.createOrUpdate(img, in, ext);
+			if(!download_manager.createOrUpdate(img, in, ext))
+            {
+                for(EventManager event : downloads.get(img.id))
+                {
+                    event.trigger(DownloadStatus.DELETED);
+                }
+
+                return false;
+            }
 			
 			failed_download_manager.removeFile(String.valueOf(img.id));
 			
@@ -1729,7 +1743,7 @@ public class E621Middleware extends E621 {
             }));
         }
 
-        if(size == E621Image.FULL && getFileDownloadSize() == E621Image.SAMPLE)
+        if(size == E621Image.FULL && getFileDownloadSize("jpg") == E621Image.SAMPLE)
         {
             threads.clear();
         }
@@ -1942,17 +1956,18 @@ public class E621Middleware extends E621 {
     }
 
     public InputStream getVideo(final int img) {
-        try {
-            return getVideo(post__show(img));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+        InputStream ret = download_manager.getFile(img);
 
-    public InputStream getVideo(final E621Image img)
-    {
-        return getImageFromInternet(img.file_url);
+        if(ret == null)
+        {
+            try {
+                return getImageFromInternet(post__show(img).file_url);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+
+        return ret;
     }
 
 	public InputStream getImage(final E621Image img, final int size)
@@ -2023,7 +2038,7 @@ public class E621Middleware extends E621 {
 			}));
 		}
 		
-		if(size == E621Image.FULL && getFileDownloadSize() == E621Image.SAMPLE)
+		if(size == E621Image.FULL && getFileDownloadSize("jpg") == E621Image.SAMPLE)
 		{
 			threads.clear();
 		}
@@ -2535,7 +2550,7 @@ public class E621Middleware extends E621 {
 				Set<EventManager> set = new HashSet<EventManager>();
 				set.add(event);
 				
-				exportedSearches.put(f.getName(),set);
+				exportedSearches.put(f.getName(), set);
 			}
 		}
 		
@@ -2594,48 +2609,93 @@ public class E621Middleware extends E621 {
 
 		eventManager.trigger(FixState.CORRUPT);
 
-		ArrayList<E621DownloadedImage> images = localSearch(0,-1,"~type:jpg ~type:gif ~type:png");
+		ArrayList<E621DownloadedImage> images = localSearch(0,-1,"type:webm");
 
-		ArrayList<Integer> redownload = new ArrayList<Integer>();
+		final ArrayList<Integer> redownload = new ArrayList<Integer>();
 
 		int i=0;
 
-		for(E621DownloadedImage image : images)
+		for(final E621DownloadedImage image : images)
 		{
 			eventManager.trigger(new Pair<String,String>(""+(++i),""+images.size()));
 
-			try
-			{
-				Bitmap bmp = BitmapFactory.decodeStream(getDownloadedImage(image));
+            if(image.getType().equals("webm"))
+            {
+                InputStream is = getDownloadedImage(image);
 
-				if (bmp == null || isBadBitmap(bmp))
-				{
-					redownload.add(image.getId());
-				}
+                if(is == null)
+                {
+                    redownload.add(image.getId());
+                }
+                else
+                {
+                    MediaInputStreamPlayer player = new MediaInputStreamPlayer();
 
-				if(bmp != null) bmp.recycle();
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
+                    final Semaphore s = new Semaphore(1);
 
-				redownload.add(image.getId());
-			}
-			catch(Error e)
-			{
-				e.printStackTrace();
+                    try
+                    {
+                        s.acquire();
 
-				redownload.add(image.getId());
-			}
+                        player.setInputStreamCheckListener(new MediaInputStreamPlayer.InputStreamCheckListener() {
+                            @Override
+                            public void onCheck(boolean isOk) {
+                                if(!isOk)
+                                {
+                                    redownload.add(image.getId());
+                                }
+                                s.release();
+                            }
+                        });
+                        player.setVideoInputStream(is);
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                        redownload.add(image.getId());
+
+                        s.release();
+                    }
+                    finally {
+                    }
+
+                    try {
+                        s.acquire();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Thread.currentThread().interrupt();
+                    }
+                    s.release();
+                }
+            }
+            else if(image.getType().equals("jpg") || image.getType().equals("png") || image.getType().equals("gif"))
+            {
+                try {
+                    Bitmap bmp = BitmapFactory.decodeStream(getDownloadedImage(image));
+
+                    if (bmp == null || isBadBitmap(bmp)) {
+                        redownload.add(image.getId());
+                    }
+
+                    if (bmp != null) bmp.recycle();
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    redownload.add(image.getId());
+                } catch (Error e) {
+                    e.printStackTrace();
+
+                    redownload.add(image.getId());
+                }
+            }
 		}
 
 		eventManager.trigger(FixState.FIXING);
 
 		i=0;
 
-		for(int fix : redownload)
-		{
-			Log.d(LOG_TAG,"Fixing " + fix);
+		for(int fix : redownload) {
+            Log.d(LOG_TAG, "Fixing " + fix);
 
 			eventManager.trigger(new Pair<String, String>("" + (++i), "" + redownload.size()));
 
@@ -2643,31 +2703,9 @@ public class E621Middleware extends E621 {
 			{
 				E621Image img = post__show(fix);
 
-				String url = img.file_url;
+                deleteImage(img);
 
-				if(getFileDownloadSize() == E621Image.SAMPLE)
-				{
-					url = img.sample_url;
-				}
-				else if(getFileDownloadSize() == E621Image.PREVIEW)
-				{
-					url = img.preview_url;
-				}
-
-				final InputStream in = this.getImageFromInternet(url);
-
-				if(in != null)
-				{
-					String ext = img.file_ext;
-
-					if (getFileDownloadSize() != E621Image.FULL)
-					{
-						String[] temp = url.split("\\.");
-						ext = temp[temp.length - 1];
-					}
-
-					download_manager.createOrUpdate(img, in, ext);
-				}
+                saveImage(img);
 			} catch (IOException e)
 			{
 				e.printStackTrace();

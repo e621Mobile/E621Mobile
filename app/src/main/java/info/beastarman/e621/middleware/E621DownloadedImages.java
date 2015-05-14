@@ -490,9 +490,11 @@ public class E621DownloadedImages
 		removeFile(img.id);
 	}
 	
-	public void createOrUpdate(final E621Image img, final InputStream in, final String file_ext)
+	public boolean createOrUpdate(final E621Image img, final InputStream in, final String file_ext)
 	{
 		final String file_name = img.id + "." + file_ext;
+
+		if(!images.createOrUpdate(file_name, in)) return false;
 		
 		lock.write(new Runnable()
 		{
@@ -524,8 +526,8 @@ public class E621DownloadedImages
 				}
 			}
 		});
-		
-		images.createOrUpdate(file_name, in);
+
+		return true;
 	}
 
 	public void fixTags(E621Middleware e621, EventManager em)

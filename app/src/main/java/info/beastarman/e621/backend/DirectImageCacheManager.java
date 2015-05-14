@@ -159,34 +159,40 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 	}
 
 	@Override
-	public void createOrUpdate(final String id, final InputStream in)
+	public boolean createOrUpdate(final String id, final InputStream in)
 	{
-		final GTFO<File> ret = new GTFO<File>();
+		final boolean[] ret = new boolean[]{false};
 
 		getLock(id).write(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				ret.obj = getFileObj(id);
+				File obj = getFileObj(id);
 
-				if(ret.obj == null)
+				if(obj == null)
 				{
-					ret.obj = generateFile(id);
+					obj = generateFile(id);
 				}
 
 				try
 				{
-					OutputStream out = new BufferedOutputStream(new FileOutputStream(ret.obj));
+					OutputStream out = new BufferedOutputStream(new FileOutputStream(obj));
 					IOUtils.copy(in, out);
 					out.close();
+
+					ret[0] = true;
 				}
 				catch (IOException e)
 				{
 					e.printStackTrace();
+
+					if(obj.exists()) obj.delete();
 				}
 			}
 		});
+
+		return ret[0];
 	}
 
 	@Override
