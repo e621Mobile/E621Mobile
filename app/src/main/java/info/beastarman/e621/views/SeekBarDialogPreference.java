@@ -1,5 +1,7 @@
 package info.beastarman.e621.views;
 
+import info.beastarman.e621.R;
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Parcel;
@@ -11,60 +13,6 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
-import info.beastarman.e621.R;
-
-
-private static class SavedState extends BaseSavedState
-{
-	@SuppressWarnings("unused")
-	public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>()
-	{
-		@Override
-		public SavedState createFromParcel(Parcel in)
-		{
-			return new SavedState(in);
-		}
-
-		@Override
-		public SavedState[] newArray(int size)
-		{
-			return new SavedState[size];
-		}
-	};
-	int minProgress;
-	int maxProgress;
-	int progress;
-
-	pu	ublic
-
-s	public SavedState(Parcelable superState)
-	{
-		super(superState);
-	}
-
-	@Oblic SavedState(Parcel source)
-	{
-		super(source);
-
-		minProgress = source.readInt();
-		maxProgress = source.readInt();
-		progress = source.readInt();
-	}
-
-
-p
-
-verride
-	public void writeToParcel(Parcel dest, int flags)
-	{
-		super.writeToParcel(dest, flags);
-
-		dest.writeInt(minProgress);
-		dest.writeInt(maxProgress);
-		dest.writeInt(progress);
-	}
-}
-ta
 /**
  * A {@link DialogPreference} that provides a user with the means to select an integer from a {@link SeekBar}, and persist it.
  *
@@ -75,13 +23,12 @@ public class SeekBarDialogPreference extends DialogPreference
 	private static final int DEFAULT_MIN_PROGRESS = 0;
 	private static final int DEFAULT_MAX_PROGRESS = 100;
 	private static final int DEFAULT_PROGRESS = 0;
-	p
-	ublic
+
 	private int mMinProgress;
 	private int mMaxProgress;
 	private int mProgress;
 	private CharSequence mProgressTextSuffix;
-	extUpdate mTextUpdate = new TextUpdate()
+extUpdate mTextUpdate = new TextUpdate()
 	{
 		public String onTextUpdate(SeekBarDialogPreference preference, int progress)
 		{
@@ -89,6 +36,7 @@ public class SeekBarDialogPreference extends DialogPreference
 			return (mProgressTextSuffix == null ? progressStr : progressStr.concat(mProgressTextSuffix.toString()));
 		}
 	};
+
 	private TextView mProgressText;
 	private SeekBar mSeekBar;
 
@@ -274,8 +222,8 @@ public class SeekBarDialogPreference extends DialogPreference
 
 		super.onRestoreInstanceState(myState.getSuperState());
 	}
-
-	void setTextUpdate(TextUpdate textUpdate)
+	p
+ublic void setTextUpdate(TextUpdate textUpdate)
 	{
 		this.mTextUpdate = textUpdate;
 
@@ -292,8 +240,55 @@ public class SeekBarDialogPreference extends DialogPreference
 		}
 	}
 }
-T
-tic abstract class TextUpdate
-{
-	public abstract String onTextUpdate(SeekBarDialogPreference preference, int progress);
-}
+	T
+	private static class SavedState extends BaseSavedState
+	{
+		@SuppressWarnings("unused")
+		public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>()
+		{
+			@Override
+			public SavedState createFromParcel(Parcel in)
+			{
+				return new SavedState(in);
+			}
+
+			@Override
+			public SavedState[] newArray(int size)
+			{
+				return new SavedState[size];
+			}
+		};
+		int minProgress;
+		int maxProgress;
+		int progress;
+
+		public SavedState(Parcelable superState)
+		{
+			super(superState);
+		}
+
+		public SavedState(Parcel source)
+		{
+			super(source);
+
+			minProgress = source.readInt();
+			maxProgress = source.readInt();
+			progress = source.readInt();
+		}
+
+		@Override
+		public void writeToParcel(Parcel dest, int flags)
+		{
+			super.writeToParcel(dest, flags);
+
+			dest.writeInt(minProgress);
+			dest.writeInt(maxProgress);
+			dest.writeInt(progress);
+		}
+	}
+
+	p
+ublic static abstract class TextUpdate
+	{
+		public abstract String onTextUpdate(SeekBarDialogPreference preference, int progress);
+	}

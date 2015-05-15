@@ -368,8 +368,8 @@ public class DTextRuleCollection
 
 	public static class DTextRuleStartSpoiler extends DTextRuleStart
 	{
-		Spboolean hidden = true;
-		oilerSpan clickableSpan = null;
+Spboolean hidden = true;
+	oilerSpan clickableSpan = null;
 
 		protected DTextRuleStartSpoiler()
 		{
@@ -381,7 +381,7 @@ public class DTextRuleCollection
 			return new DTextRuleEnd("spoiler");
 		}
 
-		@Override
+@Override
 		public void apply(Spannable s, TextView tv)
 		{
 			s.setSpan(getClickableSpanLink(), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

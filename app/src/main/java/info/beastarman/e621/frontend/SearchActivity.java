@@ -69,16 +69,15 @@ public class SearchActivity extends BaseActivity
 
 	protected E621Search e621Search = null;
 	protected Long nextE621Search = null;
-	Integer lastScrollY = null;
-	ShareActionProvider mShareActionProvider;
 	private ArrayList<ImageView> imageViews = new ArrayList<ImageView>();
-	private Set<ImageEventManager> events = new HashSet<ImageEventManager>();
 	
+	private Set<ImageEventManager> events = new HashSet<ImageEventManager>();
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-
+		
 		ActionBar actionBar = getActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
 
@@ -92,38 +91,38 @@ public class SearchActivity extends BaseActivity
 
 		min_id = getIntent().getIntExtra(SearchActivity.MIN_ID, -1);
 		max_id = getIntent().getIntExtra(SearchActivity.MAX_ID, -1);
-
+		
 		cur_min_id = min_id = (min_id == -1 ? null : min_id);
 		cur_max_id = max_id = (max_id == -1 ? null : max_id);
-
+		
 		previous_page = getIntent().getIntExtra(SearchActivity.PREVIOUS_PAGE, -666);
 		if(previous_page < 0)
 		{
 			previous_page = null;
 		}
-
+		
 		Long e621SearchKey = getIntent().getLongExtra(SearchActivity.PRELOADED_SEARCH, -1);
-
+		
 		if(e621SearchKey != -1)
 		{
 			e621Search = (E621Search) e621.getStorage().returnKey(e621SearchKey);
 		}
-
+		
 		trySearch();
-
+		
 		((EditText) findViewById(R.id.searchInput)).setText(search);
 	}
 	
 	private void trySearch()
 	{
 		setContentView(R.layout.activity_search);
-
+		
 		Integer total_pages = getSearchResultsPages(search, limit);
-
+		
 		Resources res = getResources();
-
+		
 		String text;
-
+		
 		if(total_pages == null)
 		{
 			text = String.format(res.getString(R.string.page_counter), String.valueOf(page + 1), "...");
@@ -132,10 +131,10 @@ public class SearchActivity extends BaseActivity
 		{
 			text = String.format(res.getString(R.string.page_counter), String.valueOf(page + 1), String.valueOf(total_pages));
 		}
-
+		
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
-
+		
 		new Thread(new Runnable()
 		{
 			public void run()
@@ -143,7 +142,7 @@ public class SearchActivity extends BaseActivity
 				if(e621Search == null)
 				{
 					e621Search = get_results(page);
-
+					
 					runOnUiThread(new Runnable()
 					{
 						public void run()
@@ -152,14 +151,14 @@ public class SearchActivity extends BaseActivity
 						}
 					});
 				}
-
+				
 				if(e621.antecipateOnlyOnWiFi() && !e621.isWifiConnected())
 				{
 					return;
 				}
-
+				
 				E621Search nextSearch = get_results(page + 1);
-
+				
 				if(nextSearch != null)
 				{
 					nextE621Search = e621.getStorage().rent(nextSearch);
@@ -178,12 +177,12 @@ public class SearchActivity extends BaseActivity
 			}
 		}).start();
 	}
-
+	
 	protected Integer getSearchResultsPages(String search, int limit)
 	{
 		return e621.getSearchResultsPages(search, limit);
 	}
-
+	
 	protected E621Search get_results(int page)
 	{
 		try
@@ -195,6 +194,8 @@ public class SearchActivity extends BaseActivity
 			return null;
 		}
 	}
+
+	Integer lastScrollY = null;
 
 	@Override
 	public void onStart()
@@ -228,7 +229,7 @@ public class SearchActivity extends BaseActivity
 			{
 				BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
 				Bitmap bitmap = bitmapDrawable.getBitmap();
-
+				
 				if(bitmap != null)
 				{
 					bitmap.recycle();
@@ -237,18 +238,18 @@ public class SearchActivity extends BaseActivity
 		}
 
 		imageViews.clear();
-
+		
 		for(ImageEventManager event : events)
 		{
 			e621.unbindDownloadState(event.image.id, event);
 		}
-
+		
 		events.clear();
 
 		LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
@@ -291,12 +292,12 @@ public class SearchActivity extends BaseActivity
 										   max_id != null ? String.valueOf(max_id) : null);
 			}
 		}).start();
-
+		
 		Intent intent = new Intent(this, MainActivity.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
 	}
-
+	
 	public void continue_later_after()
 	{
 		new Thread(new Runnable()
@@ -309,7 +310,7 @@ public class SearchActivity extends BaseActivity
 										   cur_max_id != null ? String.valueOf(cur_max_id) : null);
 			}
 		}).start();
-
+		
 		Intent intent = new Intent(this, MainActivity.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
@@ -605,13 +606,13 @@ public class SearchActivity extends BaseActivity
 		img.startAnimation(a);
 		((View) img.getParent()).invalidate();
 	}
-	
+
 	public void update_results()
 	{
 		if(e621Search == null)
 		{
 			update_results_retry();
-
+			
 			return;
 		}
 
@@ -630,35 +631,35 @@ public class SearchActivity extends BaseActivity
 		LinearLayout resultWrapper = new LinearLayout(getApplicationContext());
 		RelativeLayout rel = new RelativeLayout(getApplicationContext());
 		RelativeLayout detailsWrapper = new RelativeLayout(getApplicationContext());
-
+		
 		resultWrapper.setOrientation(LinearLayout.VERTICAL);
-
+		
 		ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(new ViewGroup.LayoutParams(
 																								 ViewGroup.LayoutParams.WRAP_CONTENT,
 																								 ViewGroup.LayoutParams.WRAP_CONTENT));
 		resultWrapper.setLayoutParams(lp);
-
+		
 		lp = new ViewGroup.LayoutParams(new ViewGroup.LayoutParams(
 																		  ViewGroup.LayoutParams.MATCH_PARENT,
 																		  ViewGroup.LayoutParams.WRAP_CONTENT));
 		detailsWrapper.setLayoutParams(lp);
 		detailsWrapper.setBackgroundColor(getResources().getColor(R.color.detailsBackgroundColor));
-
+		
 		TextView details = getImageFooter(img);
 		RelativeLayout imageWrapper = generateImageWrapper(img, layout_width, position);
 		updateCurMinMax(img);
-
+		
 		resultWrapper.setPadding(0, dpToPx(10), 0, dpToPx(10));
-
+		
 		rel.addView(imageWrapper);
 		resultWrapper.addView(rel);
-
+		
 		detailsWrapper.addView(details);
 		resultWrapper.addView(detailsWrapper);
-
+		
 		return resultWrapper;
 	}
-
+	
 	private ProgressBar generateProgressBar()
 	{
 		ProgressBar bar = new ProgressBar(getApplicationContext());
@@ -668,20 +669,20 @@ public class SearchActivity extends BaseActivity
 																						  RelativeLayout.LayoutParams.WRAP_CONTENT);
 		layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 		bar.setLayoutParams(layoutParams);
-
+		
 		return bar;
 	}
 
 	private ImageView generateImageView(E621Image img, int layout_width, int position)
 	{
 		int image_height = (int) (layout_width * (((double) img.preview_height) / img.preview_width));
-
+		
 		ImageView imgView = new ImageView(getApplicationContext());
 		ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(new ViewGroup.LayoutParams(
 																								 layout_width,
 																								 image_height));
 		imgView.setLayoutParams(lp);
-
+		
 		imgView.setTag(R.id.imageObject, img);
 		imgView.setTag(R.id.imagePosition, position);
 
@@ -693,14 +694,14 @@ public class SearchActivity extends BaseActivity
 				imageClick(v);
 			}
 		});
-
+		
 		return imgView;
 	}
 
 	private RelativeLayout generateImageWrapper(E621Image img, int layout_width, int position)
 	{
 		RelativeLayout imageWrapper = new RelativeLayout(getApplicationContext());
-
+		
 		boolean has_border = false;
 
 		if(img.status == E621Image.FLAGGED)
@@ -723,26 +724,26 @@ public class SearchActivity extends BaseActivity
 			imageWrapper.setBackgroundResource(R.drawable.has_children_mark);
 			has_border = true;
 		}
-
+		
 		if(has_border)
 		{
 			imageWrapper.setPadding(dpToPx(5), dpToPx(2), dpToPx(5), dpToPx(2));
 		}
-
+		
 		ProgressBar bar = generateProgressBar();
 		ImageView imgView = generateImageView(img, layout_width, position);
 		LinearLayout highlights = generateHighlights(img);
 		ImageButton download = generateDownloadButton(img);
-
+		
 		imgView.setId(R.id.imageView);
 		bar.setId(R.id.progressBar);
 		download.setId(R.id.downloadButton);
-
+		
 		imageWrapper.addView(bar);
 		imageWrapper.addView(imgView);
 		imageWrapper.addView(highlights);
 		imageWrapper.addView(download);
-
+		
 		return imageWrapper;
 	}
 
@@ -802,7 +803,7 @@ public class SearchActivity extends BaseActivity
 	private ImageButton generateDownloadButton(final E621Image img)
 	{
 		final ImageButton download = new ImageButton(getApplicationContext());
-
+		
 		if(!e621.downloadInSearch() || ((!e621.isBlacklisted(img).isEmpty()) && e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG))
 		{
 			download.setVisibility(View.GONE);
@@ -815,9 +816,9 @@ public class SearchActivity extends BaseActivity
 		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
 		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 		download.setLayoutParams(params);
-
+		
 		download.setImageResource(R.drawable.spinner);
-
+		
 		return download;
 	}
 
@@ -845,7 +846,7 @@ public class SearchActivity extends BaseActivity
 	private TextView getImageFooter(E621Image img)
 	{
 		String detailsText = "";
-
+		
 		if(img.score == 0)
 		{
 			detailsText += "↕0";
@@ -860,7 +861,7 @@ public class SearchActivity extends BaseActivity
 		}
 
 		detailsText += " ♥" + String.valueOf(img.fav_count);
-
+		
 		if(img.has_comments)
 		{
 			detailsText += " C";
@@ -878,16 +879,16 @@ public class SearchActivity extends BaseActivity
 		{
 			detailsText += " <font color=#00FF00>S</font>";
 		}
-
+		
 		TextView details = new TextView(getApplicationContext());
-
+		
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
 																					RelativeLayout.LayoutParams.WRAP_CONTENT,
 																					RelativeLayout.LayoutParams.WRAP_CONTENT);
 		params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 		details.setLayoutParams(params);
 		details.setText(Html.fromHtml(detailsText));
-
+		
 		return details;
 	}
 
@@ -908,7 +909,7 @@ public class SearchActivity extends BaseActivity
 	{
 		EditText editText = (EditText) findViewById(R.id.searchInput);
 		String search = editText.getText().toString().trim();
-
+		
 		if(page == 0 && search.equals(this.search))
 		{
 			return;
@@ -927,12 +928,12 @@ public class SearchActivity extends BaseActivity
 			{
 				return;
 			}
-
+			
 			if(e621Search != null && !e621Search.has_prev_page())
 			{
 				return;
 			}
-
+			
 			if(previous_page != null && previous_page == page - 1)
 			{
 				finish();
@@ -950,7 +951,7 @@ public class SearchActivity extends BaseActivity
 		{
 			return;
 		}
-
+		
 		if(e621Search != null && !e621Search.has_next_page())
 		{
 			return;
@@ -1004,7 +1005,7 @@ public class SearchActivity extends BaseActivity
 		}
 
 		startActivity(intent);
-	}
+	}	ShareActionProvider mShareActionProvider;
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)

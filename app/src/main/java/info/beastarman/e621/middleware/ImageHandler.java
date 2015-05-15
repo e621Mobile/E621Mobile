@@ -1,11 +1,11 @@
 package info.beastarman.e621.middleware;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 public class ImageHandler extends Handler
 {

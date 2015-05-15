@@ -1,9 +1,9 @@
 package info.beastarman.e621.middleware;
 
-import java.io.IOException;
-
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
+
+import java.io.IOException;
 
 public class OnlineContinueImageNavigator extends OnlineImageNavigator
 {

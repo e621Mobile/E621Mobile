@@ -16,6 +16,11 @@
 
 package info.beastarman.e621.qrcode;
 
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.Map;
+
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -26,11 +31,6 @@ import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
-
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.Map;
 
 public final class QRCodeEncoder
 {

@@ -1,5 +1,6 @@
 package info.beastarman.e621.frontend;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -10,7 +11,10 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.MediaController;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
+import android.widget.VideoView;
 
 import java.io.IOException;
 

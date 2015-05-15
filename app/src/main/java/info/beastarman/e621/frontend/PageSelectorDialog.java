@@ -24,7 +24,6 @@ public class PageSelectorDialog extends AlertDialog
 		super(context, theme);
 		build(context, maxPages);
 	}
-
 	protected PageSelectorDialog(Context context, boolean cancelable, OnCancelListener cancelListener, int maxPages)
 	{
 		super(context, cancelable, cancelListener);

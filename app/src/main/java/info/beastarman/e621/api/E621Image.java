@@ -1,5 +1,9 @@
 package info.beastarman.e621.api;
 
+import android.util.Log;
+
+import com.google.zxing.common.StringUtils;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,6 +19,7 @@ import java.util.Date;
 
 import info.beastarman.e621.api.dtext.DText;
 import info.beastarman.e621.backend.Pair;
+import info.beastarman.e621.middleware.E621Middleware;
 
 public class E621Image implements Serializable
 {

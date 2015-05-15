@@ -1,5 +1,9 @@
 package info.beastarman.e621.frontend;
 
+import info.beastarman.e621.R;
+import info.beastarman.e621.qrcode.Contents;
+import info.beastarman.e621.qrcode.QRCodeEncoder;
+
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -17,10 +21,6 @@ import android.widget.Toast;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
-
-import info.beastarman.e621.R;
-import info.beastarman.e621.qrcode.Contents;
-import info.beastarman.e621.qrcode.QRCodeEncoder;
 
 public class DonateActivity extends BaseActivity
 {

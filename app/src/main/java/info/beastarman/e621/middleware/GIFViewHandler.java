@@ -1,11 +1,11 @@
 package info.beastarman.e621.middleware;
 
-import android.view.View;
-import android.view.ViewGroup;
+import info.beastarman.e621.views.GIFView;
 
 import java.io.InputStream;
 
-import info.beastarman.e621.views.GIFView;
+import android.view.View;
+import android.view.ViewGroup;
 
 public class GIFViewHandler extends ImageHandler
 {

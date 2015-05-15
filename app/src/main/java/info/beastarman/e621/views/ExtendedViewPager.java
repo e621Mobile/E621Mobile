@@ -3,9 +3,11 @@ package info.beastarman.e621.views;
 import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621Middleware;
 
 public class ExtendedViewPager extends ViewPager
 {
