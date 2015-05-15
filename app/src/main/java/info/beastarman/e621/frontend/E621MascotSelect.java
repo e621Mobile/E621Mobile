@@ -34,15 +34,15 @@ public class E621MascotSelect extends E621ConfirmDialogFragment
 	}
 	
 	@Override
-    public Dialog onCreateDialog(Bundle savedInstanceState)
+	public Dialog onCreateDialog(Bundle savedInstanceState)
 	{
 		final LayoutInflater inflater = getActivity().getLayoutInflater();
 		
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		
-		final View view = inflater.inflate(R.layout.e621_mascot_dialog,null);
+		final View view = inflater.inflate(R.layout.e621_mascot_dialog, null);
 		
-		final HashMap<String,Mascot> mascots = e621.getAllMascots();
+		final HashMap<String, Mascot> mascots = e621.getAllMascots();
 		final ArrayList<Mascot> allowed_mascot = new ArrayList<Mascot>(Arrays.asList(e621.getMascots()));
 		
 		view.post(new Runnable()
@@ -54,15 +54,15 @@ public class E621MascotSelect extends E621ConfirmDialogFragment
 				
 				for(final String mascotId : mascots.keySet())
 				{
-					if(group.getChildCount()>0)
+					if(group.getChildCount() > 0)
 					{
-						View hr = inflater.inflate(R.layout.hr,null);
+						View hr = inflater.inflate(R.layout.hr, null);
 						hr.setBackgroundColor(getResources().getColor(R.color.black));
 						
 						group.addView(hr);
 					}
 					
-					final View v = inflater.inflate(R.layout.mascot_entry,null);
+					final View v = inflater.inflate(R.layout.mascot_entry, null);
 
 					ImageView img = (ImageView) v.findViewById(R.id.imageView);
 					img.setImageResource(mascots.get(mascotId).image);
@@ -86,7 +86,7 @@ public class E621MascotSelect extends E621ConfirmDialogFragment
 						}
 					});
 					
-					v.setTag(R.id.mascot,mascotId);
+					v.setTag(R.id.mascot, mascotId);
 					
 					group.addView(v);
 				}
@@ -107,7 +107,7 @@ public class E621MascotSelect extends E621ConfirmDialogFragment
 						
 						int i = group.getChildCount();
 						
-						for(i--;i>=0;i--)
+						for(i--; i >= 0; i--)
 						{
 							View child = group.getChildAt(i);
 							
@@ -155,6 +155,6 @@ public class E621MascotSelect extends E621ConfirmDialogFragment
 		
 		builder.setView(view);
 		
-        return builder.create();
-    }
+		return builder.create();
+	}
 }

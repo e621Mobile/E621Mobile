@@ -22,11 +22,11 @@ public class AlphaFeatureFeedbackAlertDialog extends AlertDialog
 
 	public boolean sendStatistics()
 	{
-		return ((CheckBox)findViewById(R.id.checkBox)).isChecked();
+		return ((CheckBox) findViewById(R.id.checkBox)).isChecked();
 	}
 
 	public String text()
 	{
-		return ((EditText)findViewById(R.id.editText)).getText().toString();
+		return ((EditText) findViewById(R.id.editText)).getText().toString();
 	}
 }

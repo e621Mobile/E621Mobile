@@ -42,8 +42,9 @@ public class E621SearchCombo implements E621SearchInterface
 	{
 		try
 		{
-			return (int) Math.floor(((double)comboGenerator.getCount())/limit);
-		} catch (IOException e)
+			return (int) Math.floor(((double) comboGenerator.getCount()) / limit);
+		}
+		catch(IOException e)
 		{
 			return 1;
 		}

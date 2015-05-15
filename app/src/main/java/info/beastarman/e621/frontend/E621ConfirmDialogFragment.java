@@ -1,6 +1,7 @@
 package info.beastarman.e621.frontend;
 
 import info.beastarman.e621.R;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -45,13 +46,13 @@ public class E621ConfirmDialogFragment extends DialogFragment
 	}
 	
 	@Override
-    public Dialog onCreateDialog(Bundle savedInstanceState)
+	public Dialog onCreateDialog(Bundle savedInstanceState)
 	{
 		LayoutInflater inflater = getActivity().getLayoutInflater();
 		
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		
-		final View view = inflater.inflate(R.layout.e621_confirm_dialog,null);
+		final View view = inflater.inflate(R.layout.e621_confirm_dialog, null);
 		
 		TextView title = (TextView) view.findViewById(R.id.title);
 		title.setText(this.title);
@@ -99,6 +100,6 @@ public class E621ConfirmDialogFragment extends DialogFragment
 		
 		builder.setView(view);
 		
-        return builder.create();
-    }
+		return builder.create();
+	}
 }

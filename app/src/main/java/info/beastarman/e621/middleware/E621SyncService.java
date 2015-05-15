@@ -53,60 +53,60 @@ public class E621SyncService extends IntentService
 				@Override
 				public void onTrigger(Object obj)
 				{
-					if (obj instanceof E621Middleware.SyncState)
+					if(obj instanceof E621Middleware.SyncState)
 					{
-						if (obj == E621Middleware.SyncState.REPORTS)
+						if(obj == E621Middleware.SyncState.REPORTS)
 						{
 							lastMsg = "Sending remaining reports";
 						}
-						else if (obj == E621Middleware.SyncState.FAILED_DOWNLOADS)
+						else if(obj == E621Middleware.SyncState.FAILED_DOWNLOADS)
 						{
 							lastMsg = "Fixing failed downloads";
 						}
-						else if (obj == E621Middleware.SyncState.CHECKING_FOR_UPDATES)
+						else if(obj == E621Middleware.SyncState.CHECKING_FOR_UPDATES)
 						{
 							lastMsg = "Checking for updates";
 						}
-						else if (obj == E621Middleware.SyncState.BACKUP)
+						else if(obj == E621Middleware.SyncState.BACKUP)
 						{
 							lastMsg = "Creating new backup";
 						}
-						else if (obj == E621Middleware.SyncState.INTERRUPTED_SEARCHES)
+						else if(obj == E621Middleware.SyncState.INTERRUPTED_SEARCHES)
 						{
 							lastMsg = "Updating interrupted searches";
 						}
-						else if (obj == E621Middleware.SyncState.FINISHED)
+						else if(obj == E621Middleware.SyncState.FINISHED)
 						{
 							notificationManager.cancel(R.id.syncNotificationId);
 
 							return;
 						}
 					}
-					else if (obj instanceof E621DownloadedImages.UpdateStates)
+					else if(obj instanceof E621DownloadedImages.UpdateStates)
 					{
-						if (obj == E621DownloadedImages.UpdateStates.CLEANING)
+						if(obj == E621DownloadedImages.UpdateStates.CLEANING)
 						{
 							lastMsg = "Cleaning metadata";
 						}
-						else if (obj == E621DownloadedImages.UpdateStates.TAG_SYNC)
+						else if(obj == E621DownloadedImages.UpdateStates.TAG_SYNC)
 						{
 							lastMsg = "Synchronizing tags";
 						}
-						else if (obj == E621DownloadedImages.UpdateStates.TAG_ALIAS_SYNC)
+						else if(obj == E621DownloadedImages.UpdateStates.TAG_ALIAS_SYNC)
 						{
 							lastMsg = "Synchronizing tag aliases";
 						}
-						else if (obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_SYNC)
+						else if(obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_SYNC)
 						{
 							lastMsg = "Synchronizing image tags";
 						}
-						else if (obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_DB)
+						else if(obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_DB)
 						{
 							lastMsg = "Saving image tags into database";
 						}
 					}
 
-					if (obj instanceof Pair)
+					if(obj instanceof Pair)
 					{
 						Pair<String, String> pair = ((Pair<String, String>) obj);
 

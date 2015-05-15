@@ -28,6 +28,11 @@ public class DTextBlockCollection
 			super("quote");
 		}
 
+		public static DTextBlockEnd getDTextBlockEnd()
+		{
+			return new DTextBlockEnd("quote");
+		}
+
 		@Override
 		public void apply(DTextView dTextView)
 		{
@@ -42,12 +47,7 @@ public class DTextBlockCollection
 
 			int padding = (int) (dTextView.getResources().getDisplayMetrics().xdpi / DisplayMetrics.DENSITY_DEFAULT * 14f);
 
-			dTextView.setPadding(padding,padding,padding,padding);
-		}
-
-		public static DTextBlockEnd getDTextBlockEnd()
-		{
-			return new DTextBlockEnd("quote");
+			dTextView.setPadding(padding, padding, padding, padding);
 		}
 	}
 
@@ -73,6 +73,11 @@ public class DTextBlockCollection
 			this.expanded = expanded;
 		}
 
+		public static DTextBlockEnd getDTextBlockEnd()
+		{
+			return new DTextBlockEnd("section");
+		}
+
 		private void updateDTextView(final DTextView dTextView)
 		{
 			dTextView.post(new Runnable()
@@ -91,17 +96,17 @@ public class DTextBlockCollection
 
 					if(expanded)
 					{
-						dTextView.setPadding(padding,padding/5,padding,padding);
+						dTextView.setPadding(padding, padding / 5, padding, padding);
 
 						params.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
 					}
 					else
 					{
-						dTextView.setPadding(padding,padding/5,padding,padding/5);
+						dTextView.setPadding(padding, padding / 5, padding, padding / 5);
 
-						tv.measure(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+						tv.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-						params.height = tv.getMeasuredHeight() + (int)(padding*2f/5f);
+						params.height = tv.getMeasuredHeight() + (int) (padding * 2f / 5f);
 					}
 
 					dTextView.setLayoutParams(params);
@@ -122,7 +127,7 @@ public class DTextBlockCollection
 				s = new SpannableString("► " + name);
 			}
 
-			s.setSpan(new StyleSpan(Typeface.BOLD),0,name.length()+2,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+			s.setSpan(new StyleSpan(Typeface.BOLD), 0, name.length() + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
 			s.setSpan(new ClickableSpan()
 			{
@@ -142,7 +147,7 @@ public class DTextBlockCollection
 				public void updateDrawState(TextPaint ds)
 				{
 				}
-			},0,name.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+			}, 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
 			return s;
 		}
@@ -165,16 +170,11 @@ public class DTextBlockCollection
 
 			tv.setText(getName(dTextView), TextView.BufferType.SPANNABLE);
 			tv.setMovementMethod(LinkMovementMethod.getInstance());
-			tv.setPadding(0,0,0,padding);
+			tv.setPadding(0, 0, 0, padding);
 
 			dTextView.addView(tv);
 
 			updateDTextView(dTextView);
-		}
-
-		public static DTextBlockEnd getDTextBlockEnd()
-		{
-			return new DTextBlockEnd("section");
 		}
 	}
 }

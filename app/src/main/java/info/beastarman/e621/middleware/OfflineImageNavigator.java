@@ -56,7 +56,7 @@ public class OfflineImageNavigator extends ImageNavigator
 	{
 		if(position >= getImages().size())
 		{
-			position = getImages().size()-1;
+			position = getImages().size() - 1;
 		}
 
 		if(position < 0)
@@ -76,13 +76,13 @@ public class OfflineImageNavigator extends ImageNavigator
 	@Override
 	public ImageNavigator next()
 	{
-		if(getPosition() < getImages().size()-1)
+		if(getPosition() < getImages().size() - 1)
 		{
-			return new OfflineImageNavigator(getPosition()+1,query,E621Middleware.getInstance().getStorage().rent(getImages()));
+			return new OfflineImageNavigator(getPosition() + 1, query, E621Middleware.getInstance().getStorage().rent(getImages()));
 		}
 		else
 		{
-			Log.d(E621Middleware.LOG_TAG,"Next " + getPosition() + " " + getImages().size());
+			Log.d(E621Middleware.LOG_TAG, "Next " + getPosition() + " " + getImages().size());
 
 			return null;
 		}
@@ -93,11 +93,11 @@ public class OfflineImageNavigator extends ImageNavigator
 	{
 		if(getPosition() > 0)
 		{
-			return new OfflineImageNavigator(getPosition()-1,query,E621Middleware.getInstance().getStorage().rent(getImages()));
+			return new OfflineImageNavigator(getPosition() - 1, query, E621Middleware.getInstance().getStorage().rent(getImages()));
 		}
 		else
 		{
-			Log.d(E621Middleware.LOG_TAG,"Prev " + getPosition() + " " + getImages().size());
+			Log.d(E621Middleware.LOG_TAG, "Prev " + getPosition() + " " + getImages().size());
 
 			return null;
 		}

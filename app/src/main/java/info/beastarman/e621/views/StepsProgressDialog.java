@@ -11,28 +11,28 @@ import java.util.ArrayList;
 
 public class StepsProgressDialog extends ProgressDialog
 {
+	ArrayList<String> steps = new ArrayList<String>();
+	
 	public StepsProgressDialog(Context context)
 	{
 		super(context);
-		
-		setup();
-	}
-	
-	public StepsProgressDialog(Context context, int theme)
-	{
-		super(context, theme);
-		
+
 		setup();
 	}
 
-	ArrayList<String> steps = new ArrayList<String>();
+	public StepsProgressDialog(Context context, int theme)
+	{
+		super(context, theme);
+
+		setup();
+	}
 	
 	private void setup()
 	{
-		setButton(BUTTON_POSITIVE,"Ok!",new DialogInterface.OnClickListener()
+		setButton(BUTTON_POSITIVE, "Ok!", new DialogInterface.OnClickListener()
 		{
 			@Override
-			public void onClick(DialogInterface dialog,int which)
+			public void onClick(DialogInterface dialog, int which)
 			{
 				StepsProgressDialog.this.dismiss();
 			}
@@ -86,7 +86,7 @@ public class StepsProgressDialog extends ProgressDialog
 		
 		String message = "";
 		
-		for(String step : steps.subList(0, steps.size()-1))
+		for(String step : steps.subList(0, steps.size() - 1))
 		{
 			if(message.length() > 0)
 			{
@@ -96,7 +96,7 @@ public class StepsProgressDialog extends ProgressDialog
 			message += "• " + step + "...";
 		}
 		
-		message += " Done\n• " + steps.get(steps.size()-1) + "...";
+		message += " Done\n• " + steps.get(steps.size() - 1) + "...";
 		
 		return message;
 	}

@@ -9,6 +9,9 @@ import java.util.Calendar;
 
 public class NoHorizontalScrollView extends HorizontalScrollView
 {
+	private static final int MAX_CLICK_DURATION = 200;
+	private long startClickTime;
+
 	public NoHorizontalScrollView(Context context)
 	{
 		super(context);
@@ -18,14 +21,10 @@ public class NoHorizontalScrollView extends HorizontalScrollView
 	{
 		super(context, attrs);
 	}
-
 	public NoHorizontalScrollView(Context context, AttributeSet attrs, int defStyle)
 	{
 		super(context, attrs, defStyle);
 	}
-
-	private static final int MAX_CLICK_DURATION = 200;
-	private long startClickTime;
 
 	@Override
 	public boolean onTouchEvent(MotionEvent ev)

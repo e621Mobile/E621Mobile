@@ -37,6 +37,7 @@ public class AlphaSettingsActivity extends PreferenceActivity
 	{
 		E621Middleware e621;
 		Context ctx;
+		boolean started = false;
 
 		@Override
 		public void onAttach(Activity act)
@@ -55,25 +56,29 @@ public class AlphaSettingsActivity extends PreferenceActivity
 			getPreferenceManager().setSharedPreferencesName(E621Middleware.PREFS_NAME);
 		}
 
-		boolean started = false;
-
 		@Override
 		public void onStart()
 		{
 			super.onStart();
 
-			if(started) return;
+			if(started)
+			{
+				return;
+			}
 
 			started = true;
 
 			ListView listView = (ListView) getView().findViewById(android.R.id.list);
-			listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+			listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener()
+			{
 				@Override
-				public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+				public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id)
+				{
 					ListView listView = (ListView) parent;
 					ListAdapter listAdapter = listView.getAdapter();
 					Object obj = listAdapter.getItem(position);
-					if (obj != null && obj instanceof View.OnLongClickListener) {
+					if(obj != null && obj instanceof View.OnLongClickListener)
+					{
 						View.OnLongClickListener longListener = (View.OnLongClickListener) obj;
 						return longListener.onLongClick(view);
 					}
@@ -81,7 +86,7 @@ public class AlphaSettingsActivity extends PreferenceActivity
 				}
 			});
 
-			Map<String,Pair<String,Boolean>> features = e621.alpha().getFeatures();
+			Map<String, Pair<String, Boolean>> features = e621.alpha().getFeatures();
 
 			for(final String feature : features.keySet())
 			{
@@ -103,9 +108,9 @@ public class AlphaSettingsActivity extends PreferenceActivity
 							@Override
 							public void onClick(DialogInterface dialogInterface, int i)
 							{
-								e621.sendReport("Feature feedback: " + feature + "\n\n" + dialog.text(),dialog.sendStatistics());
+								e621.sendReport("Feature feedback: " + feature + "\n\n" + dialog.text(), dialog.sendStatistics());
 
-								Toast.makeText(ctx,"Thank you for the feedback!",Toast.LENGTH_SHORT).show();
+								Toast.makeText(ctx, "Thank you for the feedback!", Toast.LENGTH_SHORT).show();
 							}
 						});
 						dialog.show();

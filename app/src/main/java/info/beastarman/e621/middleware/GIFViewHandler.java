@@ -24,11 +24,11 @@ public class GIFViewHandler extends ImageHandler
 		{
 			gifView.initializeView(in);
 		}
-		catch (Exception e)
+		catch(Exception e)
 		{
 			e.printStackTrace();
 			
-			ViewGroup v = ((ViewGroup)this.gifView.getParent()); 
+			ViewGroup v = ((ViewGroup) this.gifView.getParent());
 			
 			v.removeView(this.gifView);
 		}

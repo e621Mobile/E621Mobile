@@ -29,10 +29,10 @@ public class E621DownloadedImage implements Serializable
 		return String.valueOf(id);
 	}
 
-    public String getType()
-    {
-        String[] parts = filename.split("\\.");
+	public String getType()
+	{
+		String[] parts = filename.split("\\.");
 
-        return parts[parts.length-1];
-    }
+		return parts[parts.length - 1];
+	}
 }

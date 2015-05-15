@@ -21,20 +21,20 @@ public class E621TagAlias
 	public static E621TagAlias fromJson(JSONObject json)
 	{
 		return new E621TagAlias(
-				json.optInt("alias_id",0),
-				json.optInt("id",0),
-				json.optBoolean("pending",false),
-				json.optString("name","")
-			);
+									   json.optInt("alias_id", 0),
+									   json.optInt("id", 0),
+									   json.optBoolean("pending", false),
+									   json.optString("name", "")
+		);
 	}
 	
 	public static E621TagAlias fromXML(Element xml)
 	{
 		return new E621TagAlias(
-				Integer.parseInt(xml.getAttribute("alias_id")),
-				Integer.parseInt(xml.getAttribute("id")),
-				xml.getAttribute("pending").equals("true"),
-				xml.getAttribute("name")
-			);
+									   Integer.parseInt(xml.getAttribute("alias_id")),
+									   Integer.parseInt(xml.getAttribute("id")),
+									   xml.getAttribute("pending").equals("true"),
+									   xml.getAttribute("name")
+		);
 	}
 }

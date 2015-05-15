@@ -6,7 +6,11 @@ public class E621Vote
 	public int score = 0;
 	public boolean removed_vote = false;
 	
-	public E621Vote(){};
+	public E621Vote()
+	{
+	}
+
+	;
 	
 	public E621Vote(int score, boolean removed_vote)
 	{

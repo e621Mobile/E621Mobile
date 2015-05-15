@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class ObjectStorage<T>
 {
-	Map<Long,T> storage = new HashMap<Long,T>();
+	Map<Long, T> storage = new HashMap<Long, T>();
 	
 	public Long rent(T purse)
 	{
@@ -13,11 +13,11 @@ public class ObjectStorage<T>
 		
 		do
 		{
-			key = Math.round(Math.random()*Integer.MAX_VALUE);
+			key = Math.round(Math.random() * Integer.MAX_VALUE);
 		}
 		while(storage.containsKey(key));
 		
-		storage.put(key,purse);
+		storage.put(key, purse);
 		
 		return key;
 	}

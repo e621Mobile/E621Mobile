@@ -16,117 +16,132 @@ import java.util.UUID;
 
 public class MediaInputStreamPlayer extends MediaPlayer
 {
-    final String UNIQUE_ID = "1KB6R4492MA4VYN05QKI";
-    static File directory = null;
-    File _f = null;
+	static File directory = null;
+	final String UNIQUE_ID = "1KB6R4492MA4VYN05QKI";
+	File _f = null;
+	InputStreamCheckListener inputStreamCheckListener = null;
 
-    public MediaInputStreamPlayer()
-    {
-        super();
+	public MediaInputStreamPlayer()
+	{
+		super();
 
-        synchronized (MediaInputStreamPlayer.class)
-        {
-            if(directory == null) {
-                directory = new File(Environment.getExternalStoragePublicDirectory("VideoInputStreamView"), UNIQUE_ID);
+		synchronized(MediaInputStreamPlayer.class)
+		{
+			if(directory == null)
+			{
+				directory = new File(Environment.getExternalStoragePublicDirectory("VideoInputStreamView"), UNIQUE_ID);
 
-                if(!directory.exists())
-                {
-                    directory.mkdirs();
-                }
+				if(!directory.exists())
+				{
+					directory.mkdirs();
+				}
 
-                for(File f : directory.listFiles())
-                {
-                   f.delete();
-                }
-            }
-        }
-    }
+				for(File f : directory.listFiles())
+				{
+					f.delete();
+				}
+			}
+		}
+	}
 
-    private File getNewFile() throws IOException {
-        if(_f != null && _f.exists())
-        {
-            _f.delete();
-        }
+	private File getNewFile() throws IOException
+	{
+		if(_f != null && _f.exists())
+		{
+			_f.delete();
+		}
 
-        _f = new File(directory, UUID.randomUUID().toString());
-        if(_f.exists())
-        {
-            _f.delete();
-        }
+		_f = new File(directory, UUID.randomUUID().toString());
+		if(_f.exists())
+		{
+			_f.delete();
+		}
 
-        _f.createNewFile();
+		_f.createNewFile();
 
-        return _f;
-    }
+		return _f;
+	}
 
-    public String getFilePath()
-    {
-        if(_f != null)
-        {
-            return _f.getAbsolutePath();
-        }
+	public String getFilePath()
+	{
+		if(_f != null)
+		{
+			return _f.getAbsolutePath();
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    public void setVideoInputStream(final InputStream in) throws IOException
-    {
-        final File f = getNewFile();
+	public void setVideoInputStream(final InputStream in) throws IOException
+	{
+		final File f = getNewFile();
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                byte[] buffer = new byte[1024];
-                int len;
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				byte[] buffer = new byte[1024];
+				int len;
 
-                try
-                {
-                    OutputStream out = new BufferedOutputStream(new FileOutputStream(f));
+				try
+				{
+					OutputStream out = new BufferedOutputStream(new FileOutputStream(f));
 
-                    while((len = in.read(buffer)) != -1)
-                    {
-                        out.write(buffer, 0, len);
-                    }
+					while((len = in.read(buffer)) != -1)
+					{
+						out.write(buffer, 0, len);
+					}
 
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+					out.close();
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
 
-                try {
-                    setDataSource(f.getAbsolutePath());
-                    prepareAsync();
+				try
+				{
+					setDataSource(f.getAbsolutePath());
+					prepareAsync();
 
-                    if(inputStreamCheckListener != null) inputStreamCheckListener.onCheck(true);
-                } catch (IOException e) {
-                    e.printStackTrace();
+					if(inputStreamCheckListener != null)
+					{
+						inputStreamCheckListener.onCheck(true);
+					}
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
 
-                    if(inputStreamCheckListener != null) inputStreamCheckListener.onCheck(false);
-                }
-            }
-        }).start();
-    }
+					if(inputStreamCheckListener != null)
+					{
+						inputStreamCheckListener.onCheck(false);
+					}
+				}
+			}
+		}).start();
+	}
 
-    public void close()
-    {
-        seekTo(0);
-        stop();
-        release();
+	public void close()
+	{
+		seekTo(0);
+		stop();
+		release();
 
-        if(_f != null && _f.exists())
-        {
-            _f.delete();
-        }
-    }
+		if(_f != null && _f.exists())
+		{
+			_f.delete();
+		}
+	}
 
-    InputStreamCheckListener inputStreamCheckListener = null;
+	public void setInputStreamCheckListener(InputStreamCheckListener inputStreamCheckListener)
+	{
+		this.inputStreamCheckListener = inputStreamCheckListener;
+	}
 
-    public void setInputStreamCheckListener(InputStreamCheckListener inputStreamCheckListener) {
-        this.inputStreamCheckListener = inputStreamCheckListener;
-    }
-
-    public static abstract class InputStreamCheckListener
-    {
-        public abstract void onCheck(boolean isOk);
-    }
+	public static abstract class InputStreamCheckListener
+	{
+		public abstract void onCheck(boolean isOk);
+	}
 }

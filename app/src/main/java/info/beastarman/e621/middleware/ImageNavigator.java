@@ -26,9 +26,12 @@ public abstract class ImageNavigator implements Serializable
 	}
 
 	public abstract Integer getPosition();
+
 	public abstract Integer getCount();
 
 	public abstract ImageNavigator next();
+
 	public abstract ImageNavigator prev();
+
 	public abstract Integer getId();
 }

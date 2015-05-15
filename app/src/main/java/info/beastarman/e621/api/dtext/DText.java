@@ -56,11 +56,11 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 
 		try
 		{
-			while ((token = compiler.getToken()) != null)
+			while((token = compiler.getToken()) != null)
 			{
-				if (token instanceof DTextTokenWord)
+				if(token instanceof DTextTokenWord)
 				{
-					if (lastObj == null)
+					if(lastObj == null)
 					{
 						lastObj = new DTextString(((DTextTokenWord) token).word);
 
@@ -68,7 +68,7 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 					}
 					else
 					{
-						if (lastObj instanceof DTextString)
+						if(lastObj instanceof DTextString)
 						{
 							((DTextString) lastObj).text += ((DTextTokenWord) token).word;
 						}
@@ -80,11 +80,11 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 						}
 					}
 				}
-				else if (token instanceof DTextTokenSpace)
+				else if(token instanceof DTextTokenSpace)
 				{
-					if (lastObj != null && !(lastObj instanceof DTextBreakLine))
+					if(lastObj != null && !(lastObj instanceof DTextBreakLine))
 					{
-						if (lastObj instanceof DTextString)
+						if(lastObj instanceof DTextString)
 						{
 							((DTextString) lastObj).text += " ";
 						}
@@ -96,25 +96,25 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 						}
 					}
 				}
-				else if (token instanceof DTextTokenNewline)
+				else if(token instanceof DTextTokenNewline)
 				{
 					lastObj = new DTextBreakLine();
 
 					objects.add(lastObj);
 				}
-				else if (token instanceof DTextTokenLink)
+				else if(token instanceof DTextTokenLink)
 				{
 					lastObj = new DTextLink(((DTextTokenLink) token).link, ((DTextTokenLink) token).title);
 
 					objects.add(lastObj);
 				}
-				else if (token instanceof DTextTokenWiki)
+				else if(token instanceof DTextTokenWiki)
 				{
 					lastObj = new DTextLink("https://e621.net/wiki/show?title=" + ((DTextTokenWiki) token).wikiPage.trim().replace(" ", "_"), ((DTextTokenWiki) token).title);
 
 					objects.add(lastObj);
 				}
-				else if (token instanceof DTextTokenSearchTag)
+				else if(token instanceof DTextTokenSearchTag)
 				{
 					Intent intent = new Intent();
 
@@ -124,15 +124,15 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 
 					objects.add(lastObj);
 				}
-				else if (token instanceof DTextTokenUser)
+				else if(token instanceof DTextTokenUser)
 				{
 					lastObj = new DTextLink("https://e621.net/user?name=" + ((DTextTokenUser) token).userName, "@" + ((DTextTokenUser) token).userName);
 
 					objects.add(lastObj);
 				}
-				else if (token instanceof DTextTokenList)
+				else if(token instanceof DTextTokenList)
 				{
-					if (lastObj == null || lastObj instanceof DTextBreakLine)
+					if(lastObj == null || lastObj instanceof DTextBreakLine)
 					{
 						String[] bullets = {"◦", "•"};
 
@@ -141,8 +141,10 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 						int i = ((DTextTokenList) token).level;
 						String s = "";
 
-						for (; i > 0; i--)
+						for(; i > 0; i--)
+						{
 							s += "  ";
+						}
 
 						lastObj = new DTextString(s + bullet + " ");
 
@@ -153,15 +155,17 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 						int i = ((DTextTokenList) token).level;
 						String s = "";
 
-						for (; i > 0; i--)
+						for(; i > 0; i--)
+						{
 							s += "*";
+						}
 
 						compiler.tokenStack.add(0, new DTextTokenWord(s + " "));
 					}
 				}
-				else if (token instanceof DTextTokenHeader)
+				else if(token instanceof DTextTokenHeader)
 				{
-					if (lastObj == null || lastObj instanceof DTextBreakLine)
+					if(lastObj == null || lastObj instanceof DTextBreakLine)
 					{
 						lastObj = new DTextRuleCollection.DTextRuleStartHeader(((DTextTokenHeader) token).level);
 
@@ -254,7 +258,7 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 
 						objects.add(lastObj);
 					}
-					else if(((DTextTokenTag) token).tag.equals("color") && !(((DTextTokenTag) token).opening && ((DTextTokenTag) token).extraValue==null))
+					else if(((DTextTokenTag) token).tag.equals("color") && !(((DTextTokenTag) token).opening && ((DTextTokenTag) token).extraValue == null))
 					{
 						if(((DTextTokenTag) token).opening)
 						{
@@ -307,7 +311,7 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 							}
 							else
 							{
-								lastObj = new DTextBlockCollection.DTextBlockStartSection(((DTextTokenTag) token).extraValue,false);
+								lastObj = new DTextBlockCollection.DTextBlockStartSection(((DTextTokenTag) token).extraValue, false);
 							}
 						}
 						else
@@ -327,7 +331,7 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 							}
 							else
 							{
-								lastObj = new DTextBlockCollection.DTextBlockStartSection(((DTextTokenTag) token).extraValue,true);
+								lastObj = new DTextBlockCollection.DTextBlockStartSection(((DTextTokenTag) token).extraValue, true);
 							}
 						}
 						else
@@ -377,21 +381,21 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 					else if(((DTextTokenPageLink) token).page.equals("forum"))
 					{
 						lastObj = new DTextLink("https://e621.net/forum/show/" + ((DTextTokenPageLink) token).number,
-								((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
+													   ((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
 
 						objects.add(lastObj);
 					}
 					else if(((DTextTokenPageLink) token).page.equals("category"))
 					{
 						lastObj = new DTextLink("https://e621.net/forum?category=" + ((DTextTokenPageLink) token).number,
-								((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
+													   ((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
 
 						objects.add(lastObj);
 					}
 					else if(((DTextTokenPageLink) token).page.equals("comment"))
 					{
 						lastObj = new DTextLink("https://e621.net/comment/show/" + ((DTextTokenPageLink) token).number,
-								((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
+													   ((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
 
 						objects.add(lastObj);
 					}
@@ -418,28 +422,28 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 					else if(((DTextTokenPageLink) token).page.equals("blip"))
 					{
 						lastObj = new DTextLink("https://e621.net/blip/show/" + ((DTextTokenPageLink) token).number,
-								((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
+													   ((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
 
 						objects.add(lastObj);
 					}
 					else if(((DTextTokenPageLink) token).page.equals("takedown"))
 					{
 						lastObj = new DTextLink("https://e621.net/takedown/show/" + ((DTextTokenPageLink) token).number,
-								((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
+													   ((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
 
 						objects.add(lastObj);
 					}
 					else if(((DTextTokenPageLink) token).page.equals("ticket"))
 					{
 						lastObj = new DTextLink("https://e621.net/ticket/show/" + ((DTextTokenPageLink) token).number,
-								((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
+													   ((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
 
 						objects.add(lastObj);
 					}
 					else if(((DTextTokenPageLink) token).page.equals("record"))
 					{
 						lastObj = new DTextLink("https://e621.net/user_record/show/" + ((DTextTokenPageLink) token).number,
-								((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
+													   ((DTextTokenPageLink) token).page + " #" + ((DTextTokenPageLink) token).number);
 
 						objects.add(lastObj);
 					}
@@ -452,7 +456,7 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 				}
 			}
 		}
-		catch (java.lang.Throwable e)
+		catch(java.lang.Throwable e)
 		{
 			e.printStackTrace();
 
@@ -462,7 +466,7 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 		{
 			if(fail)
 			{
-				E621Middleware.getInstance().sendReport("DText Error parsing:\n\n" + originalText,false);
+				E621Middleware.getInstance().sendReport("DText Error parsing:\n\n" + originalText, false);
 
 				objects.clear();
 

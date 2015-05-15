@@ -12,6 +12,7 @@ import info.beastarman.e621.api.dtext.DText;
 
 public class E621Comment
 {
+	public static final String DATE_FORMAT = "yyyy-MM-dd kk:mm";
 	public String body = null;
 	public int creator_id = 0;
 	public Date created_at = null;
@@ -19,8 +20,6 @@ public class E621Comment
 	public int post_id = 0;
 	public int id = 0;
 	public String creator = "";
-	
-	public static final String DATE_FORMAT = "yyyy-MM-dd kk:mm";
 	
 	public E621Comment()
 	{
@@ -41,23 +40,23 @@ public class E621Comment
 	{
 		E621Comment obj = new E621Comment();
 		
-		obj.creator_id = json.optInt("creator_id",0);
-		obj.score = json.optInt("score",0);
-		obj.post_id = json.optInt("post_id",0);
-		obj.id = json.optInt("id",0);
-		obj.creator = json.optString("creator","");
+		obj.creator_id = json.optInt("creator_id", 0);
+		obj.score = json.optInt("score", 0);
+		obj.post_id = json.optInt("post_id", 0);
+		obj.id = json.optInt("id", 0);
+		obj.creator = json.optString("creator", "");
 		
 		try
 		{
-			SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT,Locale.US);
+			SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
 			dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+0"));
-			obj.created_at = dateFormat.parse(json.optString("created_at","1970-01-01 00:00"));
+			obj.created_at = dateFormat.parse(json.optString("created_at", "1970-01-01 00:00"));
 		}
-		catch (ParseException e)
+		catch(ParseException e)
 		{
 		}
 		
-		obj.body = json.optString("body","");
+		obj.body = json.optString("body", "");
 		
 		return obj;
 	}

@@ -52,7 +52,7 @@ public class ReadWriteLockerWrapper
 			
 			run.run();
 		}
-		catch (InterruptedException e)
+		catch(InterruptedException e)
 		{
 			Thread.currentThread().interrupt();
 			e.printStackTrace();
@@ -78,7 +78,7 @@ public class ReadWriteLockerWrapper
 					
 					run.run();
 				}
-				catch (InterruptedException e)
+				catch(InterruptedException e)
 				{
 					Thread.currentThread().interrupt();
 					e.printStackTrace();

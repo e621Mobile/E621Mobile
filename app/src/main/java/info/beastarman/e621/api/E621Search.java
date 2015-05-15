@@ -14,9 +14,9 @@ public class E621Search implements E621SearchInterface
 	public E621Search()
 	{
 		this.images = new ArrayList<E621Image>();
-		this.offset=0;
-		this.count=0;
-		this.results_per_page=1;
+		this.offset = 0;
+		this.count = 0;
+		this.results_per_page = 1;
 	}
 	
 	public E621Search(ArrayList<E621Image> images, int offset, int count, int results_per_page)
@@ -58,12 +58,12 @@ public class E621Search implements E621SearchInterface
 	@Override
 	public int current_page(int diff)
 	{
-		return (int) Math.floor(((double)offset)/((double)results_per_page)) + diff;
+		return (int) Math.floor(((double) offset) / ((double) results_per_page)) + diff;
 	}
 	
 	@Override
 	public int total_pages()
 	{
-		return (int) Math.ceil(((double)count)/((double)results_per_page));
+		return (int) Math.ceil(((double) count) / ((double) results_per_page));
 	}
 }

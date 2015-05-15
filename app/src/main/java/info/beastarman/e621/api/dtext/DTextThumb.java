@@ -11,13 +11,13 @@ import info.beastarman.e621.middleware.E621Middleware;
 public class DTextThumb extends DTextObject
 {
 	public int id;
+	E621Image img = null;
 
 	public DTextThumb(final int id)
 	{
 		this.id = id;
 	}
 
-	E621Image img = null;
 	public synchronized E621Image getImage() throws IOException
 	{
 		if(img == null)
@@ -37,9 +37,9 @@ public class DTextThumb extends DTextObject
 		{
 			is = e621.getImage(getImage(), E621Image.PREVIEW);
 
-			return e621.decodeFile(is,w,h);
+			return e621.decodeFile(is, w, h);
 		}
-		catch (IOException e)
+		catch(IOException e)
 		{
 			e.printStackTrace();
 
@@ -52,7 +52,8 @@ public class DTextThumb extends DTextObject
 				try
 				{
 					is.close();
-				} catch (IOException e)
+				}
+				catch(IOException e)
 				{
 					e.printStackTrace();
 				}

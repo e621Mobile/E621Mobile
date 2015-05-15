@@ -24,50 +24,14 @@ import java.util.HashMap;
 
 public class ImageCacheManager implements ImageCacheManagerInterface
 {
+	public long max_size;
+	public ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
 	File base_path;
 	File cache_file;
 	File access_file;
-
-	int version=1;
-
-	public long max_size;
-	public ReadWriteLockerWrapper lock = new ReadWriteLockerWrapper();
-
-	private AccessWatcher accessWatcher;
-
+	int version = 1;
 	ImageDatabaseHelper imageDbHelper;
-
-	private class ImageDatabaseHelper extends SQLiteOpenHelper
-	{
-		private ImageDatabaseHelper(Context ctx, File f)
-		{
-			super(ctx, f.getAbsolutePath(), null, version);
-		}
-
-		@Override
-		public void onCreate(SQLiteDatabase db)
-		{
-			try
-			{
-				db.execSQL("CREATE TABLE images (" +
-								"id TEXT PRIMARY KEY" +
-								", " +
-								"file_size UNSIGNED BIG INT" +
-								");");
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
-
-			onUpgrade(db,0,version);
-		}
-
-		@Override
-		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2)
-		{
-		}
-	}
+	private AccessWatcher accessWatcher;
 
 	public ImageCacheManager(Context ctx, File base_path, long max_size)
 	{
@@ -78,7 +42,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 		accessWatcher = new AccessWatcher(ctx, new File(base_path, ".access.sqlite3"));
 
-		imageDbHelper = new ImageDatabaseHelper(ctx,cache_file);
+		imageDbHelper = new ImageDatabaseHelper(ctx, cache_file);
 
 		clean();
 	}
@@ -105,18 +69,24 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 						return;
 					}
 
-					ret.obj = new File(base_path,id).exists();
+					ret.obj = new File(base_path, id).exists();
 				}
 				finally
 				{
-					if(c != null) c.close();
+					if(c != null)
+					{
+						c.close();
+					}
 				}
 			}
 		});
 
 		if(ret.obj)
 		{
-			if(max_size > 0) accessWatcher.insert(id);
+			if(max_size > 0)
+			{
+				accessWatcher.insert(id);
+			}
 		}
 
 		return ret.obj;
@@ -127,13 +97,19 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	{
 		final GTFO<InputStream> ret = new GTFO<InputStream>();
 
-		lock.read(new Runnable() {
-			public void run() {
-				if (hasFile(id)) {
-					try {
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
+				if(hasFile(id))
+				{
+					try
+					{
 						ret.obj = new BufferedInputStream(new FileInputStream(new File(base_path, id)));
 						ret.obj = new ByteArrayInputStream(IOUtils.toByteArray(ret.obj));
-					} catch (IOException e) {
+					}
+					catch(IOException e)
+					{
 						e.printStackTrace();
 					}
 				}
@@ -148,13 +124,18 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	{
 		final boolean[] ret = new boolean[]{false};
 
-		lock.write(new Runnable() {
-			public void run() {
+		lock.write(new Runnable()
+		{
+			public void run()
+			{
 				byte[] data;
 
-				try {
+				try
+				{
 					data = IOUtils.toByteArray(in);
-				} catch (IOException e) {
+				}
+				catch(IOException e)
+				{
 					return;
 				}
 
@@ -166,34 +147,48 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 				SQLiteDatabase db = imageDbHelper.getWritableDatabase();
 
-				try {
-					try {
+				try
+				{
+					try
+					{
 						BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(new File(base_path, id)));
 						out.write(data);
 						out.close();
 
-						try {
+						try
+						{
 							db.insert("images", null, values);
-						} catch (SQLiteException e) {
+						}
+						catch(SQLiteException e)
+						{
 							values.remove("id");
 							db.update("images", values, "(SELECT id FROM images WHERE id = ?)", query_params);
 						}
 
 						ret[0] = true;
-					} catch (FileNotFoundException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
+					}
+					catch(FileNotFoundException e)
+					{
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				} finally {
+					catch(IOException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				finally
+				{
 					clean();
 				}
 			}
 		});
 
-		if(max_size > 0) accessWatcher.insert(id);
+		if(max_size > 0)
+		{
+			accessWatcher.insert(id);
+		}
 
 		return ret[0];
 	}
@@ -211,65 +206,88 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 				if(db.delete("images", "id = ?", query_params) > 0)
 				{
-					new File(base_path,id).delete();
+					new File(base_path, id).delete();
 				}
 			}
 		});
 
-		if(max_size > 0) accessWatcher.remove(new String[]{id});
+		if(max_size > 0)
+		{
+			accessWatcher.remove(new String[]{id});
+		}
 	}
 
 	public void removeFiles(final String[] ids)
 	{
-		lock.write(new Runnable() {
-			public void run() {
+		lock.write(new Runnable()
+		{
+			public void run()
+			{
 				SQLiteDatabase db = imageDbHelper.getWritableDatabase();
 				db.beginTransaction();
 
-				try {
-					for (String id : ids) {
-						if (db.delete("images", "id = ?", new String[]{id}) > 0) {
+				try
+				{
+					for(String id : ids)
+					{
+						if(db.delete("images", "id = ?", new String[]{id}) > 0)
+						{
 							new File(base_path, id).delete();
 						}
 					}
 
 					db.setTransactionSuccessful();
-				} finally {
+				}
+				finally
+				{
 					db.endTransaction();
 				}
 			}
 		});
 
-		if(max_size > 0) accessWatcher.remove(ids);
+		if(max_size > 0)
+		{
+			accessWatcher.remove(ids);
+		}
 	}
 
-	private HashMap<String,Long> getAllFiles()
+	private HashMap<String, Long> getAllFiles()
 	{
-		final GTFO<HashMap<String,Long>> ret = new GTFO<HashMap<String,Long>>();
-		ret.obj = new HashMap<String,Long>();
+		final GTFO<HashMap<String, Long>> ret = new GTFO<HashMap<String, Long>>();
+		ret.obj = new HashMap<String, Long>();
 
-		lock.read(new Runnable() {
-			public void run() {
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
 				SQLiteDatabase db = imageDbHelper.getReadableDatabase();
 				Cursor c = null;
 
-				try {
+				try
+				{
 					c = db.rawQuery("SELECT id, file_size FROM images", null);
 
-					if (c == null || !c.moveToFirst()) {
+					if(c == null || !c.moveToFirst())
+					{
 						return;
 					}
 
-					while (!c.isAfterLast()) {
+					while(!c.isAfterLast())
+					{
 						ret.obj.put(
-								c.getString(c.getColumnIndex("id")),
-								c.getLong(c.getColumnIndex("file_size"))
+										   c.getString(c.getColumnIndex("id")),
+										   c.getLong(c.getColumnIndex("file_size"))
 						);
 
 						c.moveToNext();
 					}
-				} finally {
-					if (c != null) c.close();
+				}
+				finally
+				{
+					if(c != null)
+					{
+						c.close();
+					}
 				}
 			}
 		});
@@ -280,7 +298,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	@Override
 	public void clear()
 	{
-		final HashMap<String,Long> files = getAllFiles();
+		final HashMap<String, Long> files = getAllFiles();
 
 		final ArrayList<String> toRemove = new ArrayList<String>();
 
@@ -289,7 +307,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 			toRemove.add(id);
 		}
 
-		removeFiles((String[])toRemove.toArray(new String[toRemove.size()]));
+		removeFiles((String[]) toRemove.toArray(new String[toRemove.size()]));
 	}
 
 	@Override
@@ -301,17 +319,17 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		}
 
 		final long size = totalSize();
-		long local_max_size = (long) Math.floor(max_size*1.0);
+		long local_max_size = (long) Math.floor(max_size * 1.0);
 
 		if(size > local_max_size)
 		{
-			final long remove_until = (long) Math.floor(max_size*0.8);
+			final long remove_until = (long) Math.floor(max_size * 0.8);
 
 			new Thread(new Runnable()
 			{
 				public void run()
 				{
-					final HashMap<String,Long> files = getAllFiles();
+					final HashMap<String, Long> files = getAllFiles();
 
 					ArrayList<String> ids = accessWatcher.getIds();
 
@@ -319,7 +337,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 					long ssize = size;
 
-					while(ssize > remove_until && ids.size()>0)
+					while(ssize > remove_until && ids.size() > 0)
 					{
 						String id = ids.get(0);
 
@@ -332,7 +350,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 						}
 					}
 
-					removeFiles((String[])toRemove.toArray(new String[toRemove.size()]));
+					removeFiles((String[]) toRemove.toArray(new String[toRemove.size()]));
 				}
 			}).start();
 		}
@@ -344,7 +362,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 		try
 		{
-			c = db.rawQuery("SELECT SUM(file_size) as size FROM images;",null);
+			c = db.rawQuery("SELECT SUM(file_size) as size FROM images;", null);
 
 			long l = 0;
 
@@ -358,7 +376,10 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		}
 		finally
 		{
-			if(c!=null) c.close();
+			if(c != null)
+			{
+				c.close();
+			}
 		}
 	}
 
@@ -381,10 +402,49 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	}
 
 	@Override
-	public String[] fileList() {
-		HashMap<String,Long> files = getAllFiles();
+	public String[] fileList()
+	{
+		HashMap<String, Long> files = getAllFiles();
 
 		return files.keySet().toArray(new String[files.keySet().size()]);
+	}
+
+	@Override
+	public void setMaxSize(long maxSize)
+	{
+		max_size = maxSize;
+	}
+
+	private class ImageDatabaseHelper extends SQLiteOpenHelper
+	{
+		private ImageDatabaseHelper(Context ctx, File f)
+		{
+			super(ctx, f.getAbsolutePath(), null, version);
+		}
+
+		@Override
+		public void onCreate(SQLiteDatabase db)
+		{
+			try
+			{
+				db.execSQL("CREATE TABLE images (" +
+								   "id TEXT PRIMARY KEY" +
+								   ", " +
+								   "file_size UNSIGNED BIG INT" +
+								   ");");
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+
+			onUpgrade(db, 0, version);
+		}
+
+		@Override
+		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2)
+		{
+		}
 	}
 
 	private class AccessWatcher
@@ -394,44 +454,11 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 		DatabaseHelper dbHelper;
 
-		private class DatabaseHelper extends SQLiteOpenHelper
-		{
-			private DatabaseHelper(Context context, File f)
-			{
-				super(context, f.getAbsolutePath(), null, version);
-			}
-
-			@Override
-			public void onCreate(SQLiteDatabase db)
-			{
-				try
-				{
-					db.execSQL("CREATE TABLE access (" +
-									"id TEXT PRIMARY KEY" +
-									", " +
-									"last_access DATETIME DEFAULT CURRENT_TIMESTAMP" +
-									");"
-					);
-				}
-				catch(Exception e)
-				{
-					e.printStackTrace();
-				}
-
-				onUpgrade(db,0,version);
-			}
-
-			@Override
-			public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2)
-			{
-			}
-		}
-
 		public AccessWatcher(Context ctx, File database_file)
 		{
 			this.database_file = database_file;
 
-			dbHelper = new DatabaseHelper(ctx,database_file);
+			dbHelper = new DatabaseHelper(ctx, database_file);
 		}
 
 		public void insert(final String id)
@@ -504,7 +531,10 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 					{
 						c = db.rawQuery("SELECT id FROM access ORDER BY last_access", new String[]{});
 
-						if(c == null || !c.moveToFirst()) return;
+						if(c == null || !c.moveToFirst())
+						{
+							return;
+						}
 
 						while(!c.isAfterLast())
 						{
@@ -515,7 +545,10 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 					}
 					finally
 					{
-						if(c != null) c.close();
+						if(c != null)
+						{
+							c.close();
+						}
 					}
 
 					ret.obj = ids;
@@ -524,11 +557,38 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 			return ret.obj;
 		}
-	}
 
-	@Override
-	public void setMaxSize(long maxSize)
-	{
-		max_size = maxSize;
+		private class DatabaseHelper extends SQLiteOpenHelper
+		{
+			private DatabaseHelper(Context context, File f)
+			{
+				super(context, f.getAbsolutePath(), null, version);
+			}
+
+			@Override
+			public void onCreate(SQLiteDatabase db)
+			{
+				try
+				{
+					db.execSQL("CREATE TABLE access (" +
+									   "id TEXT PRIMARY KEY" +
+									   ", " +
+									   "last_access DATETIME DEFAULT CURRENT_TIMESTAMP" +
+									   ");"
+					);
+				}
+				catch(Exception e)
+				{
+					e.printStackTrace();
+				}
+
+				onUpgrade(db, 0, version);
+			}
+
+			@Override
+			public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2)
+			{
+			}
+		}
 	}
 }

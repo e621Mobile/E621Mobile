@@ -3,1556 +3,2889 @@ package info.beastarman.e621.api.dtext;
 
 import java.util.ArrayList;
 
-public class DTextCompiler implements DTextCompilerConstants {
-    public ArrayList<DTextToken> tokenStack= new ArrayList<DTextToken>();
-
-    public DTextToken getToken() throws ParseException
-    {
-        DTextToken t;
-
-        if(!tokenStack.isEmpty())
-        {
-            t = tokenStack.remove(0);
-        }
-        else
-        {
-            t =  getNextDToken();
-        }
-
-        if(t instanceof DTextTokenWord)
-        {
-            DTextToken t2 = getToken();
-
-            if(t2 == null)
-            {
-                return t;
-            }
-            else if(t2 instanceof DTextTokenWord)
-            {
-                return new DTextTokenWord(
-                    ((DTextTokenWord)t).word +
-                    ((DTextTokenWord)t2).word
-                );
-            }
-            else
-            {
-                tokenStack.add(t2);
-            }
-        }
-
-        return t;
-    }
-
-  final public DTextToken getNextDToken() throws ParseException {
-    DTextToken token;
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 0:
-      jj_consume_token(0);
-        {if (true) return null;}
-      break;
-    case SPACE:
-      token = getSpace();
-        {if (true) return token;}
-      break;
-    case NEWLINE:
-      token = getNewline();
-        {if (true) return token;}
-      break;
-    default:
-      jj_la1[0] = jj_gen;
-      if (jj_2_1(99999)) {
-        token = getUser();
-        {if (true) return token;}
-      } else if (jj_2_2(2)) {
-        token = getList();
-        {if (true) return token;}
-      } else if (jj_2_3(4)) {
-        token = getPageLink();
-        {if (true) return token;}
-      } else if (jj_2_4(99999)) {
-        token = getWiki();
-        {if (true) return token;}
-      } else if (jj_2_5(99999)) {
-        token = getSearchTag();
-        {if (true) return token;}
-      } else if (jj_2_6(99999)) {
-        token = getTag();
-        {if (true) return token;}
-      } else if (jj_2_7(3)) {
-        token = getHeader();
-        {if (true) return token;}
-      } else if (jj_2_8(99999)) {
-        token = getLink();
-        {if (true) return token;}
-      } else {
-        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case TAGOPEN:
-        case TAGCLOSE:
-        case BRACESOPEN:
-        case BRACESCLOSE:
-        case SLASH:
-        case BACKSLASH:
-        case EQUAL:
-        case PIPE:
-        case QUOTE:
-        case TWODOTS:
-        case HASHTAG:
-        case AT:
-        case ASTERISKS:
-        case NUMBER:
-        case TAGNAME:
-          token = getWord();
-        {if (true) return token;}
-          break;
-        default:
-          jj_la1[1] = jj_gen;
-          jj_consume_token(-1);
-          throw new ParseException();
-        }
-      }
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextToken getHeader() throws ParseException {
-    Token h;
-    Token num;
-    Token r;
-    h = jj_consume_token(TAGNAME);
-    num = jj_consume_token(NUMBER);
-    r = jj_consume_token(TAGNAME);
-        if(h.toString().equals("h") && Integer.parseInt(num.toString()) >= 1 && Integer.parseInt(num.toString()) <= 6 && r.toString().startsWith("."))
-        {
-            if(r.toString().length() > 1)
-            {
-                tokenStack.add(new DTextTokenWord(r.toString().substring(1)));
-            }
-
-            {if (true) return new DTextTokenHeader(Integer.parseInt(num.toString()));}
-        }
-        else
-        {
-            {if (true) return new DTextTokenWord(h.toString() + num.toString() +r.toString());}
-        }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextTokenUser getUser() throws ParseException {
-    String t;
-    jj_consume_token(AT);
-    t = getUserName();
-        {if (true) return new DTextTokenUser(t);}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public String getUserName() throws ParseException {
-    Token t;
-    String s;
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case TAGNAME:
-      t = jj_consume_token(TAGNAME);
-      s = getUserName();
-        {if (true) return t.toString() + s;}
-      break;
-    case NUMBER:
-      t = jj_consume_token(NUMBER);
-      s = getUserName();
-        {if (true) return t.toString() + s;}
-      break;
-    default:
-      jj_la1[2] = jj_gen;
-        {if (true) return "";}
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextTokenList getList() throws ParseException {
-    Token t;
-    t = jj_consume_token(ASTERISKS);
-    jj_consume_token(SPACE);
-        {if (true) return new DTextTokenList(t.toString().length());}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextTokenPageLink getPageLink() throws ParseException {
-    Token page;
-    Token link;
-    page = jj_consume_token(TAGNAME);
-    jj_consume_token(SPACE);
-    jj_consume_token(HASHTAG);
-    link = jj_consume_token(NUMBER);
-        {if (true) return new DTextTokenPageLink(page.toString(),Integer.parseInt(link.toString()));}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextTokenSearchTag getSearchTag() throws ParseException {
-    String tag;
-    jj_consume_token(BRACESOPEN);
-    jj_consume_token(BRACESOPEN);
-    tag = getSearchTagName();
-    jj_consume_token(BRACESCLOSE);
-        {if (true) return new DTextTokenSearchTag(tag);}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public String getSearchTagName() throws ParseException {
-    String s;
-    Token t;
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case SPACE:
-      jj_consume_token(SPACE);
-      s = getSearchTagName();
-        {if (true) return " " + s;}
-      break;
-    case TAGNAME:
-      t = jj_consume_token(TAGNAME);
-      s = getSearchTagName();
-        {if (true) return t.toString() + s;}
-      break;
-    case NUMBER:
-      t = jj_consume_token(NUMBER);
-      s = getSearchTagName();
-        {if (true) return t.toString() + s;}
-      break;
-    case BRACESCLOSE:
-      jj_consume_token(BRACESCLOSE);
-        {if (true) return "";}
-      break;
-    default:
-      jj_la1[3] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextTokenWiki getWiki() throws ParseException {
-    String page = "";
-    String title = "";
-    if (jj_2_9(99999)) {
-      jj_consume_token(TAGOPEN);
-      jj_consume_token(TAGOPEN);
-      page = getWikiPage();
-      title = getWikiTitle();
-      jj_consume_token(TAGCLOSE);
-        {if (true) return new DTextTokenWiki(page.toString().trim(),title.toString().trim());}
-    } else {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case TAGOPEN:
-        jj_consume_token(TAGOPEN);
-        jj_consume_token(TAGOPEN);
-        title = getWikiTitle();
-        jj_consume_token(TAGCLOSE);
-        {if (true) return new DTextTokenWiki(title.toString().trim());}
-        break;
-      default:
-        jj_la1[4] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public String getWikiPage() throws ParseException {
-    Token t;
-    String s = "";
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case SPACE:
-      jj_consume_token(SPACE);
-      s = getWikiPage();
-        {if (true) return " " + s;}
-      break;
-    case TAGNAME:
-      t = jj_consume_token(TAGNAME);
-      s = getWikiPage();
-        {if (true) return t.toString() + s;}
-      break;
-    case NUMBER:
-      t = jj_consume_token(NUMBER);
-      s = getWikiPage();
-        {if (true) return t.toString() + s;}
-      break;
-    case PIPE:
-      jj_consume_token(PIPE);
-        {if (true) return "";}
-      break;
-    default:
-      jj_la1[5] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public String getWikiTitle() throws ParseException {
-    Token t;
-    String s = "";
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case SPACE:
-      jj_consume_token(SPACE);
-      s = getWikiTitle();
-        {if (true) return " " + s;}
-      break;
-    case TAGNAME:
-      t = jj_consume_token(TAGNAME);
-      s = getWikiTitle();
-        {if (true) return t.toString() + s;}
-      break;
-    case NUMBER:
-      t = jj_consume_token(NUMBER);
-      s = getWikiTitle();
-        {if (true) return t.toString() + s;}
-      break;
-    case TAGCLOSE:
-      jj_consume_token(TAGCLOSE);
-        {if (true) return "";}
-      break;
-    default:
-      jj_la1[6] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextTokenNewline getNewline() throws ParseException {
-    DTextTokenNewline space;
-    if (jj_2_10(99999)) {
-      jj_consume_token(NEWLINE);
-      space = getNewline();
-        {if (true) return space;}
-    } else {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case NEWLINE:
-        jj_consume_token(NEWLINE);
-        {if (true) return new DTextTokenNewline();}
-        break;
-      default:
-        jj_la1[7] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextTokenSpace getSpace() throws ParseException {
-    DTextTokenSpace space;
-    if (jj_2_11(2)) {
-      jj_consume_token(SPACE);
-      space = getSpace();
-        {if (true) return space;}
-    } else {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        jj_consume_token(SPACE);
-        {if (true) return new DTextTokenSpace();}
-        break;
-      default:
-        jj_la1[8] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextToken getWord() throws ParseException {
-    Token s;
-    DTextTokenTag t;
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case TAGOPEN:
-      s = jj_consume_token(TAGOPEN);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    case TAGCLOSE:
-      s = jj_consume_token(TAGCLOSE);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    case SLASH:
-      s = jj_consume_token(SLASH);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    case EQUAL:
-      s = jj_consume_token(EQUAL);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    case TAGNAME:
-      s = jj_consume_token(TAGNAME);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    case PIPE:
-      s = jj_consume_token(PIPE);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    case BRACESOPEN:
-      s = jj_consume_token(BRACESOPEN);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    case BRACESCLOSE:
-      s = jj_consume_token(BRACESCLOSE);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    case HASHTAG:
-      s = jj_consume_token(HASHTAG);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    case ASTERISKS:
-      s = jj_consume_token(ASTERISKS);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    case AT:
-      s = jj_consume_token(AT);
-        {if (true) return new DTextTokenWord(s.toString());}
-      break;
-    default:
-      jj_la1[9] = jj_gen;
-      if (jj_2_12(2)) {
-        s = jj_consume_token(BACKSLASH);
-        t = getTag();
-        {if (true) return new DTextTokenWord(s.toString() + t.toString());}
-      } else {
-        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case BACKSLASH:
-          s = jj_consume_token(BACKSLASH);
-        {if (true) return new DTextTokenWord(s.toString());}
-          break;
-        case NUMBER:
-          s = jj_consume_token(NUMBER);
-        {if (true) return new DTextTokenWord(s.toString());}
-          break;
-        case QUOTE:
-          s = jj_consume_token(QUOTE);
-        {if (true) return new DTextTokenWord(s.toString());}
-          break;
-        case TWODOTS:
-          s = jj_consume_token(TWODOTS);
-        {if (true) return new DTextTokenWord(s.toString());}
-          break;
-        default:
-          jj_la1[10] = jj_gen;
-          jj_consume_token(-1);
-          throw new ParseException();
-        }
-      }
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextTokenLink getLink() throws ParseException {
-    String title;
-    Token link;
-    if (jj_2_13(99999)) {
-      jj_consume_token(QUOTE);
-      title = getLinkTitle();
-      jj_consume_token(TWODOTS);
-      link = jj_consume_token(URL);
-        {if (true) return new DTextTokenLink(link.toString(),title.toString());}
-    } else {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case URL:
-        link = jj_consume_token(URL);
-        {if (true) return new DTextTokenLink(link.toString());}
-        break;
-      default:
-        jj_la1[11] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public String getLinkTitle() throws ParseException {
-    Token t;
-    String s = "";
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case SPACE:
-      jj_consume_token(SPACE);
-      s = getLinkTitle();
-        {if (true) return " " + s;}
-      break;
-    case TAGNAME:
-      t = jj_consume_token(TAGNAME);
-      s = getLinkTitle();
-        {if (true) return t.toString() + s;}
-      break;
-    case NUMBER:
-      t = jj_consume_token(NUMBER);
-      s = getLinkTitle();
-        {if (true) return t.toString() + s;}
-      break;
-    case QUOTE:
-      jj_consume_token(QUOTE);
-        {if (true) return "";}
-      break;
-    default:
-      jj_la1[12] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public DTextTokenTag getTag() throws ParseException {
-    Token tag;
-    String value;
-    if (jj_2_14(99999)) {
-      jj_consume_token(TAGOPEN);
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        getSpace();
-        break;
-      default:
-        jj_la1[13] = jj_gen;
-        ;
-      }
-      tag = jj_consume_token(TAGNAME);
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        getSpace();
-        break;
-      default:
-        jj_la1[14] = jj_gen;
-        ;
-      }
-      jj_consume_token(TAGCLOSE);
-        {if (true) return new DTextTokenTag(tag.toString());}
-    } else if (jj_2_15(99999)) {
-      jj_consume_token(TAGOPEN);
-      jj_consume_token(SLASH);
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        getSpace();
-        break;
-      default:
-        jj_la1[15] = jj_gen;
-        ;
-      }
-      tag = jj_consume_token(TAGNAME);
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        getSpace();
-        break;
-      default:
-        jj_la1[16] = jj_gen;
-        ;
-      }
-      jj_consume_token(TAGCLOSE);
-        {if (true) return new DTextTokenTag(tag.toString(),false);}
-    } else if (jj_2_16(99999)) {
-      jj_consume_token(TAGOPEN);
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        getSpace();
-        break;
-      default:
-        jj_la1[17] = jj_gen;
-        ;
-      }
-      tag = jj_consume_token(TAGNAME);
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        getSpace();
-        break;
-      default:
-        jj_la1[18] = jj_gen;
-        ;
-      }
-      jj_consume_token(EQUAL);
-      value = getTagValue();
-        {if (true) return new DTextTokenTag(tag.toString(),true,value);}
-    } else if (jj_2_17(99999)) {
-      jj_consume_token(TAGOPEN);
-      jj_consume_token(SLASH);
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        getSpace();
-        break;
-      default:
-        jj_la1[19] = jj_gen;
-        ;
-      }
-      tag = jj_consume_token(TAGNAME);
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        getSpace();
-        break;
-      default:
-        jj_la1[20] = jj_gen;
-        ;
-      }
-      jj_consume_token(EQUAL);
-      value = getTagValue();
-        {if (true) return new DTextTokenTag(tag.toString(),false,value);}
-    } else {
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  final public String getTagValue() throws ParseException {
-    Token t;
-    String s = "";
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case SPACE:
-      jj_consume_token(SPACE);
-      s = getTagValue();
-        {if (true) return " " + s;}
-      break;
-    case TAGNAME:
-      t = jj_consume_token(TAGNAME);
-      s = getTagValue();
-        {if (true) return t.toString() + s;}
-      break;
-    case NUMBER:
-      t = jj_consume_token(NUMBER);
-      s = getTagValue();
-        {if (true) return t.toString() + s;}
-      break;
-    case HASHTAG:
-      t = jj_consume_token(HASHTAG);
-      s = getTagValue();
-        {if (true) return t.toString() + s;}
-      break;
-    case TAGCLOSE:
-      jj_consume_token(TAGCLOSE);
-        {if (true) return "";}
-      break;
-    default:
-      jj_la1[21] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
-    throw new Error("Missing return statement in function");
-  }
-
-  private boolean jj_2_1(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_1(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(0, xla); }
-  }
-
-  private boolean jj_2_2(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_2(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(1, xla); }
-  }
-
-  private boolean jj_2_3(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_3(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(2, xla); }
-  }
-
-  private boolean jj_2_4(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_4(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(3, xla); }
-  }
-
-  private boolean jj_2_5(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_5(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(4, xla); }
-  }
-
-  private boolean jj_2_6(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_6(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(5, xla); }
-  }
-
-  private boolean jj_2_7(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_7(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(6, xla); }
-  }
-
-  private boolean jj_2_8(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_8(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(7, xla); }
-  }
-
-  private boolean jj_2_9(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_9(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(8, xla); }
-  }
-
-  private boolean jj_2_10(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_10(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(9, xla); }
-  }
-
-  private boolean jj_2_11(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_11(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(10, xla); }
-  }
-
-  private boolean jj_2_12(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_12(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(11, xla); }
-  }
-
-  private boolean jj_2_13(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_13(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(12, xla); }
-  }
-
-  private boolean jj_2_14(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_14(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(13, xla); }
-  }
-
-  private boolean jj_2_15(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_15(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(14, xla); }
-  }
-
-  private boolean jj_2_16(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_16(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(15, xla); }
-  }
-
-  private boolean jj_2_17(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_17(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(16, xla); }
-  }
-
-  private boolean jj_3R_26() {
-    if (jj_scan_token(URL)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_24() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_3R_10()) return true;
-    if (jj_scan_token(TAGCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_15() {
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_1() {
-    if (jj_scan_token(AT)) return true;
-    if (jj_3R_23()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_21() {
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3_9() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_3R_9()) return true;
-    if (jj_3R_10()) return true;
-    if (jj_scan_token(TAGCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_4() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_9()) {
-    jj_scanpos = xsp;
-    if (jj_3R_24()) return true;
-    }
-    return false;
-  }
-
-  private boolean jj_3_13() {
-    if (jj_scan_token(QUOTE)) return true;
-    if (jj_3R_13()) return true;
-    if (jj_scan_token(TWODOTS)) return true;
-    if (jj_scan_token(URL)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_8() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_13()) {
-    jj_scanpos = xsp;
-    if (jj_3R_26()) return true;
-    }
-    return false;
-  }
-
-  private boolean jj_3R_45() {
-    if (jj_scan_token(TAGCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_36() {
-    if (jj_scan_token(SPACE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_44() {
-    if (jj_scan_token(HASHTAG)) return true;
-    if (jj_3R_20()) return true;
-    return false;
-  }
-
-  private boolean jj_3_11() {
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_12() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_11()) {
-    jj_scanpos = xsp;
-    if (jj_3R_36()) return true;
-    }
-    return false;
-  }
-
-  private boolean jj_3R_16() {
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_52() {
-    if (jj_scan_token(BRACESCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_43() {
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_20()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_18() {
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_51() {
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_25()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_42() {
-    if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_20()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_35() {
-    if (jj_scan_token(NEWLINE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_50() {
-    if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_25()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_7() {
-    if (jj_scan_token(TAGNAME)) return true;
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_scan_token(TAGNAME)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_41() {
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_20()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_20() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_41()) {
-    jj_scanpos = xsp;
-    if (jj_3R_42()) {
-    jj_scanpos = xsp;
-    if (jj_3R_43()) {
-    jj_scanpos = xsp;
-    if (jj_3R_44()) {
-    jj_scanpos = xsp;
-    if (jj_3R_45()) return true;
-    }
-    }
-    }
-    }
-    return false;
-  }
-
-  private boolean jj_3R_14() {
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3_10() {
-    if (jj_scan_token(NEWLINE)) return true;
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_11() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_10()) {
-    jj_scanpos = xsp;
-    if (jj_3R_35()) return true;
-    }
-    return false;
-  }
-
-  private boolean jj_3R_49() {
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_25()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_25() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_49()) {
-    jj_scanpos = xsp;
-    if (jj_3R_50()) {
-    jj_scanpos = xsp;
-    if (jj_3R_51()) {
-    jj_scanpos = xsp;
-    if (jj_3R_52()) return true;
-    }
-    }
-    }
-    return false;
-  }
-
-  private boolean jj_3_12() {
-    if (jj_scan_token(BACKSLASH)) return true;
-    if (jj_3R_6()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_34() {
-    if (jj_scan_token(TAGCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3_17() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_scan_token(SLASH)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_21()) jj_scanpos = xsp;
-    if (jj_scan_token(TAGNAME)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_22()) jj_scanpos = xsp;
-    if (jj_scan_token(EQUAL)) return true;
-    if (jj_3R_20()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_5() {
-    if (jj_scan_token(BRACESOPEN)) return true;
-    if (jj_scan_token(BRACESOPEN)) return true;
-    if (jj_3R_25()) return true;
-    if (jj_scan_token(BRACESCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3_8() {
-    if (jj_3R_8()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_33() {
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_10()) return true;
-    return false;
-  }
-
-  private boolean jj_3_16() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_18()) jj_scanpos = xsp;
-    if (jj_scan_token(TAGNAME)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_19()) jj_scanpos = xsp;
-    if (jj_scan_token(EQUAL)) return true;
-    if (jj_3R_20()) return true;
-    return false;
-  }
-
-  private boolean jj_3_7() {
-    if (jj_3R_7()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_32() {
-    if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_10()) return true;
-    return false;
-  }
-
-  private boolean jj_3_15() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    if (jj_scan_token(SLASH)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_16()) jj_scanpos = xsp;
-    if (jj_scan_token(TAGNAME)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_17()) jj_scanpos = xsp;
-    if (jj_scan_token(TAGCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3_6() {
-    if (jj_3R_6()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_3() {
-    if (jj_scan_token(TAGNAME)) return true;
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_scan_token(HASHTAG)) return true;
-    if (jj_scan_token(NUMBER)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_31() {
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_10()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_10() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_31()) {
-    jj_scanpos = xsp;
-    if (jj_3R_32()) {
-    jj_scanpos = xsp;
-    if (jj_3R_33()) {
-    jj_scanpos = xsp;
-    if (jj_3R_34()) return true;
-    }
-    }
-    }
-    return false;
-  }
-
-  private boolean jj_3_14() {
-    if (jj_scan_token(TAGOPEN)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_14()) jj_scanpos = xsp;
-    if (jj_scan_token(TAGNAME)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_15()) jj_scanpos = xsp;
-    if (jj_scan_token(TAGCLOSE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_6() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_14()) {
-    jj_scanpos = xsp;
-    if (jj_3_15()) {
-    jj_scanpos = xsp;
-    if (jj_3_16()) {
-    jj_scanpos = xsp;
-    if (jj_3_17()) return true;
-    }
-    }
-    }
-    return false;
-  }
-
-  private boolean jj_3_5() {
-    if (jj_3R_5()) return true;
-    return false;
-  }
-
-  private boolean jj_3_4() {
-    if (jj_3R_4()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_2() {
-    if (jj_scan_token(ASTERISKS)) return true;
-    if (jj_scan_token(SPACE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_40() {
-    if (jj_scan_token(QUOTE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_30() {
-    if (jj_scan_token(PIPE)) return true;
-    return false;
-  }
-
-  private boolean jj_3_3() {
-    if (jj_3R_3()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_22() {
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_39() {
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_13()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_29() {
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
-  private boolean jj_3_2() {
-    if (jj_3R_2()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_48() {
-    return false;
-  }
-
-  private boolean jj_3R_38() {
-    if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_13()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_28() {
-    if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
-  private boolean jj_3_1() {
-    if (jj_3R_1()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_47() {
-    if (jj_scan_token(NUMBER)) return true;
-    if (jj_3R_23()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_17() {
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_37() {
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_13()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_27() {
-    if (jj_scan_token(SPACE)) return true;
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_9() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_27()) {
-    jj_scanpos = xsp;
-    if (jj_3R_28()) {
-    jj_scanpos = xsp;
-    if (jj_3R_29()) {
-    jj_scanpos = xsp;
-    if (jj_3R_30()) return true;
-    }
-    }
-    }
-    return false;
-  }
-
-  private boolean jj_3R_13() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_37()) {
-    jj_scanpos = xsp;
-    if (jj_3R_38()) {
-    jj_scanpos = xsp;
-    if (jj_3R_39()) {
-    jj_scanpos = xsp;
-    if (jj_3R_40()) return true;
-    }
-    }
-    }
-    return false;
-  }
-
-  private boolean jj_3R_19() {
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_46() {
-    if (jj_scan_token(TAGNAME)) return true;
-    if (jj_3R_23()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_23() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_46()) {
-    jj_scanpos = xsp;
-    if (jj_3R_47()) {
-    jj_scanpos = xsp;
-    if (jj_3R_48()) return true;
-    }
-    }
-    return false;
-  }
-
-  /** Generated Token Manager. */
-  public DTextCompilerTokenManager token_source;
-  SimpleCharStream jj_input_stream;
-  /** Current token. */
-  public Token token;
-  /** Next token. */
-  public Token jj_nt;
-  private int jj_ntk;
-  private Token jj_scanpos, jj_lastpos;
-  private int jj_la;
-  private int jj_gen;
-  final private int[] jj_la1 = new int[22];
-  static private int[] jj_la1_0;
-  static {
-      jj_la1_init_0();
-   }
-   private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0xc001,0x63ffe,0x60000,0x64010,0x2,0x64100,0x64004,0x8000,0x4000,0x439be,0x20640,0x10000,0x64200,0x4000,0x4000,0x4000,0x4000,0x4000,0x4000,0x4000,0x4000,0x64804,};
-   }
-  final private JJCalls[] jj_2_rtns = new JJCalls[17];
-  private boolean jj_rescan = false;
-  private int jj_gc = 0;
-
-  /** Constructor with InputStream. */
-  public DTextCompiler(java.io.InputStream stream) {
-     this(stream, null);
-  }
-  /** Constructor with InputStream and supplied encoding */
-  public DTextCompiler(java.io.InputStream stream, String encoding) {
-    try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
-    token_source = new DTextCompilerTokenManager(jj_input_stream);
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
-  /** Reinitialise. */
-  public void ReInit(java.io.InputStream stream) {
-     ReInit(stream, null);
-  }
-  /** Reinitialise. */
-  public void ReInit(java.io.InputStream stream, String encoding) {
-    try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
-    token_source.ReInit(jj_input_stream);
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
-  /** Constructor. */
-  public DTextCompiler(java.io.Reader stream) {
-    jj_input_stream = new SimpleCharStream(stream, 1, 1);
-    token_source = new DTextCompilerTokenManager(jj_input_stream);
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
-  /** Reinitialise. */
-  public void ReInit(java.io.Reader stream) {
-    jj_input_stream.ReInit(stream, 1, 1);
-    token_source.ReInit(jj_input_stream);
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
-  /** Constructor with generated Token Manager. */
-  public DTextCompiler(DTextCompilerTokenManager tm) {
-    token_source = tm;
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
-  /** Reinitialise. */
-  public void ReInit(DTextCompilerTokenManager tm) {
-    token_source = tm;
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
-  private Token jj_consume_token(int kind) throws ParseException {
-    Token oldToken;
-    if ((oldToken = token).next != null) token = token.next;
-    else token = token.next = token_source.getNextToken();
-    jj_ntk = -1;
-    if (token.kind == kind) {
-      jj_gen++;
-      if (++jj_gc > 100) {
-        jj_gc = 0;
-        for (int i = 0; i < jj_2_rtns.length; i++) {
-          JJCalls c = jj_2_rtns[i];
-          while (c != null) {
-            if (c.gen < jj_gen) c.first = null;
-            c = c.next;
-          }
-        }
-      }
-      return token;
-    }
-    token = oldToken;
-    jj_kind = kind;
-    throw generateParseException();
-  }
-
-  static private final class LookaheadSuccess extends java.lang.Error { }
-  final private LookaheadSuccess jj_ls = new LookaheadSuccess();
-  private boolean jj_scan_token(int kind) {
-    if (jj_scanpos == jj_lastpos) {
-      jj_la--;
-      if (jj_scanpos.next == null) {
-        jj_lastpos = jj_scanpos = jj_scanpos.next = token_source.getNextToken();
-      } else {
-        jj_lastpos = jj_scanpos = jj_scanpos.next;
-      }
-    } else {
-      jj_scanpos = jj_scanpos.next;
-    }
-    if (jj_rescan) {
-      int i = 0; Token tok = token;
-      while (tok != null && tok != jj_scanpos) { i++; tok = tok.next; }
-      if (tok != null) jj_add_error_token(kind, i);
-    }
-    if (jj_scanpos.kind != kind) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) throw jj_ls;
-    return false;
-  }
-
-
-/** Get the next Token. */
-  final public Token getNextToken() {
-    if (token.next != null) token = token.next;
-    else token = token.next = token_source.getNextToken();
-    jj_ntk = -1;
-    jj_gen++;
-    return token;
-  }
-
-/** Get the specific Token. */
-  final public Token getToken(int index) {
-    Token t = token;
-    for (int i = 0; i < index; i++) {
-      if (t.next != null) t = t.next;
-      else t = t.next = token_source.getNextToken();
-    }
-    return t;
-  }
-
-  private int jj_ntk() {
-    if ((jj_nt=token.next) == null)
-      return (jj_ntk = (token.next=token_source.getNextToken()).kind);
-    else
-      return (jj_ntk = jj_nt.kind);
-  }
-
-  private java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();
-  private int[] jj_expentry;
-  private int jj_kind = -1;
-  private int[] jj_lasttokens = new int[100];
-  private int jj_endpos;
-
-  private void jj_add_error_token(int kind, int pos) {
-    if (pos >= 100) return;
-    if (pos == jj_endpos + 1) {
-      jj_lasttokens[jj_endpos++] = kind;
-    } else if (jj_endpos != 0) {
-      jj_expentry = new int[jj_endpos];
-      for (int i = 0; i < jj_endpos; i++) {
-        jj_expentry[i] = jj_lasttokens[i];
-      }
-      jj_entries_loop: for (java.util.Iterator<?> it = jj_expentries.iterator(); it.hasNext();) {
-        int[] oldentry = (int[])(it.next());
-        if (oldentry.length == jj_expentry.length) {
-          for (int i = 0; i < jj_expentry.length; i++) {
-            if (oldentry[i] != jj_expentry[i]) {
-              continue jj_entries_loop;
-            }
-          }
-          jj_expentries.add(jj_expentry);
-          break jj_entries_loop;
-        }
-      }
-      if (pos != 0) jj_lasttokens[(jj_endpos = pos) - 1] = kind;
-    }
-  }
-
-  /** Generate ParseException. */
-  public ParseException generateParseException() {
-    jj_expentries.clear();
-    boolean[] la1tokens = new boolean[19];
-    if (jj_kind >= 0) {
-      la1tokens[jj_kind] = true;
-      jj_kind = -1;
-    }
-    for (int i = 0; i < 22; i++) {
-      if (jj_la1[i] == jj_gen) {
-        for (int j = 0; j < 32; j++) {
-          if ((jj_la1_0[i] & (1<<j)) != 0) {
-            la1tokens[j] = true;
-          }
-        }
-      }
-    }
-    for (int i = 0; i < 19; i++) {
-      if (la1tokens[i]) {
-        jj_expentry = new int[1];
-        jj_expentry[0] = i;
-        jj_expentries.add(jj_expentry);
-      }
-    }
-    jj_endpos = 0;
-    jj_rescan_token();
-    jj_add_error_token(0, 0);
-    int[][] exptokseq = new int[jj_expentries.size()][];
-    for (int i = 0; i < jj_expentries.size(); i++) {
-      exptokseq[i] = jj_expentries.get(i);
-    }
-    return new ParseException(token, exptokseq, tokenImage);
-  }
-
-  /** Enable tracing. */
-  final public void enable_tracing() {
-  }
-
-  /** Disable tracing. */
-  final public void disable_tracing() {
-  }
-
-  private void jj_rescan_token() {
-    jj_rescan = true;
-    for (int i = 0; i < 17; i++) {
-    try {
-      JJCalls p = jj_2_rtns[i];
-      do {
-        if (p.gen > jj_gen) {
-          jj_la = p.arg; jj_lastpos = jj_scanpos = p.first;
-          switch (i) {
-            case 0: jj_3_1(); break;
-            case 1: jj_3_2(); break;
-            case 2: jj_3_3(); break;
-            case 3: jj_3_4(); break;
-            case 4: jj_3_5(); break;
-            case 5: jj_3_6(); break;
-            case 6: jj_3_7(); break;
-            case 7: jj_3_8(); break;
-            case 8: jj_3_9(); break;
-            case 9: jj_3_10(); break;
-            case 10: jj_3_11(); break;
-            case 11: jj_3_12(); break;
-            case 12: jj_3_13(); break;
-            case 13: jj_3_14(); break;
-            case 14: jj_3_15(); break;
-            case 15: jj_3_16(); break;
-            case 16: jj_3_17(); break;
-          }
-        }
-        p = p.next;
-      } while (p != null);
-      } catch(LookaheadSuccess ls) { }
-    }
-    jj_rescan = false;
-  }
-
-  private void jj_save(int index, int xla) {
-    JJCalls p = jj_2_rtns[index];
-    while (p.gen > jj_gen) {
-      if (p.next == null) { p = p.next = new JJCalls(); break; }
-      p = p.next;
-    }
-    p.gen = jj_gen + xla - jj_la; p.first = token; p.arg = xla;
-  }
-
-  static final class JJCalls {
-    int gen;
-    Token first;
-    int arg;
-    JJCalls next;
-  }
+public class DTextCompiler implements DTextCompilerConstants
+{
+	static private int[] jj_la1_0;
+
+	static
+	{
+		jj_la1_init_0();
+	}
+
+	final private int[] jj_la1 = new int[22];
+	final private JJCalls[] jj_2_rtns = new JJCalls[17];
+	final private LookaheadSuccess jj_ls = new LookaheadSuccess();
+	public ArrayList<DTextToken> tokenStack = new ArrayList<DTextToken>();
+	/**
+	 * Generated Token Manager.
+	 */
+	public DTextCompilerTokenManager token_source;
+	/**
+	 * Current token.
+	 */
+	public Token token;
+	/**
+	 * Next token.
+	 */
+	public Token jj_nt;
+	SimpleCharStream jj_input_stream;
+	private int jj_ntk;
+	private Token jj_scanpos, jj_lastpos;
+	private int jj_la;
+	private int jj_gen;
+	private boolean jj_rescan = false;
+	private int jj_gc = 0;
+	private java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();
+	private int[] jj_expentry;
+	private int jj_kind = -1;
+	private int[] jj_lasttokens = new int[100];
+	private int jj_endpos;
+
+	/**
+	 * Constructor with InputStream.
+	 */
+	public DTextCompiler(java.io.InputStream stream)
+	{
+		this(stream, null);
+	}
+
+	/**
+	 * Constructor with InputStream and supplied encoding
+	 */
+	public DTextCompiler(java.io.InputStream stream, String encoding)
+	{
+		try
+		{
+			jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1);
+		}
+		catch(java.io.UnsupportedEncodingException e)
+		{
+			throw new RuntimeException(e);
+		}
+		token_source = new DTextCompilerTokenManager(jj_input_stream);
+		token = new Token();
+		jj_ntk = -1;
+		jj_gen = 0;
+		for(int i = 0; i < 22; i++)
+		{
+			jj_la1[i] = -1;
+		}
+		for(int i = 0; i < jj_2_rtns.length; i++)
+		{
+			jj_2_rtns[i] = new JJCalls();
+		}
+	}
+
+	/**
+	 * Constructor.
+	 */
+	public DTextCompiler(java.io.Reader stream)
+	{
+		jj_input_stream = new SimpleCharStream(stream, 1, 1);
+		token_source = new DTextCompilerTokenManager(jj_input_stream);
+		token = new Token();
+		jj_ntk = -1;
+		jj_gen = 0;
+		for(int i = 0; i < 22; i++)
+		{
+			jj_la1[i] = -1;
+		}
+		for(int i = 0; i < jj_2_rtns.length; i++)
+		{
+			jj_2_rtns[i] = new JJCalls();
+		}
+	}
+
+	/**
+	 * Constructor with generated Token Manager.
+	 */
+	public DTextCompiler(DTextCompilerTokenManager tm)
+	{
+		token_source = tm;
+		token = new Token();
+		jj_ntk = -1;
+		jj_gen = 0;
+		for(int i = 0; i < 22; i++)
+		{
+			jj_la1[i] = -1;
+		}
+		for(int i = 0; i < jj_2_rtns.length; i++)
+		{
+			jj_2_rtns[i] = new JJCalls();
+		}
+	}
+
+	private static void jj_la1_init_0()
+	{
+		jj_la1_0 = new int[]{0xc001, 0x63ffe, 0x60000, 0x64010, 0x2, 0x64100, 0x64004, 0x8000, 0x4000, 0x439be, 0x20640, 0x10000, 0x64200, 0x4000, 0x4000, 0x4000, 0x4000, 0x4000, 0x4000, 0x4000, 0x4000, 0x64804,};
+	}
+
+	public DTextToken getToken() throws ParseException
+	{
+		DTextToken t;
+
+		if(!tokenStack.isEmpty())
+		{
+			t = tokenStack.remove(0);
+		}
+		else
+		{
+			t = getNextDToken();
+		}
+
+		if(t instanceof DTextTokenWord)
+		{
+			DTextToken t2 = getToken();
+
+			if(t2 == null)
+			{
+				return t;
+			}
+			else if(t2 instanceof DTextTokenWord)
+			{
+				return new DTextTokenWord(
+												 ((DTextTokenWord) t).word +
+														 ((DTextTokenWord) t2).word
+				);
+			}
+			else
+			{
+				tokenStack.add(t2);
+			}
+		}
+
+		return t;
+	}
+
+	final public DTextToken getNextDToken() throws ParseException
+	{
+		DTextToken token;
+		switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+		{
+			case 0:
+				jj_consume_token(0);
+			{
+				if(true)
+				{
+					return null;
+				}
+			}
+			break;
+			case SPACE:
+				token = getSpace();
+			{
+				if(true)
+				{
+					return token;
+				}
+			}
+			break;
+			case NEWLINE:
+				token = getNewline();
+			{
+				if(true)
+				{
+					return token;
+				}
+			}
+			break;
+			default:
+				jj_la1[0] = jj_gen;
+				if(jj_2_1(99999))
+				{
+					token = getUser();
+					{
+						if(true)
+						{
+							return token;
+						}
+					}
+				}
+				else if(jj_2_2(2))
+				{
+					token = getList();
+					{
+						if(true)
+						{
+							return token;
+						}
+					}
+				}
+				else if(jj_2_3(4))
+				{
+					token = getPageLink();
+					{
+						if(true)
+						{
+							return token;
+						}
+					}
+				}
+				else if(jj_2_4(99999))
+				{
+					token = getWiki();
+					{
+						if(true)
+						{
+							return token;
+						}
+					}
+				}
+				else if(jj_2_5(99999))
+				{
+					token = getSearchTag();
+					{
+						if(true)
+						{
+							return token;
+						}
+					}
+				}
+				else if(jj_2_6(99999))
+				{
+					token = getTag();
+					{
+						if(true)
+						{
+							return token;
+						}
+					}
+				}
+				else if(jj_2_7(3))
+				{
+					token = getHeader();
+					{
+						if(true)
+						{
+							return token;
+						}
+					}
+				}
+				else if(jj_2_8(99999))
+				{
+					token = getLink();
+					{
+						if(true)
+						{
+							return token;
+						}
+					}
+				}
+				else
+				{
+					switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+					{
+						case TAGOPEN:
+						case TAGCLOSE:
+						case BRACESOPEN:
+						case BRACESCLOSE:
+						case SLASH:
+						case BACKSLASH:
+						case EQUAL:
+						case PIPE:
+						case QUOTE:
+						case TWODOTS:
+						case HASHTAG:
+						case AT:
+						case ASTERISKS:
+						case NUMBER:
+						case TAGNAME:
+							token = getWord();
+						{
+							if(true)
+							{
+								return token;
+							}
+						}
+						break;
+						default:
+							jj_la1[1] = jj_gen;
+							jj_consume_token(-1);
+							throw new ParseException();
+					}
+				}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextToken getHeader() throws ParseException
+	{
+		Token h;
+		Token num;
+		Token r;
+		h = jj_consume_token(TAGNAME);
+		num = jj_consume_token(NUMBER);
+		r = jj_consume_token(TAGNAME);
+		if(h.toString().equals("h") && Integer.parseInt(num.toString()) >= 1 && Integer.parseInt(num.toString()) <= 6 && r.toString().startsWith("."))
+		{
+			if(r.toString().length() > 1)
+			{
+				tokenStack.add(new DTextTokenWord(r.toString().substring(1)));
+			}
+
+			{
+				if(true)
+				{
+					return new DTextTokenHeader(Integer.parseInt(num.toString()));
+				}
+			}
+		}
+		else
+		{
+			{
+				if(true)
+				{
+					return new DTextTokenWord(h.toString() + num.toString() + r.toString());
+				}
+			}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextTokenUser getUser() throws ParseException
+	{
+		String t;
+		jj_consume_token(AT);
+		t = getUserName();
+		{
+			if(true)
+			{
+				return new DTextTokenUser(t);
+			}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public String getUserName() throws ParseException
+	{
+		Token t;
+		String s;
+		switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+		{
+			case TAGNAME:
+				t = jj_consume_token(TAGNAME);
+				s = getUserName();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case NUMBER:
+				t = jj_consume_token(NUMBER);
+				s = getUserName();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			default:
+				jj_la1[2] = jj_gen;
+			{
+				if(true)
+				{
+					return "";
+				}
+			}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextTokenList getList() throws ParseException
+	{
+		Token t;
+		t = jj_consume_token(ASTERISKS);
+		jj_consume_token(SPACE);
+		{
+			if(true)
+			{
+				return new DTextTokenList(t.toString().length());
+			}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextTokenPageLink getPageLink() throws ParseException
+	{
+		Token page;
+		Token link;
+		page = jj_consume_token(TAGNAME);
+		jj_consume_token(SPACE);
+		jj_consume_token(HASHTAG);
+		link = jj_consume_token(NUMBER);
+		{
+			if(true)
+			{
+				return new DTextTokenPageLink(page.toString(), Integer.parseInt(link.toString()));
+			}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextTokenSearchTag getSearchTag() throws ParseException
+	{
+		String tag;
+		jj_consume_token(BRACESOPEN);
+		jj_consume_token(BRACESOPEN);
+		tag = getSearchTagName();
+		jj_consume_token(BRACESCLOSE);
+		{
+			if(true)
+			{
+				return new DTextTokenSearchTag(tag);
+			}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public String getSearchTagName() throws ParseException
+	{
+		String s;
+		Token t;
+		switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+		{
+			case SPACE:
+				jj_consume_token(SPACE);
+				s = getSearchTagName();
+			{
+				if(true)
+				{
+					return " " + s;
+				}
+			}
+			break;
+			case TAGNAME:
+				t = jj_consume_token(TAGNAME);
+				s = getSearchTagName();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case NUMBER:
+				t = jj_consume_token(NUMBER);
+				s = getSearchTagName();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case BRACESCLOSE:
+				jj_consume_token(BRACESCLOSE);
+			{
+				if(true)
+				{
+					return "";
+				}
+			}
+			break;
+			default:
+				jj_la1[3] = jj_gen;
+				jj_consume_token(-1);
+				throw new ParseException();
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextTokenWiki getWiki() throws ParseException
+	{
+		String page = "";
+		String title = "";
+		if(jj_2_9(99999))
+		{
+			jj_consume_token(TAGOPEN);
+			jj_consume_token(TAGOPEN);
+			page = getWikiPage();
+			title = getWikiTitle();
+			jj_consume_token(TAGCLOSE);
+			{
+				if(true)
+				{
+					return new DTextTokenWiki(page.toString().trim(), title.toString().trim());
+				}
+			}
+		}
+		else
+		{
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case TAGOPEN:
+					jj_consume_token(TAGOPEN);
+					jj_consume_token(TAGOPEN);
+					title = getWikiTitle();
+					jj_consume_token(TAGCLOSE);
+				{
+					if(true)
+					{
+						return new DTextTokenWiki(title.toString().trim());
+					}
+				}
+				break;
+				default:
+					jj_la1[4] = jj_gen;
+					jj_consume_token(-1);
+					throw new ParseException();
+			}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public String getWikiPage() throws ParseException
+	{
+		Token t;
+		String s = "";
+		switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+		{
+			case SPACE:
+				jj_consume_token(SPACE);
+				s = getWikiPage();
+			{
+				if(true)
+				{
+					return " " + s;
+				}
+			}
+			break;
+			case TAGNAME:
+				t = jj_consume_token(TAGNAME);
+				s = getWikiPage();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case NUMBER:
+				t = jj_consume_token(NUMBER);
+				s = getWikiPage();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case PIPE:
+				jj_consume_token(PIPE);
+			{
+				if(true)
+				{
+					return "";
+				}
+			}
+			break;
+			default:
+				jj_la1[5] = jj_gen;
+				jj_consume_token(-1);
+				throw new ParseException();
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public String getWikiTitle() throws ParseException
+	{
+		Token t;
+		String s = "";
+		switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+		{
+			case SPACE:
+				jj_consume_token(SPACE);
+				s = getWikiTitle();
+			{
+				if(true)
+				{
+					return " " + s;
+				}
+			}
+			break;
+			case TAGNAME:
+				t = jj_consume_token(TAGNAME);
+				s = getWikiTitle();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case NUMBER:
+				t = jj_consume_token(NUMBER);
+				s = getWikiTitle();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case TAGCLOSE:
+				jj_consume_token(TAGCLOSE);
+			{
+				if(true)
+				{
+					return "";
+				}
+			}
+			break;
+			default:
+				jj_la1[6] = jj_gen;
+				jj_consume_token(-1);
+				throw new ParseException();
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextTokenNewline getNewline() throws ParseException
+	{
+		DTextTokenNewline space;
+		if(jj_2_10(99999))
+		{
+			jj_consume_token(NEWLINE);
+			space = getNewline();
+			{
+				if(true)
+				{
+					return space;
+				}
+			}
+		}
+		else
+		{
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case NEWLINE:
+					jj_consume_token(NEWLINE);
+				{
+					if(true)
+					{
+						return new DTextTokenNewline();
+					}
+				}
+				break;
+				default:
+					jj_la1[7] = jj_gen;
+					jj_consume_token(-1);
+					throw new ParseException();
+			}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextTokenSpace getSpace() throws ParseException
+	{
+		DTextTokenSpace space;
+		if(jj_2_11(2))
+		{
+			jj_consume_token(SPACE);
+			space = getSpace();
+			{
+				if(true)
+				{
+					return space;
+				}
+			}
+		}
+		else
+		{
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case SPACE:
+					jj_consume_token(SPACE);
+				{
+					if(true)
+					{
+						return new DTextTokenSpace();
+					}
+				}
+				break;
+				default:
+					jj_la1[8] = jj_gen;
+					jj_consume_token(-1);
+					throw new ParseException();
+			}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextToken getWord() throws ParseException
+	{
+		Token s;
+		DTextTokenTag t;
+		switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+		{
+			case TAGOPEN:
+				s = jj_consume_token(TAGOPEN);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			case TAGCLOSE:
+				s = jj_consume_token(TAGCLOSE);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			case SLASH:
+				s = jj_consume_token(SLASH);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			case EQUAL:
+				s = jj_consume_token(EQUAL);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			case TAGNAME:
+				s = jj_consume_token(TAGNAME);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			case PIPE:
+				s = jj_consume_token(PIPE);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			case BRACESOPEN:
+				s = jj_consume_token(BRACESOPEN);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			case BRACESCLOSE:
+				s = jj_consume_token(BRACESCLOSE);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			case HASHTAG:
+				s = jj_consume_token(HASHTAG);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			case ASTERISKS:
+				s = jj_consume_token(ASTERISKS);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			case AT:
+				s = jj_consume_token(AT);
+			{
+				if(true)
+				{
+					return new DTextTokenWord(s.toString());
+				}
+			}
+			break;
+			default:
+				jj_la1[9] = jj_gen;
+				if(jj_2_12(2))
+				{
+					s = jj_consume_token(BACKSLASH);
+					t = getTag();
+					{
+						if(true)
+						{
+							return new DTextTokenWord(s.toString() + t.toString());
+						}
+					}
+				}
+				else
+				{
+					switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+					{
+						case BACKSLASH:
+							s = jj_consume_token(BACKSLASH);
+						{
+							if(true)
+							{
+								return new DTextTokenWord(s.toString());
+							}
+						}
+						break;
+						case NUMBER:
+							s = jj_consume_token(NUMBER);
+						{
+							if(true)
+							{
+								return new DTextTokenWord(s.toString());
+							}
+						}
+						break;
+						case QUOTE:
+							s = jj_consume_token(QUOTE);
+						{
+							if(true)
+							{
+								return new DTextTokenWord(s.toString());
+							}
+						}
+						break;
+						case TWODOTS:
+							s = jj_consume_token(TWODOTS);
+						{
+							if(true)
+							{
+								return new DTextTokenWord(s.toString());
+							}
+						}
+						break;
+						default:
+							jj_la1[10] = jj_gen;
+							jj_consume_token(-1);
+							throw new ParseException();
+					}
+				}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextTokenLink getLink() throws ParseException
+	{
+		String title;
+		Token link;
+		if(jj_2_13(99999))
+		{
+			jj_consume_token(QUOTE);
+			title = getLinkTitle();
+			jj_consume_token(TWODOTS);
+			link = jj_consume_token(URL);
+			{
+				if(true)
+				{
+					return new DTextTokenLink(link.toString(), title.toString());
+				}
+			}
+		}
+		else
+		{
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case URL:
+					link = jj_consume_token(URL);
+				{
+					if(true)
+					{
+						return new DTextTokenLink(link.toString());
+					}
+				}
+				break;
+				default:
+					jj_la1[11] = jj_gen;
+					jj_consume_token(-1);
+					throw new ParseException();
+			}
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public String getLinkTitle() throws ParseException
+	{
+		Token t;
+		String s = "";
+		switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+		{
+			case SPACE:
+				jj_consume_token(SPACE);
+				s = getLinkTitle();
+			{
+				if(true)
+				{
+					return " " + s;
+				}
+			}
+			break;
+			case TAGNAME:
+				t = jj_consume_token(TAGNAME);
+				s = getLinkTitle();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case NUMBER:
+				t = jj_consume_token(NUMBER);
+				s = getLinkTitle();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case QUOTE:
+				jj_consume_token(QUOTE);
+			{
+				if(true)
+				{
+					return "";
+				}
+			}
+			break;
+			default:
+				jj_la1[12] = jj_gen;
+				jj_consume_token(-1);
+				throw new ParseException();
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public DTextTokenTag getTag() throws ParseException
+	{
+		Token tag;
+		String value;
+		if(jj_2_14(99999))
+		{
+			jj_consume_token(TAGOPEN);
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case SPACE:
+					getSpace();
+					break;
+				default:
+					jj_la1[13] = jj_gen;
+					;
+			}
+			tag = jj_consume_token(TAGNAME);
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case SPACE:
+					getSpace();
+					break;
+				default:
+					jj_la1[14] = jj_gen;
+					;
+			}
+			jj_consume_token(TAGCLOSE);
+			{
+				if(true)
+				{
+					return new DTextTokenTag(tag.toString());
+				}
+			}
+		}
+		else if(jj_2_15(99999))
+		{
+			jj_consume_token(TAGOPEN);
+			jj_consume_token(SLASH);
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case SPACE:
+					getSpace();
+					break;
+				default:
+					jj_la1[15] = jj_gen;
+					;
+			}
+			tag = jj_consume_token(TAGNAME);
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case SPACE:
+					getSpace();
+					break;
+				default:
+					jj_la1[16] = jj_gen;
+					;
+			}
+			jj_consume_token(TAGCLOSE);
+			{
+				if(true)
+				{
+					return new DTextTokenTag(tag.toString(), false);
+				}
+			}
+		}
+		else if(jj_2_16(99999))
+		{
+			jj_consume_token(TAGOPEN);
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case SPACE:
+					getSpace();
+					break;
+				default:
+					jj_la1[17] = jj_gen;
+					;
+			}
+			tag = jj_consume_token(TAGNAME);
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case SPACE:
+					getSpace();
+					break;
+				default:
+					jj_la1[18] = jj_gen;
+					;
+			}
+			jj_consume_token(EQUAL);
+			value = getTagValue();
+			{
+				if(true)
+				{
+					return new DTextTokenTag(tag.toString(), true, value);
+				}
+			}
+		}
+		else if(jj_2_17(99999))
+		{
+			jj_consume_token(TAGOPEN);
+			jj_consume_token(SLASH);
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case SPACE:
+					getSpace();
+					break;
+				default:
+					jj_la1[19] = jj_gen;
+					;
+			}
+			tag = jj_consume_token(TAGNAME);
+			switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+			{
+				case SPACE:
+					getSpace();
+					break;
+				default:
+					jj_la1[20] = jj_gen;
+					;
+			}
+			jj_consume_token(EQUAL);
+			value = getTagValue();
+			{
+				if(true)
+				{
+					return new DTextTokenTag(tag.toString(), false, value);
+				}
+			}
+		}
+		else
+		{
+			jj_consume_token(-1);
+			throw new ParseException();
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	final public String getTagValue() throws ParseException
+	{
+		Token t;
+		String s = "";
+		switch((jj_ntk == -1) ? jj_ntk() : jj_ntk)
+		{
+			case SPACE:
+				jj_consume_token(SPACE);
+				s = getTagValue();
+			{
+				if(true)
+				{
+					return " " + s;
+				}
+			}
+			break;
+			case TAGNAME:
+				t = jj_consume_token(TAGNAME);
+				s = getTagValue();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case NUMBER:
+				t = jj_consume_token(NUMBER);
+				s = getTagValue();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case HASHTAG:
+				t = jj_consume_token(HASHTAG);
+				s = getTagValue();
+			{
+				if(true)
+				{
+					return t.toString() + s;
+				}
+			}
+			break;
+			case TAGCLOSE:
+				jj_consume_token(TAGCLOSE);
+			{
+				if(true)
+				{
+					return "";
+				}
+			}
+			break;
+			default:
+				jj_la1[21] = jj_gen;
+				jj_consume_token(-1);
+				throw new ParseException();
+		}
+		throw new Error("Missing return statement in function");
+	}
+
+	private boolean jj_2_1(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_1();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(0, xla);
+		}
+	}
+
+	private boolean jj_2_2(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_2();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(1, xla);
+		}
+	}
+
+	private boolean jj_2_3(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_3();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(2, xla);
+		}
+	}
+
+	private boolean jj_2_4(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_4();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(3, xla);
+		}
+	}
+
+	private boolean jj_2_5(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_5();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(4, xla);
+		}
+	}
+
+	private boolean jj_2_6(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_6();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(5, xla);
+		}
+	}
+
+	private boolean jj_2_7(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_7();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(6, xla);
+		}
+	}
+
+	private boolean jj_2_8(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_8();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(7, xla);
+		}
+	}
+
+	private boolean jj_2_9(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_9();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(8, xla);
+		}
+	}
+
+	private boolean jj_2_10(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_10();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(9, xla);
+		}
+	}
+
+	private boolean jj_2_11(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_11();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(10, xla);
+		}
+	}
+
+	private boolean jj_2_12(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_12();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(11, xla);
+		}
+	}
+
+	private boolean jj_2_13(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_13();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(12, xla);
+		}
+	}
+
+	private boolean jj_2_14(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_14();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(13, xla);
+		}
+	}
+
+	private boolean jj_2_15(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_15();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(14, xla);
+		}
+	}
+
+	private boolean jj_2_16(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_16();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(15, xla);
+		}
+	}
+
+	private boolean jj_2_17(int xla)
+	{
+		jj_la = xla;
+		jj_lastpos = jj_scanpos = token;
+		try
+		{
+			return !jj_3_17();
+		}
+		catch(LookaheadSuccess ls)
+		{
+			return true;
+		}
+		finally
+		{
+			jj_save(16, xla);
+		}
+	}
+
+	private boolean jj_3R_26()
+	{
+		if(jj_scan_token(URL))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_24()
+	{
+		if(jj_scan_token(TAGOPEN))
+		{
+			return true;
+		}
+		if(jj_scan_token(TAGOPEN))
+		{
+			return true;
+		}
+		if(jj_3R_10())
+		{
+			return true;
+		}
+		if(jj_scan_token(TAGCLOSE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_15()
+	{
+		if(jj_3R_12())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_1()
+	{
+		if(jj_scan_token(AT))
+		{
+			return true;
+		}
+		if(jj_3R_23())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_21()
+	{
+		if(jj_3R_12())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_9()
+	{
+		if(jj_scan_token(TAGOPEN))
+		{
+			return true;
+		}
+		if(jj_scan_token(TAGOPEN))
+		{
+			return true;
+		}
+		if(jj_3R_9())
+		{
+			return true;
+		}
+		if(jj_3R_10())
+		{
+			return true;
+		}
+		if(jj_scan_token(TAGCLOSE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_4()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3_9())
+		{
+			jj_scanpos = xsp;
+			if(jj_3R_24())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean jj_3_13()
+	{
+		if(jj_scan_token(QUOTE))
+		{
+			return true;
+		}
+		if(jj_3R_13())
+		{
+			return true;
+		}
+		if(jj_scan_token(TWODOTS))
+		{
+			return true;
+		}
+		if(jj_scan_token(URL))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_8()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3_13())
+		{
+			jj_scanpos = xsp;
+			if(jj_3R_26())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean jj_3R_45()
+	{
+		if(jj_scan_token(TAGCLOSE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_36()
+	{
+		if(jj_scan_token(SPACE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_44()
+	{
+		if(jj_scan_token(HASHTAG))
+		{
+			return true;
+		}
+		if(jj_3R_20())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_11()
+	{
+		if(jj_scan_token(SPACE))
+		{
+			return true;
+		}
+		if(jj_3R_12())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_12()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3_11())
+		{
+			jj_scanpos = xsp;
+			if(jj_3R_36())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean jj_3R_16()
+	{
+		if(jj_3R_12())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_52()
+	{
+		if(jj_scan_token(BRACESCLOSE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_43()
+	{
+		if(jj_scan_token(NUMBER))
+		{
+			return true;
+		}
+		if(jj_3R_20())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_18()
+	{
+		if(jj_3R_12())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_51()
+	{
+		if(jj_scan_token(NUMBER))
+		{
+			return true;
+		}
+		if(jj_3R_25())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_42()
+	{
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		if(jj_3R_20())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_35()
+	{
+		if(jj_scan_token(NEWLINE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_50()
+	{
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		if(jj_3R_25())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_7()
+	{
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		if(jj_scan_token(NUMBER))
+		{
+			return true;
+		}
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_41()
+	{
+		if(jj_scan_token(SPACE))
+		{
+			return true;
+		}
+		if(jj_3R_20())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_20()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3R_41())
+		{
+			jj_scanpos = xsp;
+			if(jj_3R_42())
+			{
+				jj_scanpos = xsp;
+				if(jj_3R_43())
+				{
+					jj_scanpos = xsp;
+					if(jj_3R_44())
+					{
+						jj_scanpos = xsp;
+						if(jj_3R_45())
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean jj_3R_14()
+	{
+		if(jj_3R_12())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_10()
+	{
+		if(jj_scan_token(NEWLINE))
+		{
+			return true;
+		}
+		if(jj_3R_11())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_11()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3_10())
+		{
+			jj_scanpos = xsp;
+			if(jj_3R_35())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean jj_3R_49()
+	{
+		if(jj_scan_token(SPACE))
+		{
+			return true;
+		}
+		if(jj_3R_25())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_25()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3R_49())
+		{
+			jj_scanpos = xsp;
+			if(jj_3R_50())
+			{
+				jj_scanpos = xsp;
+				if(jj_3R_51())
+				{
+					jj_scanpos = xsp;
+					if(jj_3R_52())
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean jj_3_12()
+	{
+		if(jj_scan_token(BACKSLASH))
+		{
+			return true;
+		}
+		if(jj_3R_6())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_34()
+	{
+		if(jj_scan_token(TAGCLOSE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_17()
+	{
+		if(jj_scan_token(TAGOPEN))
+		{
+			return true;
+		}
+		if(jj_scan_token(SLASH))
+		{
+			return true;
+		}
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3R_21())
+		{
+			jj_scanpos = xsp;
+		}
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		xsp = jj_scanpos;
+		if(jj_3R_22())
+		{
+			jj_scanpos = xsp;
+		}
+		if(jj_scan_token(EQUAL))
+		{
+			return true;
+		}
+		if(jj_3R_20())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_5()
+	{
+		if(jj_scan_token(BRACESOPEN))
+		{
+			return true;
+		}
+		if(jj_scan_token(BRACESOPEN))
+		{
+			return true;
+		}
+		if(jj_3R_25())
+		{
+			return true;
+		}
+		if(jj_scan_token(BRACESCLOSE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_8()
+	{
+		if(jj_3R_8())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_33()
+	{
+		if(jj_scan_token(NUMBER))
+		{
+			return true;
+		}
+		if(jj_3R_10())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_16()
+	{
+		if(jj_scan_token(TAGOPEN))
+		{
+			return true;
+		}
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3R_18())
+		{
+			jj_scanpos = xsp;
+		}
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		xsp = jj_scanpos;
+		if(jj_3R_19())
+		{
+			jj_scanpos = xsp;
+		}
+		if(jj_scan_token(EQUAL))
+		{
+			return true;
+		}
+		if(jj_3R_20())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_7()
+	{
+		if(jj_3R_7())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_32()
+	{
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		if(jj_3R_10())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_15()
+	{
+		if(jj_scan_token(TAGOPEN))
+		{
+			return true;
+		}
+		if(jj_scan_token(SLASH))
+		{
+			return true;
+		}
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3R_16())
+		{
+			jj_scanpos = xsp;
+		}
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		xsp = jj_scanpos;
+		if(jj_3R_17())
+		{
+			jj_scanpos = xsp;
+		}
+		if(jj_scan_token(TAGCLOSE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_6()
+	{
+		if(jj_3R_6())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_3()
+	{
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		if(jj_scan_token(SPACE))
+		{
+			return true;
+		}
+		if(jj_scan_token(HASHTAG))
+		{
+			return true;
+		}
+		if(jj_scan_token(NUMBER))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_31()
+	{
+		if(jj_scan_token(SPACE))
+		{
+			return true;
+		}
+		if(jj_3R_10())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_10()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3R_31())
+		{
+			jj_scanpos = xsp;
+			if(jj_3R_32())
+			{
+				jj_scanpos = xsp;
+				if(jj_3R_33())
+				{
+					jj_scanpos = xsp;
+					if(jj_3R_34())
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean jj_3_14()
+	{
+		if(jj_scan_token(TAGOPEN))
+		{
+			return true;
+		}
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3R_14())
+		{
+			jj_scanpos = xsp;
+		}
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		xsp = jj_scanpos;
+		if(jj_3R_15())
+		{
+			jj_scanpos = xsp;
+		}
+		if(jj_scan_token(TAGCLOSE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_6()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3_14())
+		{
+			jj_scanpos = xsp;
+			if(jj_3_15())
+			{
+				jj_scanpos = xsp;
+				if(jj_3_16())
+				{
+					jj_scanpos = xsp;
+					if(jj_3_17())
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean jj_3_5()
+	{
+		if(jj_3R_5())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_4()
+	{
+		if(jj_3R_4())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_2()
+	{
+		if(jj_scan_token(ASTERISKS))
+		{
+			return true;
+		}
+		if(jj_scan_token(SPACE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_40()
+	{
+		if(jj_scan_token(QUOTE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_30()
+	{
+		if(jj_scan_token(PIPE))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_3()
+	{
+		if(jj_3R_3())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_22()
+	{
+		if(jj_3R_12())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_39()
+	{
+		if(jj_scan_token(NUMBER))
+		{
+			return true;
+		}
+		if(jj_3R_13())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_29()
+	{
+		if(jj_scan_token(NUMBER))
+		{
+			return true;
+		}
+		if(jj_3R_9())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_2()
+	{
+		if(jj_3R_2())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_48()
+	{
+		return false;
+	}
+
+	private boolean jj_3R_38()
+	{
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		if(jj_3R_13())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_28()
+	{
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		if(jj_3R_9())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3_1()
+	{
+		if(jj_3R_1())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_47()
+	{
+		if(jj_scan_token(NUMBER))
+		{
+			return true;
+		}
+		if(jj_3R_23())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_17()
+	{
+		if(jj_3R_12())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_37()
+	{
+		if(jj_scan_token(SPACE))
+		{
+			return true;
+		}
+		if(jj_3R_13())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_27()
+	{
+		if(jj_scan_token(SPACE))
+		{
+			return true;
+		}
+		if(jj_3R_9())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_9()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3R_27())
+		{
+			jj_scanpos = xsp;
+			if(jj_3R_28())
+			{
+				jj_scanpos = xsp;
+				if(jj_3R_29())
+				{
+					jj_scanpos = xsp;
+					if(jj_3R_30())
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean jj_3R_13()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3R_37())
+		{
+			jj_scanpos = xsp;
+			if(jj_3R_38())
+			{
+				jj_scanpos = xsp;
+				if(jj_3R_39())
+				{
+					jj_scanpos = xsp;
+					if(jj_3R_40())
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean jj_3R_19()
+	{
+		if(jj_3R_12())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_46()
+	{
+		if(jj_scan_token(TAGNAME))
+		{
+			return true;
+		}
+		if(jj_3R_23())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean jj_3R_23()
+	{
+		Token xsp;
+		xsp = jj_scanpos;
+		if(jj_3R_46())
+		{
+			jj_scanpos = xsp;
+			if(jj_3R_47())
+			{
+				jj_scanpos = xsp;
+				if(jj_3R_48())
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Reinitialise.
+	 */
+	public void ReInit(java.io.InputStream stream)
+	{
+		ReInit(stream, null);
+	}
+
+	/**
+	 * Reinitialise.
+	 */
+	public void ReInit(java.io.InputStream stream, String encoding)
+	{
+		try
+		{
+			jj_input_stream.ReInit(stream, encoding, 1, 1);
+		}
+		catch(java.io.UnsupportedEncodingException e)
+		{
+			throw new RuntimeException(e);
+		}
+		token_source.ReInit(jj_input_stream);
+		token = new Token();
+		jj_ntk = -1;
+		jj_gen = 0;
+		for(int i = 0; i < 22; i++)
+		{
+			jj_la1[i] = -1;
+		}
+		for(int i = 0; i < jj_2_rtns.length; i++)
+		{
+			jj_2_rtns[i] = new JJCalls();
+		}
+	}
+
+	/**
+	 * Reinitialise.
+	 */
+	public void ReInit(java.io.Reader stream)
+	{
+		jj_input_stream.ReInit(stream, 1, 1);
+		token_source.ReInit(jj_input_stream);
+		token = new Token();
+		jj_ntk = -1;
+		jj_gen = 0;
+		for(int i = 0; i < 22; i++)
+		{
+			jj_la1[i] = -1;
+		}
+		for(int i = 0; i < jj_2_rtns.length; i++)
+		{
+			jj_2_rtns[i] = new JJCalls();
+		}
+	}
+
+	/**
+	 * Reinitialise.
+	 */
+	public void ReInit(DTextCompilerTokenManager tm)
+	{
+		token_source = tm;
+		token = new Token();
+		jj_ntk = -1;
+		jj_gen = 0;
+		for(int i = 0; i < 22; i++)
+		{
+			jj_la1[i] = -1;
+		}
+		for(int i = 0; i < jj_2_rtns.length; i++)
+		{
+			jj_2_rtns[i] = new JJCalls();
+		}
+	}
+
+	private Token jj_consume_token(int kind) throws ParseException
+	{
+		Token oldToken;
+		if((oldToken = token).next != null)
+		{
+			token = token.next;
+		}
+		else
+		{
+			token = token.next = token_source.getNextToken();
+		}
+		jj_ntk = -1;
+		if(token.kind == kind)
+		{
+			jj_gen++;
+			if(++jj_gc > 100)
+			{
+				jj_gc = 0;
+				for(int i = 0; i < jj_2_rtns.length; i++)
+				{
+					JJCalls c = jj_2_rtns[i];
+					while(c != null)
+					{
+						if(c.gen < jj_gen)
+						{
+							c.first = null;
+						}
+						c = c.next;
+					}
+				}
+			}
+			return token;
+		}
+		token = oldToken;
+		jj_kind = kind;
+		throw generateParseException();
+	}
+
+	private boolean jj_scan_token(int kind)
+	{
+		if(jj_scanpos == jj_lastpos)
+		{
+			jj_la--;
+			if(jj_scanpos.next == null)
+			{
+				jj_lastpos = jj_scanpos = jj_scanpos.next = token_source.getNextToken();
+			}
+			else
+			{
+				jj_lastpos = jj_scanpos = jj_scanpos.next;
+			}
+		}
+		else
+		{
+			jj_scanpos = jj_scanpos.next;
+		}
+		if(jj_rescan)
+		{
+			int i = 0;
+			Token tok = token;
+			while(tok != null && tok != jj_scanpos)
+			{
+				i++;
+				tok = tok.next;
+			}
+			if(tok != null)
+			{
+				jj_add_error_token(kind, i);
+			}
+		}
+		if(jj_scanpos.kind != kind)
+		{
+			return true;
+		}
+		if(jj_la == 0 && jj_scanpos == jj_lastpos)
+		{
+			throw jj_ls;
+		}
+		return false;
+	}
+
+	/**
+	 * Get the next Token.
+	 */
+	final public Token getNextToken()
+	{
+		if(token.next != null)
+		{
+			token = token.next;
+		}
+		else
+		{
+			token = token.next = token_source.getNextToken();
+		}
+		jj_ntk = -1;
+		jj_gen++;
+		return token;
+	}
+
+	/**
+	 * Get the specific Token.
+	 */
+	final public Token getToken(int index)
+	{
+		Token t = token;
+		for(int i = 0; i < index; i++)
+		{
+			if(t.next != null)
+			{
+				t = t.next;
+			}
+			else
+			{
+				t = t.next = token_source.getNextToken();
+			}
+		}
+		return t;
+	}
+
+	private int jj_ntk()
+	{
+		if((jj_nt = token.next) == null)
+		{
+			return (jj_ntk = (token.next = token_source.getNextToken()).kind);
+		}
+		else
+		{
+			return (jj_ntk = jj_nt.kind);
+		}
+	}
+
+	private void jj_add_error_token(int kind, int pos)
+	{
+		if(pos >= 100)
+		{
+			return;
+		}
+		if(pos == jj_endpos + 1)
+		{
+			jj_lasttokens[jj_endpos++] = kind;
+		}
+		else if(jj_endpos != 0)
+		{
+			jj_expentry = new int[jj_endpos];
+			for(int i = 0; i < jj_endpos; i++)
+			{
+				jj_expentry[i] = jj_lasttokens[i];
+			}
+			jj_entries_loop:
+			for(java.util.Iterator<?> it = jj_expentries.iterator(); it.hasNext(); )
+			{
+				int[] oldentry = (int[]) (it.next());
+				if(oldentry.length == jj_expentry.length)
+				{
+					for(int i = 0; i < jj_expentry.length; i++)
+					{
+						if(oldentry[i] != jj_expentry[i])
+						{
+							continue jj_entries_loop;
+						}
+					}
+					jj_expentries.add(jj_expentry);
+					break jj_entries_loop;
+				}
+			}
+			if(pos != 0)
+			{
+				jj_lasttokens[(jj_endpos = pos) - 1] = kind;
+			}
+		}
+	}
+
+	/**
+	 * Generate ParseException.
+	 */
+	public ParseException generateParseException()
+	{
+		jj_expentries.clear();
+		boolean[] la1tokens = new boolean[19];
+		if(jj_kind >= 0)
+		{
+			la1tokens[jj_kind] = true;
+			jj_kind = -1;
+		}
+		for(int i = 0; i < 22; i++)
+		{
+			if(jj_la1[i] == jj_gen)
+			{
+				for(int j = 0; j < 32; j++)
+				{
+					if((jj_la1_0[i] & (1 << j)) != 0)
+					{
+						la1tokens[j] = true;
+					}
+				}
+			}
+		}
+		for(int i = 0; i < 19; i++)
+		{
+			if(la1tokens[i])
+			{
+				jj_expentry = new int[1];
+				jj_expentry[0] = i;
+				jj_expentries.add(jj_expentry);
+			}
+		}
+		jj_endpos = 0;
+		jj_rescan_token();
+		jj_add_error_token(0, 0);
+		int[][] exptokseq = new int[jj_expentries.size()][];
+		for(int i = 0; i < jj_expentries.size(); i++)
+		{
+			exptokseq[i] = jj_expentries.get(i);
+		}
+		return new ParseException(token, exptokseq, tokenImage);
+	}
+
+	/**
+	 * Enable tracing.
+	 */
+	final public void enable_tracing()
+	{
+	}
+
+	/**
+	 * Disable tracing.
+	 */
+	final public void disable_tracing()
+	{
+	}
+
+	private void jj_rescan_token()
+	{
+		jj_rescan = true;
+		for(int i = 0; i < 17; i++)
+		{
+			try
+			{
+				JJCalls p = jj_2_rtns[i];
+				do
+				{
+					if(p.gen > jj_gen)
+					{
+						jj_la = p.arg;
+						jj_lastpos = jj_scanpos = p.first;
+						switch(i)
+						{
+							case 0:
+								jj_3_1();
+								break;
+							case 1:
+								jj_3_2();
+								break;
+							case 2:
+								jj_3_3();
+								break;
+							case 3:
+								jj_3_4();
+								break;
+							case 4:
+								jj_3_5();
+								break;
+							case 5:
+								jj_3_6();
+								break;
+							case 6:
+								jj_3_7();
+								break;
+							case 7:
+								jj_3_8();
+								break;
+							case 8:
+								jj_3_9();
+								break;
+							case 9:
+								jj_3_10();
+								break;
+							case 10:
+								jj_3_11();
+								break;
+							case 11:
+								jj_3_12();
+								break;
+							case 12:
+								jj_3_13();
+								break;
+							case 13:
+								jj_3_14();
+								break;
+							case 14:
+								jj_3_15();
+								break;
+							case 15:
+								jj_3_16();
+								break;
+							case 16:
+								jj_3_17();
+								break;
+						}
+					}
+					p = p.next;
+				} while(p != null);
+			}
+			catch(LookaheadSuccess ls)
+			{
+			}
+		}
+		jj_rescan = false;
+	}
+
+	private void jj_save(int index, int xla)
+	{
+		JJCalls p = jj_2_rtns[index];
+		while(p.gen > jj_gen)
+		{
+			if(p.next == null)
+			{
+				p = p.next = new JJCalls();
+				break;
+			}
+			p = p.next;
+		}
+		p.gen = jj_gen + xla - jj_la;
+		p.first = token;
+		p.arg = xla;
+	}
+
+	static private final class LookaheadSuccess extends java.lang.Error
+	{
+	}
+
+	static final class JJCalls
+	{
+		int gen;
+		Token first;
+		int arg;
+		JJCalls next;
+	}
 
 }

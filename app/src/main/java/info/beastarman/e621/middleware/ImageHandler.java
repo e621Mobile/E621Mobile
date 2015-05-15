@@ -23,16 +23,19 @@ public class ImageHandler extends Handler
 	@Override
 	public void handleMessage(Message msg)
 	{
-		InputStream in = (InputStream)msg.obj;
+		InputStream in = (InputStream) msg.obj;
 		
 		handleInputStream(in);
 
-		try {
+		try
+		{
 			if(in != null)
 			{
 				in.close();
 			}
-		} catch (IOException e) {
+		}
+		catch(IOException e)
+		{
 			e.printStackTrace();
 		}
 

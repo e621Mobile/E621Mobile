@@ -79,7 +79,7 @@ public class SearchActivity extends BaseActivity
 		super.onCreate(savedInstanceState);
 		
 		ActionBar actionBar = getActionBar();
-	    actionBar.setDisplayHomeAsUpEnabled(true);
+		actionBar.setDisplayHomeAsUpEnabled(true);
 
 		search = getIntent().getStringExtra(SearchActivity.SEARCH);
 		if(search == null)
@@ -89,16 +89,19 @@ public class SearchActivity extends BaseActivity
 		page = getIntent().getIntExtra(SearchActivity.PAGE, 0);
 		limit = getIntent().getIntExtra(SearchActivity.LIMIT, e621.resultsPerPage());
 
-		min_id = getIntent().getIntExtra(SearchActivity.MIN_ID,-1);
-		max_id = getIntent().getIntExtra(SearchActivity.MAX_ID,-1);
+		min_id = getIntent().getIntExtra(SearchActivity.MIN_ID, -1);
+		max_id = getIntent().getIntExtra(SearchActivity.MAX_ID, -1);
 		
-		cur_min_id = min_id = (min_id==-1?null:min_id);
-		cur_max_id = max_id = (max_id==-1?null:max_id);
+		cur_min_id = min_id = (min_id == -1 ? null : min_id);
+		cur_max_id = max_id = (max_id == -1 ? null : max_id);
 		
 		previous_page = getIntent().getIntExtra(SearchActivity.PREVIOUS_PAGE, -666);
-		if(previous_page<0) previous_page = null;
+		if(previous_page < 0)
+		{
+			previous_page = null;
+		}
 		
-		Long e621SearchKey = getIntent().getLongExtra(SearchActivity.PRELOADED_SEARCH,-1);
+		Long e621SearchKey = getIntent().getLongExtra(SearchActivity.PRELOADED_SEARCH, -1);
 		
 		if(e621SearchKey != -1)
 		{
@@ -122,11 +125,11 @@ public class SearchActivity extends BaseActivity
 		
 		if(total_pages == null)
 		{
-			text = String.format(res.getString(R.string.page_counter),String.valueOf(page + 1),"...");
+			text = String.format(res.getString(R.string.page_counter), String.valueOf(page + 1), "...");
 		}
 		else
 		{
-			text = String.format(res.getString(R.string.page_counter),String.valueOf(page + 1),String.valueOf(total_pages));
+			text = String.format(res.getString(R.string.page_counter), String.valueOf(page + 1), String.valueOf(total_pages));
 		}
 		
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
@@ -154,13 +157,13 @@ public class SearchActivity extends BaseActivity
 					return;
 				}
 				
-				E621Search nextSearch = get_results(page+1);
+				E621Search nextSearch = get_results(page + 1);
 				
 				if(nextSearch != null)
 				{
 					nextE621Search = e621.getStorage().rent(nextSearch);
 
-					for (final E621Image img : nextSearch.images)
+					for(final E621Image img : nextSearch.images)
 					{
 						new Thread(new Runnable()
 						{
@@ -177,14 +180,17 @@ public class SearchActivity extends BaseActivity
 	
 	protected Integer getSearchResultsPages(String search, int limit)
 	{
-		return e621.getSearchResultsPages(search,limit);
+		return e621.getSearchResultsPages(search, limit);
 	}
 	
 	protected E621Search get_results(int page)
 	{
-		try {
+		try
+		{
 			return e621.post__index(search, page, limit);
-		} catch (IOException e) {
+		}
+		catch(IOException e)
+		{
 			return null;
 		}
 	}
@@ -192,10 +198,11 @@ public class SearchActivity extends BaseActivity
 	Integer lastScrollY = null;
 
 	@Override
-	public void onStart() {
+	public void onStart()
+	{
 		super.onStart();
 
-		if (e621Search != null)
+		if(e621Search != null)
 		{
 			getWindow().getDecorView().post(new Runnable()
 			{
@@ -208,15 +215,18 @@ public class SearchActivity extends BaseActivity
 	}
 
 	@Override
-	public void onStop() {
+	public void onStop()
+	{
 		super.onStop();
 
-		LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
+		LazyRunScrollView scroll = (LazyRunScrollView) findViewById(R.id.resultsScrollView);
 		lastScrollY = scroll.getScrollY();
 
-		for (ImageView img : imageViews) {
+		for(ImageView img : imageViews)
+		{
 			Drawable drawable = img.getDrawable();
-			if (drawable instanceof BitmapDrawable) {
+			if(drawable instanceof BitmapDrawable)
+			{
 				BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
 				Bitmap bitmap = bitmapDrawable.getBitmap();
 				
@@ -241,23 +251,25 @@ public class SearchActivity extends BaseActivity
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
 		// Handle item selection
-		switch (item.getItemId()) {
-		case R.id.action_settings:
-			open_settings();
-			return true;
-		case R.id.action_offine_search:
-			offline_search();
-			return true;
-		case R.id.action_continue_later:
-			continue_later();
-			return true;
-		case R.id.action_continue_later_after:
-			continue_later_after();
-			return true;
-		default:
-			return super.onOptionsItemSelected(item);
+		switch(item.getItemId())
+		{
+			case R.id.action_settings:
+				open_settings();
+				return true;
+			case R.id.action_offine_search:
+				offline_search();
+				return true;
+			case R.id.action_continue_later:
+				continue_later();
+				return true;
+			case R.id.action_continue_later_after:
+				continue_later_after();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
 	}
 	
@@ -276,8 +288,8 @@ public class SearchActivity extends BaseActivity
 			public void run()
 			{
 				e621.continue_later(SearchQuery.normalize(search),
-						min_id!=null?String.valueOf(min_id):null,
-						max_id!=null?String.valueOf(max_id):null);
+										   min_id != null ? String.valueOf(min_id) : null,
+										   max_id != null ? String.valueOf(max_id) : null);
 			}
 		}).start();
 		
@@ -294,8 +306,8 @@ public class SearchActivity extends BaseActivity
 			public void run()
 			{
 				e621.continue_later(SearchQuery.normalize(search),
-						cur_min_id!=null?String.valueOf(cur_min_id):null,
-						cur_max_id!=null?String.valueOf(cur_max_id):null);
+										   cur_min_id != null ? String.valueOf(cur_min_id) : null,
+										   cur_max_id != null ? String.valueOf(cur_max_id) : null);
 			}
 		}).start();
 		
@@ -304,7 +316,8 @@ public class SearchActivity extends BaseActivity
 		startActivity(intent);
 	}
 
-	public void open_settings() {
+	public void open_settings()
+	{
 		Intent intent;
 		intent = new Intent(this, SettingsActivity.class);
 		startActivity(intent);
@@ -347,12 +360,13 @@ public class SearchActivity extends BaseActivity
 
 		Resources res = getResources();
 		String text = String.format(res.getString(R.string.page_counter),
-				String.valueOf(e621Search.current_page() + 1), String.valueOf(e621Search.total_pages()));
+										   String.valueOf(e621Search.current_page() + 1), String.valueOf(e621Search.total_pages()));
 
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
 
-		if (e621Search.images.size() == 0) {
+		if(e621Search.images.size() == 0)
+		{
 			TextView t = new TextView(getApplicationContext());
 			t.setText(R.string.no_results);
 			t.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -368,7 +382,7 @@ public class SearchActivity extends BaseActivity
 	{
 		Resources res = getResources();
 		String text = String.format(res.getString(R.string.page_counter),
-				String.valueOf(e621Search.current_page() + 1), String.valueOf(e621Search.total_pages()));
+										   String.valueOf(e621Search.current_page() + 1), String.valueOf(e621Search.total_pages()));
 
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
@@ -387,13 +401,13 @@ public class SearchActivity extends BaseActivity
 					{
 						final int layout_width = layout.getWidth();
 
-						final LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
+						final LazyRunScrollView scroll = (LazyRunScrollView) findViewById(R.id.resultsScrollView);
 
 						final ArrayList<View> views = new ArrayList<View>();
 
 						int position = e621Search.offset;
 
-						for (final E621Image image : e621Search.images)
+						for(final E621Image image : e621Search.images)
 						{
 							E621Image img = new E621Image(image);
 
@@ -407,15 +421,15 @@ public class SearchActivity extends BaseActivity
 								}
 								else if(e621.blacklistMethod() == E621Middleware.BlacklistMethod.FLAG)
 								{
-									img.height = img.width/3;
-									img.sample_height = img.sample_width/3;
-									img.preview_height= img.preview_width/3;
+									img.height = img.width / 3;
+									img.sample_height = img.sample_width / 3;
+									img.preview_height = img.preview_width / 3;
 								}
 							}
 
-							final LinearLayout resultWrapper = getResultWrapper(img,layout_width,position);
+							final LinearLayout resultWrapper = getResultWrapper(img, layout_width, position);
 
-							ImageEventManager event = new ImageEventManager((ImageButton)resultWrapper.findViewById(R.id.downloadButton),img);
+							ImageEventManager event = new ImageEventManager((ImageButton) resultWrapper.findViewById(R.id.downloadButton), img);
 
 							e621.bindDownloadState(img.id, event);
 
@@ -426,7 +440,7 @@ public class SearchActivity extends BaseActivity
 							views.add(resultWrapper);
 						}
 
-						for(int i=0; i<e621Search.images.size(); i++)
+						for(int i = 0; i < e621Search.images.size(); i++)
 						{
 							E621Image img = e621Search.images.get(i);
 
@@ -470,7 +484,7 @@ public class SearchActivity extends BaseActivity
 
 								int image_y = 0;
 
-								for(int i=0; i<e621Search.images.size(); i++)
+								for(int i = 0; i < e621Search.images.size(); i++)
 								{
 									if(!isAlive())
 									{
@@ -524,18 +538,18 @@ public class SearchActivity extends BaseActivity
 															public void run()
 															{
 																if(bmp != null)
-                                                                {
-                                                                    imgView.setImageBitmap(bmp);
+																{
+																	imgView.setImageBitmap(bmp);
 
 																	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-																			bmp.getWidth(),
-																			bmp.getHeight());
+																																			bmp.getWidth(),
+																																			bmp.getHeight());
 																	imgView.setLayoutParams(lp);
-                                                                }
-                                                                else
-                                                                {
-                                                                    imgView.setImageResource(R.drawable.bad_image);
-                                                                }
+																}
+																else
+																{
+																	imgView.setImageResource(R.drawable.bad_image);
+																}
 
 																progressBar.setVisibility(View.GONE);
 
@@ -548,7 +562,7 @@ public class SearchActivity extends BaseActivity
 										});
 									}
 
-									if (e621.lazyLoad())
+									if(e621.lazyLoad())
 									{
 										resultWrapper.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
@@ -558,14 +572,14 @@ public class SearchActivity extends BaseActivity
 
 								if(lastScrollY != null)
 								{
-									final LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
+									final LazyRunScrollView scroll = (LazyRunScrollView) findViewById(R.id.resultsScrollView);
 
 									scroll.post(new Runnable()
 									{
 										@Override
 										public void run()
 										{
-											scroll.scrollTo(0,lastScrollY);
+											scroll.scrollTo(0, lastScrollY);
 										}
 									});
 								}
@@ -590,19 +604,19 @@ public class SearchActivity extends BaseActivity
 
 		a.setDuration(300);
 		img.startAnimation(a);
-		((View)img.getParent()).invalidate();
+		((View) img.getParent()).invalidate();
 	}
 
 	public void update_results()
 	{
-		if (e621Search == null)
+		if(e621Search == null)
 		{
 			update_results_retry();
 			
 			return;
 		}
 
-		if (e621Search.images.isEmpty())
+		if(e621Search.images.isEmpty())
 		{
 			update_results_empty();
 
@@ -621,18 +635,18 @@ public class SearchActivity extends BaseActivity
 		resultWrapper.setOrientation(LinearLayout.VERTICAL);
 		
 		ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(new ViewGroup.LayoutParams(
-				ViewGroup.LayoutParams.WRAP_CONTENT,
-				ViewGroup.LayoutParams.WRAP_CONTENT));
+																								 ViewGroup.LayoutParams.WRAP_CONTENT,
+																								 ViewGroup.LayoutParams.WRAP_CONTENT));
 		resultWrapper.setLayoutParams(lp);
 		
 		lp = new ViewGroup.LayoutParams(new ViewGroup.LayoutParams(
-				ViewGroup.LayoutParams.MATCH_PARENT,
-				ViewGroup.LayoutParams.WRAP_CONTENT));
+																		  ViewGroup.LayoutParams.MATCH_PARENT,
+																		  ViewGroup.LayoutParams.WRAP_CONTENT));
 		detailsWrapper.setLayoutParams(lp);
 		detailsWrapper.setBackgroundColor(getResources().getColor(R.color.detailsBackgroundColor));
 		
 		TextView details = getImageFooter(img);
-		RelativeLayout imageWrapper = generateImageWrapper(img,layout_width,position);
+		RelativeLayout imageWrapper = generateImageWrapper(img, layout_width, position);
 		updateCurMinMax(img);
 		
 		resultWrapper.setPadding(0, dpToPx(10), 0, dpToPx(10));
@@ -651,8 +665,8 @@ public class SearchActivity extends BaseActivity
 		ProgressBar bar = new ProgressBar(getApplicationContext());
 
 		RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-				RelativeLayout.LayoutParams.WRAP_CONTENT, 
-				RelativeLayout.LayoutParams.WRAP_CONTENT);
+																						  RelativeLayout.LayoutParams.WRAP_CONTENT,
+																						  RelativeLayout.LayoutParams.WRAP_CONTENT);
 		layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 		bar.setLayoutParams(layoutParams);
 		
@@ -661,12 +675,12 @@ public class SearchActivity extends BaseActivity
 
 	private ImageView generateImageView(E621Image img, int layout_width, int position)
 	{
-		int image_height = (int) (layout_width * (((double)img.preview_height) / img.preview_width));
+		int image_height = (int) (layout_width * (((double) img.preview_height) / img.preview_width));
 		
 		ImageView imgView = new ImageView(getApplicationContext());
 		ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(new ViewGroup.LayoutParams(
-				layout_width,
-				image_height));
+																								 layout_width,
+																								 image_height));
 		imgView.setLayoutParams(lp);
 		
 		imgView.setTag(R.id.imageObject, img);
@@ -713,11 +727,11 @@ public class SearchActivity extends BaseActivity
 		
 		if(has_border)
 		{
-			imageWrapper.setPadding(dpToPx(5),dpToPx(2),dpToPx(5),dpToPx(2));
+			imageWrapper.setPadding(dpToPx(5), dpToPx(2), dpToPx(5), dpToPx(2));
 		}
 		
 		ProgressBar bar = generateProgressBar();
-		ImageView imgView = generateImageView(img,layout_width,position);
+		ImageView imgView = generateImageView(img, layout_width, position);
 		LinearLayout highlights = generateHighlights(img);
 		ImageButton download = generateDownloadButton(img);
 		
@@ -739,8 +753,8 @@ public class SearchActivity extends BaseActivity
 		layout.setOrientation(LinearLayout.VERTICAL);
 
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-				ViewGroup.LayoutParams.WRAP_CONTENT,
-				ViewGroup.LayoutParams.WRAP_CONTENT);
+																					ViewGroup.LayoutParams.WRAP_CONTENT,
+																					ViewGroup.LayoutParams.WRAP_CONTENT);
 		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
 		params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
 		layout.setLayoutParams(params);
@@ -757,7 +771,7 @@ public class SearchActivity extends BaseActivity
 			return layout;
 		}
 
-		Collections.sort(highlights,new Comparator<String>()
+		Collections.sort(highlights, new Comparator<String>()
 		{
 			@Override
 			public int compare(String s, String s2)
@@ -797,8 +811,8 @@ public class SearchActivity extends BaseActivity
 		}
 
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-			    dpToPx(55), 
-			    dpToPx(45));
+																					dpToPx(55),
+																					dpToPx(45));
 		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
 		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 		download.setLayoutParams(params);
@@ -846,7 +860,7 @@ public class SearchActivity extends BaseActivity
 			detailsText += "<font color=#FF0000>↓" + String.valueOf(img.score) + "</font>";
 		}
 
-		detailsText += " ♥"+String.valueOf(img.fav_count);
+		detailsText += " ♥" + String.valueOf(img.fav_count);
 		
 		if(img.has_comments)
 		{
@@ -869,8 +883,8 @@ public class SearchActivity extends BaseActivity
 		TextView details = new TextView(getApplicationContext());
 		
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-			    RelativeLayout.LayoutParams.WRAP_CONTENT, 
-			    RelativeLayout.LayoutParams.WRAP_CONTENT);
+																					RelativeLayout.LayoutParams.WRAP_CONTENT,
+																					RelativeLayout.LayoutParams.WRAP_CONTENT);
 		params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 		details.setLayoutParams(params);
 		details.setText(Html.fromHtml(detailsText));
@@ -882,12 +896,12 @@ public class SearchActivity extends BaseActivity
 	{
 		Intent intent = new Intent(this, ImageFullScreenActivity.class);
 		intent.putExtra(ImageFullScreenActivity.NAVIGATOR, new OnlineImageNavigator(
-				(E621Image) view.getTag(R.id.imageObject),
-				(Integer) view.getTag(R.id.imagePosition),
-				search,
-				limit,
-				e621Search));
-		intent.putExtra(ImageFullScreenActivity.INTENT,getIntent());
+																						   (E621Image) view.getTag(R.id.imageObject),
+																						   (Integer) view.getTag(R.id.imagePosition),
+																						   search,
+																						   limit,
+																						   e621Search));
+		intent.putExtra(ImageFullScreenActivity.INTENT, getIntent());
 		startActivity(intent);
 	}
 
@@ -908,42 +922,70 @@ public class SearchActivity extends BaseActivity
 
 	public void prev(View view)
 	{
-		if (page > 0)
+		if(page > 0)
 		{
-			if(e621Search == null) return;
+			if(e621Search == null)
+			{
+				return;
+			}
 			
 			if(e621Search != null && !e621Search.has_prev_page())
 			{
 				return;
 			}
 			
-			if(previous_page!=null && previous_page == page-1)
+			if(previous_page != null && previous_page == page - 1)
 			{
 				finish();
 			}
 			else
 			{
-				goToPage(page-1);
+				goToPage(page - 1);
 			}
 		}
 	}
 
 	public void next(View view)
 	{
-		if(e621Search == null) return;
+		if(e621Search == null)
+		{
+			return;
+		}
 		
 		if(e621Search != null && !e621Search.has_next_page())
 		{
 			return;
 		}
 
-		if(previous_page!=null && previous_page == page+1)
+		if(previous_page != null && previous_page == page + 1)
 		{
 			finish();
 		}
 		else
 		{
-			goToPage(page+1);
+			goToPage(page + 1);
+		}
+	}
+
+	public void next(View view)
+	{
+		if(e621Search == null)
+		{
+			return;
+		}
+
+		if(e621Search != null && !e621Search.has_next_page())
+		{
+			return;
+		}
+
+		if(previous_page != null && previous_page == page + 1)
+		{
+			finish();
+		}
+		else
+		{
+			goToPage(page + 1);
 		}
 	}
 
@@ -957,18 +999,17 @@ public class SearchActivity extends BaseActivity
 		intent.putExtra(SearchActivity.MAX_ID, cur_max_id);
 		intent.putExtra(SearchActivity.PREVIOUS_PAGE, page);
 
-		if(nextE621Search != null && newPage==page+1)
+		if(nextE621Search != null && newPage == page + 1)
 		{
 			intent.putExtra(SearchActivity.PRELOADED_SEARCH, nextE621Search);
 		}
 
 		startActivity(intent);
-	}
-
-    ShareActionProvider mShareActionProvider;
+	}	ShareActionProvider mShareActionProvider;
 	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.search, menu);
 
@@ -981,14 +1022,14 @@ public class SearchActivity extends BaseActivity
 		{
 			final PageSelectorDialog dialog = new PageSelectorDialog(this, e621Search.total_pages());
 
-			dialog.setButton(DialogInterface.BUTTON_NEGATIVE,"Cancel",new DialogInterface.OnClickListener()
+			dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener()
 			{
 				@Override
 				public void onClick(DialogInterface dialogInterface, int i)
 				{
 				}
 			});
-			dialog.setButton(DialogInterface.BUTTON_POSITIVE,"Jump",new DialogInterface.OnClickListener()
+			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Jump", new DialogInterface.OnClickListener()
 			{
 				@Override
 				public void onClick(DialogInterface dialogInterface, int i)
@@ -1041,49 +1082,57 @@ public class SearchActivity extends BaseActivity
 			{
 				public void run()
 				{
-					if(obj ==  E621Middleware.DownloadStatus.DOWNLOADED)
+					if(obj == E621Middleware.DownloadStatus.DOWNLOADED)
 					{
 						button.setImageResource(android.R.drawable.ic_menu_delete);
 						
-						button.setOnClickListener(new View.OnClickListener() {
-					        @Override
-					        public void onClick(View v) {
-					        	delete();
-					        }
-					    });
+						button.setOnClickListener(new View.OnClickListener()
+						{
+							@Override
+							public void onClick(View v)
+							{
+								delete();
+							}
+						});
 					}
 					else if(obj == E621Middleware.DownloadStatus.DOWNLOADING)
 					{
 						button.setImageResource(android.R.drawable.stat_sys_download);
 						
-						button.setOnClickListener(new View.OnClickListener() {
-					        @Override
-					        public void onClick(View v) {
-					        	delete();
-					        }
-					    });
+						button.setOnClickListener(new View.OnClickListener()
+						{
+							@Override
+							public void onClick(View v)
+							{
+								delete();
+							}
+						});
 					}
 					else if(obj == E621Middleware.DownloadStatus.DELETED)
 					{
 						button.setImageResource(android.R.drawable.ic_menu_save);
 						
-						button.setOnClickListener(new View.OnClickListener() {
-					        @Override
-					        public void onClick(View v) {
-					        	save();
-					        }
-					    });
+						button.setOnClickListener(new View.OnClickListener()
+						{
+							@Override
+							public void onClick(View v)
+							{
+								save();
+							}
+						});
 					}
 					else if(obj == E621Middleware.DownloadStatus.DELETING)
 					{
 						button.setImageResource(R.drawable.progress_indicator);
 						
-						button.setOnClickListener(new View.OnClickListener() {
-					        @Override
-					        public void onClick(View v) {
-					        	save();
-					        }
-					    });
+						button.setOnClickListener(new View.OnClickListener()
+						{
+							@Override
+							public void onClick(View v)
+							{
+								save();
+							}
+						});
 					}
 				}
 			});
