@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -429,6 +430,8 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
                                                     @Override
                                                     public void run() {
                                                         p.setVisibility(View.GONE);
+
+                                                        Toast.makeText(getActivity(),"Could not load video", Toast.LENGTH_SHORT).show();
                                                     }
                                                 });
                                             }

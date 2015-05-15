@@ -98,7 +98,7 @@ public class MediaInputStreamPlayer extends MediaPlayer
                     prepareAsync();
 
                     if(inputStreamCheckListener != null) inputStreamCheckListener.onCheck(true);
-                } catch (IOException e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
 
                     if(inputStreamCheckListener != null) inputStreamCheckListener.onCheck(false);
