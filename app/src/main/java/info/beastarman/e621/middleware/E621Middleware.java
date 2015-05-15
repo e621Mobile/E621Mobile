@@ -814,11 +814,11 @@ public class E621Middleware extends E621 {
 			{
                 if(img.file_ext.equals("webm"))
                 {
-                    img.preview_url = "http://beastarman.info/media/E621Webm/thumb/"+img.id+".jpg";
-                    img.preview_height = 120;
-                    img.preview_width = 120;
+					img.preview_url = getWebmPreviewUrl(img.id);
+					img.preview_height = 120;
+					img.preview_width = 120;
 
-                    img.sample_url = "http://beastarman.info/media/E621Webm/image/"+img.id+".jpg";
+					img.sample_url = getWebmSampleUrl(img.id);
                     img.sample_height = 480;
                     img.sample_width = 480;
                 }
@@ -2669,7 +2669,7 @@ public class E621Middleware extends E621 {
 
 		eventManager.trigger(FixState.CORRUPT);
 
-		ArrayList<E621DownloadedImage> images = localSearch(0,-1,"type:webm");
+		ArrayList<E621DownloadedImage> images = localSearch(0,-1,"");
 
 		final ArrayList<Integer> redownload = new ArrayList<Integer>();
 
