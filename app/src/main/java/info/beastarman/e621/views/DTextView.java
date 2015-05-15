@@ -38,6 +38,71 @@ import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
 
 public class DTextView extends LinearLayout
 {
+	private static class DTextRules
+	{
+		HashMap<String,DTextRuleStart> rules = new HashMap<String,DTextRuleStart>();
+
+		TextView tv;
+		DTextRules(TextView tv)
+		{
+			this.tv = tv;
+		}
+
+		public void addRule(DTextRuleStart rule)
+		{
+			rules.put(rule.name,rule);
+		}
+
+		public void removeRule(String name)
+		{
+			rules.remove(name);
+		}
+
+		public void apply(Spannable s)
+		{
+			for(DTextRuleStart r : rules.values())
+			{
+				r.apply(s,tv);
+			}
+		}
+	}
+
+	private static class SubDTextView extends DTextView
+	{
+		private SubDTextView(Context context)
+		{
+			super(context);
+		}
+
+		private SubDTextView(Context context, AttributeSet attrs)
+		{
+			super(context, attrs);
+		}
+
+		private SubDTextView(Context context, AttributeSet attrs, int defStyle)
+		{
+			super(context, attrs, defStyle);
+		}
+
+		String endBlock;
+
+		public void setEndBlock(String endBlock)
+		{
+			this.endBlock = endBlock;
+		}
+
+		@Override
+		public boolean shouldBreak(DTextObject dObj)
+		{
+			if(dObj instanceof DTextBlockEnd)
+			{
+				return ((DTextBlockEnd) dObj).name.equals(endBlock);
+			}
+
+			return false;
+		}
+	}
+
 	public DTextView(Context context)
 	{
 		super(context);
@@ -59,12 +124,9 @@ public class DTextView extends LinearLayout
 		setOrientation(VERTICAL);
 	}
 
-	private ClickableSpan getClickableSpanLink(final String word)
-	{
-		return new ClickableSpan()
-		{
+	private ClickableSpan getClickableSpanLink(final String word) {
+		return new ClickableSpan() {
 			final String mWord;
-
 			{
 				mWord = word;
 			}
@@ -78,19 +140,15 @@ public class DTextView extends LinearLayout
 				getContext().startActivity(i);
 			}
 
-			public void updateDrawState(TextPaint ds)
-			{
+			public void updateDrawState(TextPaint ds) {
 				super.updateDrawState(ds);
 			}
 		};
 	}
 
-	private ClickableSpan getClickableSpanLink(final Intent i)
-	{
-		return new ClickableSpan()
-		{
+	private ClickableSpan getClickableSpanLink(final Intent i) {
+		return new ClickableSpan() {
 			final Intent intent;
-
 			{
 				intent = i;
 			}
@@ -101,8 +159,7 @@ public class DTextView extends LinearLayout
 				getContext().startActivity(intent);
 			}
 
-			public void updateDrawState(TextPaint ds)
-			{
+			public void updateDrawState(TextPaint ds) {
 				super.updateDrawState(ds);
 			}
 		};
@@ -139,7 +196,7 @@ public class DTextView extends LinearLayout
 	public void putContent(DTextLink dLink, TextView tv)
 	{
 		Spannable s = new SpannableString(dLink.title);
-		s.setSpan(getClickableSpanLink(dLink.link), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+		s.setSpan(getClickableSpanLink(dLink.link),0,s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
 		if(tv.getTag(R.id.DTextRules) instanceof DTextRules)
 		{
@@ -154,9 +211,9 @@ public class DTextView extends LinearLayout
 		Spannable s = new SpannableString(dIntent.title);
 
 		Intent i = dIntent.intent;
-		i.setClass(getContext(), dIntent.c);
+		i.setClass(getContext(),dIntent.c);
 
-		s.setSpan(getClickableSpanLink(i), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+		s.setSpan(getClickableSpanLink(i),0,s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
 		if(tv.getTag(R.id.DTextRules) instanceof DTextRules)
 		{
@@ -176,7 +233,7 @@ public class DTextView extends LinearLayout
 			public void onClick(View view)
 			{
 				Intent i = new Intent(getContext(), ImageFullScreenActivity.class);
-				i.putExtra(ImageFullScreenActivity.NAVIGATOR, new NowhereToGoImageNavigator(thumb.id));
+				i.putExtra(ImageFullScreenActivity.NAVIGATOR,new NowhereToGoImageNavigator(thumb.id));
 				i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				getContext().startActivity(i);
 			}
@@ -208,7 +265,7 @@ public class DTextView extends LinearLayout
 
 							final Bitmap bmp = thumb.getBitmap(width, height);
 
-							if(bmp == null)
+							if (bmp == null)
 							{
 								return;
 							}
@@ -221,8 +278,7 @@ public class DTextView extends LinearLayout
 									iv.setImageBitmap(bmp);
 								}
 							});
-						}
-						catch(IOException e)
+						} catch (IOException e)
 						{
 							return;
 						}
@@ -239,9 +295,9 @@ public class DTextView extends LinearLayout
 		TextView tv = new TextView(getContext());
 
 		tv.setMovementMethod(LinkMovementMethod.getInstance());
-		tv.setTag(R.id.DTextRules, new DTextRules(tv));
+		tv.setTag(R.id.DTextRules,new DTextRules(tv));
 
-		tv.setText(new SpannableString(""), TextView.BufferType.SPANNABLE);
+		tv.setText(new SpannableString(""),TextView.BufferType.SPANNABLE);
 
 		return tv;
 	}
@@ -258,7 +314,7 @@ public class DTextView extends LinearLayout
 		return false;
 	}
 
-	public SubDTextView startBlock(DTextBlockStart dObj, Iterator<DTextObject> it)
+	public SubDTextView startBlock(DTextBlockStart dObj,Iterator<DTextObject> it)
 	{
 		SubDTextView subView = new SubDTextView(getContext());
 
@@ -277,10 +333,7 @@ public class DTextView extends LinearLayout
 		{
 			DTextObject dObj = it.next();
 
-			if(shouldBreak(dObj))
-			{
-				break;
-			}
+			if(shouldBreak(dObj)) break;
 
 			if(dObj instanceof DTextString)
 			{
@@ -288,7 +341,7 @@ public class DTextView extends LinearLayout
 				{
 					TextView tv = textView();
 
-					putContent((DTextString) dObj, tv);
+					putContent((DTextString)dObj,tv);
 
 					v = tv;
 					addView(tv);
@@ -384,7 +437,7 @@ public class DTextView extends LinearLayout
 				{
 					TextView tv = textView();
 
-					putRule((DTextRuleStart) dObj, tv);
+					putRule((DTextRuleStart)dObj,tv);
 
 					v = tv;
 					addView(tv);
@@ -405,14 +458,14 @@ public class DTextView extends LinearLayout
 			}
 			else if(dObj instanceof DTextBlockStart)
 			{
-				SubDTextView d = startBlock((DTextBlockStart) dObj, it);
+				SubDTextView d = startBlock((DTextBlockStart)dObj,it);
 
 				v = d;
 				addView(d);
 			}
 			else if(dObj instanceof DTextThumb)
 			{
-				ImageView iv = imageView((DTextThumb) dObj);
+				ImageView iv = imageView((DTextThumb)dObj);
 
 				v = iv;
 				addView(iv);
@@ -421,72 +474,6 @@ public class DTextView extends LinearLayout
 			{
 				v = null;
 			}
-		}
-	}
-
-	private static class DTextRules
-	{
-		HashMap<String, DTextRuleStart> rules = new HashMap<String, DTextRuleStart>();
-
-		TextView tv;
-
-		DTextRules(TextView tv)
-		{
-			this.tv = tv;
-		}
-
-		public void addRule(DTextRuleStart rule)
-		{
-			rules.put(rule.name, rule);
-		}
-
-		public void removeRule(String name)
-		{
-			rules.remove(name);
-		}
-
-		public void apply(Spannable s)
-		{
-			for(DTextRuleStart r : rules.values())
-			{
-				r.apply(s, tv);
-			}
-		}
-	}
-
-	private static class SubDTextView extends DTextView
-	{
-		String endBlock;
-
-		private SubDTextView(Context context)
-		{
-			super(context);
-		}
-
-		private SubDTextView(Context context, AttributeSet attrs)
-		{
-			super(context, attrs);
-		}
-
-		private SubDTextView(Context context, AttributeSet attrs, int defStyle)
-		{
-			super(context, attrs, defStyle);
-		}
-
-		public void setEndBlock(String endBlock)
-		{
-			this.endBlock = endBlock;
-		}
-
-		@Override
-		public boolean shouldBreak(DTextObject dObj)
-		{
-			if(dObj instanceof DTextBlockEnd)
-			{
-				return ((DTextBlockEnd) dObj).name.equals(endBlock);
-			}
-
-			return false;
 		}
 	}
 }

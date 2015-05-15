@@ -34,21 +34,21 @@ public class BlackList
 		return new HashSet<String>(settings.getStringSet(disabledName, new HashSet<String>()));
 	}
 
-	public HashMap<String, Boolean> getBlacklist()
+	public HashMap<String,Boolean> getBlacklist()
 	{
 		Set<String> enabled = getEnabled();
 		Set<String> disabled = getDisabled();
 
-		HashMap<String, Boolean> blacklist = new HashMap<String, Boolean>();
+		HashMap<String,Boolean> blacklist = new HashMap<String,Boolean>();
 
 		for(String s : enabled)
 		{
-			blacklist.put(s, true);
+			blacklist.put(s,true);
 		}
 
 		for(String s : disabled)
 		{
-			blacklist.put(s, false);
+			blacklist.put(s,false);
 		}
 
 		return blacklist;
@@ -64,14 +64,14 @@ public class BlackList
 		if(disabled.contains(query))
 		{
 			disabled.remove(query);
-			edit.putStringSet(disabledName, disabled);
+			edit.putStringSet(disabledName,disabled);
 		}
 
 		Set<String> enabled = getEnabled();
 		if(!enabled.contains(query))
 		{
 			enabled.add(query);
-			edit.putStringSet(enabledName, enabled);
+			edit.putStringSet(enabledName,enabled);
 		}
 
 		edit.apply();
@@ -87,14 +87,14 @@ public class BlackList
 		if(!disabled.contains(query))
 		{
 			disabled.add(query);
-			edit.putStringSet(disabledName, disabled);
+			edit.putStringSet(disabledName,disabled);
 		}
 
 		Set<String> enabled = getEnabled();
 		if(enabled.contains(query))
 		{
 			enabled.remove(query);
-			edit.putStringSet(enabledName, enabled);
+			edit.putStringSet(enabledName,enabled);
 		}
 
 		edit.apply();
@@ -110,14 +110,14 @@ public class BlackList
 		if(disabled.contains(query))
 		{
 			disabled.remove(query);
-			edit.putStringSet(disabledName, disabled);
+			edit.putStringSet(disabledName,disabled);
 		}
 
 		Set<String> enabled = getEnabled();
 		if(enabled.contains(query))
 		{
 			enabled.remove(query);
-			edit.putStringSet(enabledName, enabled);
+			edit.putStringSet(enabledName,enabled);
 		}
 
 		edit.apply();

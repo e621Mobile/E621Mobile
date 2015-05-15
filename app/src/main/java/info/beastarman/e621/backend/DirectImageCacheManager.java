@@ -19,10 +19,23 @@ import java.util.regex.Pattern;
 
 public class DirectImageCacheManager implements ImageCacheManagerInterface
 {
-	public long max_size;
 	File base_path;
-	int version = 0;
-	private HashMap<String, ReadWriteLockerWrapper> locks = new HashMap<String, ReadWriteLockerWrapper>();
+
+	int version=0;
+
+	public long max_size;
+
+	private HashMap<String,ReadWriteLockerWrapper> locks = new HashMap<String,ReadWriteLockerWrapper>();
+
+	private synchronized ReadWriteLockerWrapper getLock(String id)
+	{
+		if(!locks.containsKey(id))
+		{
+			locks.put(id,new ReadWriteLockerWrapper());
+		}
+
+		return locks.get(id);
+	}
 
 	public DirectImageCacheManager(File base_path, long max_size)
 	{
@@ -32,31 +45,16 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 		clean();
 	}
 
-	private synchronized ReadWriteLockerWrapper getLock(String id)
-	{
-		if(!locks.containsKey(id))
-		{
-			locks.put(id, new ReadWriteLockerWrapper());
-		}
-
-		return locks.get(id);
-	}
-
 	private File[] listFiles()
 	{
-		File[] ret = base_path.listFiles(new FilenameFilter()
-		{
+		File[] ret = base_path.listFiles(new FilenameFilter(){
 			@Override
-			public boolean accept(File file, String s)
-			{
+			public boolean accept(File file, String s) {
 				return !s.equals(".nomedia");
 			}
 		});
 
-		if(ret == null)
-		{
-			ret = new File[0];
-		}
+		if(ret == null) ret = new File[0];
 
 		return ret;
 	}
@@ -64,11 +62,9 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 	private File getFileObj(String id)
 	{
 		final Pattern p = Pattern.compile("\\d+ " + Pattern.quote(id)); // careful: could also throw an exception!
-		File[] f = base_path.listFiles(new FileFilter()
-		{
+		File[] f = base_path.listFiles(new FileFilter() {
 			@Override
-			public boolean accept(File file)
-			{
+			public boolean accept(File file) {
 				return p.matcher(file.getName()).matches();
 			}
 		});
@@ -93,22 +89,22 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 
 		if(f.length > 0)
 		{
-			File last = f[f.length - 1];
+			File last = f[f.length-1];
 
 			long localNum = Long.parseLong(last.getName().split("\\s")[0]);
 
-			num = localNum + 1;
+			num = localNum+1;
 		}
 
 		String numStr = String.format("%0" + ((int) (Math.floor(Math.log10(Long.MAX_VALUE)) + 1)) + "d", num);
 
-		File newFile = new File(base_path, numStr + " " + id);
+		File newFile = new File(base_path,numStr + " " + id);
 
 		try
 		{
 			newFile.createNewFile();
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
@@ -126,7 +122,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 			@Override
 			public void run()
 			{
-				ret.obj = getFileObj(id) != null;
+				ret.obj = getFileObj(id)!=null;
 			}
 		});
 
@@ -152,7 +148,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 						ret.obj = new BufferedInputStream(new FileInputStream(f));
 						ret.obj = new ByteArrayInputStream(IOUtils.toByteArray(ret.obj));
 					}
-					catch(IOException e)
+					catch (IOException e)
 					{
 					}
 				}
@@ -187,14 +183,11 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 
 					ret[0] = true;
 				}
-				catch(IOException e)
+				catch (IOException e)
 				{
 					e.printStackTrace();
 
-					if(obj.exists())
-					{
-						obj.delete();
-					}
+					if(obj.exists()) obj.delete();
 				}
 			}
 		});
@@ -228,13 +221,13 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 		}
 	}
 	
-	private HashMap<String, Long> getAllFiles()
+	private HashMap<String,Long> getAllFiles()
 	{
-		HashMap<String, Long> ret = new HashMap<String, Long>();
+		HashMap<String,Long> ret = new HashMap<String,Long>();
 
 		for(File f : listFiles())
 		{
-			ret.put(f.getName().split("\\s", 2)[1], f.length());
+			ret.put(f.getName().split("\\s",2)[1],f.length());
 		}
 
 		return ret;
@@ -245,7 +238,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 	{
 		for(File f : listFiles())
 		{
-			removeFile(f.getName().split("\\s", 2)[1]);
+			removeFile(f.getName().split("\\s",2)[1]);
 		}
 	}
 	
@@ -262,7 +255,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 		
 		if(size > local_max_size)
 		{
-			final long remove_until = (long) Math.floor(max_size * 0.8);
+			final long remove_until = (long) Math.floor(max_size*0.8);
 
 			File[] files = listFiles();
 
@@ -272,9 +265,9 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 			{
 				size -= f.length();
 
-				removeFile(f.getName().split("\\s", 2)[1]);
+				removeFile(f.getName().split("\\s",2)[1]);
 
-				if(size <= remove_until)
+				if (size <= remove_until)
 				{
 					break;
 				}
@@ -302,7 +295,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 
 		String[] s = new String[ff.length];
 
-		int i = 0;
+		int i=0;
 
 		for(File f : ff)
 		{

@@ -39,15 +39,20 @@ import javax.xml.parsers.ParserConfigurationException;
 
 public class E621
 {
-	private static E621 instance = null;
-	public final String client;
-	public int TIMEOUT = 5000;
 	String DOMAIN_NAME = "https://e621.net";
+	public final String client;
+	private static E621 instance = null;
+	public int TIMEOUT = 5000;
 	
 	protected E621(String client)
 	{
 		this.client = client;
 	}
+
+    public String getDomain()
+    {
+        return this.DOMAIN_NAME;
+    }
 
 	public static E621 getInstance(String client)
 	{
@@ -57,15 +62,10 @@ public class E621
 		}
 		return instance;
 	}
-
-	public String getDomain()
-	{
-		return this.DOMAIN_NAME;
-	}
 	
 	public E621Image post__show(Integer id) throws IOException
 	{
-		String base = String.format("%s/post/show.json?", DOMAIN_NAME);
+		String base = String.format("%s/post/show.json?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
@@ -73,56 +73,49 @@ public class E621
 		
 		base += URLEncodedUtils.format(params, "utf-8");
 		
-		HttpResponse response = tryHttpGet(base, 5);
-		StatusLine statusLine = response.getStatusLine();
-		if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-		{
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			response.getEntity().writeTo(out);
-			out.close();
-			String responseString = out.toString();
-
-			try
-			{
+		HttpResponse response = tryHttpGet(base,5);
+	    StatusLine statusLine = response.getStatusLine();
+	    if(statusLine.getStatusCode() == HttpStatus.SC_OK){
+	        ByteArrayOutputStream out = new ByteArrayOutputStream();
+	        response.getEntity().writeTo(out);
+	        out.close();
+	        String responseString = out.toString();
+	        
+	        try {
 				return E621Image.fromJSON(new JSONObject(responseString));
-			}
-			catch(JSONException e)
-			{
+			} catch (JSONException e) {
 				return null;
 			}
-
-		}
-		else
-		{
-			//Closes the connection.
-			response.getEntity().getContent().close();
-			throw new IOException(statusLine.getReasonPhrase());
-		}
+	        
+	    } else{
+	        //Closes the connection.
+	        response.getEntity().getContent().close();
+	        throw new IOException(statusLine.getReasonPhrase());
+	    }
 	}
 	
 	public E621Search post__index(String tags, Integer page, Integer limit) throws IOException
 	{
-		String base = String.format("%s/post/index.xml?", DOMAIN_NAME);
+		String base = String.format("%s/post/index.xml?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
 		params.add(new BasicNameValuePair("tags", tags));
-		params.add(new BasicNameValuePair("page", String.valueOf(page + 1)));
+		params.add(new BasicNameValuePair("page", String.valueOf(page+1)));
 		params.add(new BasicNameValuePair("limit", String.valueOf(limit)));
 		
 		base += URLEncodedUtils.format(params, "utf-8");
 		
-		HttpResponse response = tryHttpGet(base, 5);
-		StatusLine statusLine = response.getStatusLine();
+		HttpResponse response = tryHttpGet(base,5);
+	    StatusLine statusLine = response.getStatusLine();
 
-		if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-		{
+		if(statusLine.getStatusCode() == HttpStatus.SC_OK){
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			response.getEntity().writeTo(out);
 			out.close();
 			String responseString = out.toString();
 
-			responseString = responseString.trim().replaceAll(">\\s+<", "><").replaceAll("[\\r\\n]+", "&#13;&#10;");
+			responseString = responseString.trim().replaceAll(">\\s+<","><").replaceAll("[\\r\\n]+","&#13;&#10;");
 
 			try
 			{
@@ -136,28 +129,22 @@ public class E621
 				Element posts = (Element) doc.getElementsByTagName("posts").item(0);
 				NodeList nodes = posts.getElementsByTagName("post");
 
-				for(int i = 0; i < nodes.getLength(); i++)
+				for (int i = 0; i < nodes.getLength(); i++)
 				{
-					images.add(E621Image.fromXML((Element) nodes.item(i)));
+					images.add(E621Image.fromXML((Element)nodes.item(i)));
 				}
 
-				return new E621Search(images, Integer.parseInt(posts.getAttribute("offset")), Integer.parseInt(posts.getAttribute("count")), limit);
-			}
-			catch(ParserConfigurationException e)
-			{
+				return new E621Search(images,Integer.parseInt(posts.getAttribute("offset")),Integer.parseInt(posts.getAttribute("count")),limit);
+			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
 				return new E621Search();
 
-			}
-			catch(SAXException e)
-			{
+			} catch (SAXException e) {
 				e.printStackTrace();
 				return new E621Search();
 			}
 
-		}
-		else
-		{
+		} else{
 			//Closes the connection.
 			response.getEntity().getContent().close();
 			throw new IOException(statusLine.getReasonPhrase());
@@ -166,7 +153,7 @@ public class E621
 	
 	public String user__login(String name, String password)
 	{
-		String base = String.format("%s/user/login.json?", DOMAIN_NAME);
+		String base = String.format("%s/user/login.json?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
@@ -177,33 +164,33 @@ public class E621
 		
 		try
 		{
-			HttpResponse response = tryHttpGet(base, 5);
+			HttpResponse response = tryHttpGet(base,5);
 			
 			StatusLine statusLine = response.getStatusLine();
 			
-			if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-			{
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				response.getEntity().writeTo(out);
-				out.close();
-				String responseString = out.toString();
-
-				JSONObject jsonResponse = new JSONObject(responseString);
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONObject jsonResponse = new JSONObject(responseString);
 				
 				if(jsonResponse.has("password_hash"))
 				{
 					return jsonResponse.getString("password_hash");
 				}
-			}
+		    }
 		}
-		catch(ClientProtocolException e)
+		catch (ClientProtocolException e)
 		{
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 		}
-		catch(JSONException e)
-		{
+		catch (JSONException e)
+        {
 		}
 		
 		return null;
@@ -211,22 +198,13 @@ public class E621
 	
 	public ArrayList<E621TagAlias> tag_alias__index(Boolean approved, String order, Integer page)
 	{
-		String base = String.format("%s/tag_alias/index.json?", DOMAIN_NAME);
+		String base = String.format("%s/tag_alias/index.json?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
-		if(approved != null)
-		{
-			params.add(new BasicNameValuePair("approved", String.valueOf(approved)));
-		}
-		if(order != null)
-		{
-			params.add(new BasicNameValuePair("order", order));
-		}
-		if(page != null)
-		{
-			params.add(new BasicNameValuePair("page", String.valueOf(page + 1)));
-		}
+		if(approved != null) params.add(new BasicNameValuePair("approved", String.valueOf(approved)));
+		if(order != null) params.add(new BasicNameValuePair("order", order));
+		if(page != null) params.add(new BasicNameValuePair("page", String.valueOf(page+1)));
 		
 		base += URLEncodedUtils.format(params, "utf-8");
 		
@@ -234,37 +212,37 @@ public class E621
 		{
 			ArrayList<E621TagAlias> aliases = new ArrayList<E621TagAlias>();
 			
-			HttpResponse response = tryHttpGet(base, 5);
+			HttpResponse response = tryHttpGet(base,5);
 			
 			StatusLine statusLine = response.getStatusLine();
 			
-			if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-			{
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				response.getEntity().writeTo(out);
-				out.close();
-				String responseString = out.toString();
-
-				JSONArray jsonResponse = new JSONArray(responseString);
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONArray jsonResponse = new JSONArray(responseString);
 				
 				int i = 0;
 				
-				for(i = 0; i < jsonResponse.length(); i++)
+				for(i=0; i<jsonResponse.length(); i++)
 				{
 					aliases.add(E621TagAlias.fromJson(jsonResponse.getJSONObject(i)));
 				}
 				
 				return aliases;
-			}
+		    }
 		}
-		catch(ClientProtocolException e)
+		catch (ClientProtocolException e)
 		{
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 		}
-		catch(JSONException e)
-		{
+		catch (JSONException e)
+        {
 		}
 		
 		return null;
@@ -272,38 +250,17 @@ public class E621
 	
 	public ArrayList<E621Tag> tag__index(Integer limit, Integer page, String order, Integer id, Integer after_id, String name, String name_pattern)
 	{
-		String base = String.format("%s/tag/index.json?", DOMAIN_NAME);
+		String base = String.format("%s/tag/index.json?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
-		if(limit != null)
-		{
-			params.add(new BasicNameValuePair("limit", String.valueOf(limit)));
-		}
-		if(page != null)
-		{
-			params.add(new BasicNameValuePair("page", String.valueOf(page + 1)));
-		}
-		if(order != null)
-		{
-			params.add(new BasicNameValuePair("order", order));
-		}
-		if(id != null)
-		{
-			params.add(new BasicNameValuePair("id", String.valueOf(id)));
-		}
-		if(after_id != null)
-		{
-			params.add(new BasicNameValuePair("after_id", String.valueOf(after_id)));
-		}
-		if(name != null)
-		{
-			params.add(new BasicNameValuePair("name", name));
-		}
-		if(name_pattern != null)
-		{
-			params.add(new BasicNameValuePair("name_pattern", name_pattern));
-		}
+		if(limit != null) params.add(new BasicNameValuePair("limit", String.valueOf(limit)));
+		if(page != null) params.add(new BasicNameValuePair("page", String.valueOf(page+1)));
+		if(order != null) params.add(new BasicNameValuePair("order", order));
+		if(id != null) params.add(new BasicNameValuePair("id", String.valueOf(id)));
+		if(after_id != null) params.add(new BasicNameValuePair("after_id", String.valueOf(after_id)));
+		if(name != null) params.add(new BasicNameValuePair("name", name));
+		if(name_pattern != null) params.add(new BasicNameValuePair("name_pattern", name_pattern));
 		
 		base += URLEncodedUtils.format(params, "utf-8");
 		
@@ -311,37 +268,37 @@ public class E621
 		{
 			ArrayList<E621Tag> tags = new ArrayList<E621Tag>();
 			
-			HttpResponse response = tryHttpGet(base, 5);
+			HttpResponse response = tryHttpGet(base,5);
 			
 			StatusLine statusLine = response.getStatusLine();
 			
-			if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-			{
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				response.getEntity().writeTo(out);
-				out.close();
-				String responseString = out.toString();
-
-				JSONArray jsonResponse = new JSONArray(responseString);
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONArray jsonResponse = new JSONArray(responseString);
 				
 				int i = 0;
 				
-				for(i = 0; i < jsonResponse.length(); i++)
+				for(i=0; i<jsonResponse.length(); i++)
 				{
 					tags.add(E621Tag.fromJson(jsonResponse.getJSONObject(i)));
 				}
 				
 				return tags;
-			}
+		    }
 		}
-		catch(ClientProtocolException e)
+		catch (ClientProtocolException e)
 		{
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 		}
-		catch(JSONException e)
-		{
+		catch (JSONException e)
+        {
 		}
 		
 		return null;
@@ -349,7 +306,7 @@ public class E621
 	
 	public Boolean favorite__create(int id, String login, String password_hash)
 	{
-		String base = String.format("%s/favorite/create.json?", DOMAIN_NAME);
+		String base = String.format("%s/favorite/create.json?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
@@ -359,30 +316,30 @@ public class E621
 		
 		try
 		{
-			HttpResponse response = tryHttpPost(base, params, 5);
+			HttpResponse response = tryHttpPost(base,params,5);
 			
 			StatusLine statusLine = response.getStatusLine();
 			
-			if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-			{
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				response.getEntity().writeTo(out);
-				out.close();
-				String responseString = out.toString();
-
-				JSONObject jsonResponse = new JSONObject(responseString);
-
-				return jsonResponse.optBoolean("success", false);
-			}
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONObject jsonResponse = new JSONObject(responseString);
+		        
+		        return jsonResponse.optBoolean("success",false);
+		    }
 		}
-		catch(ClientProtocolException e)
+		catch (ClientProtocolException e)
 		{
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 		}
-		catch(JSONException e)
-		{
+		catch (JSONException e)
+        {
 		}
 		
 		return null;
@@ -390,7 +347,7 @@ public class E621
 
 	public Boolean favorite__destroy(int id, String login, String password_hash)
 	{
-		String base = String.format("%s/favorite/destroy.json?", DOMAIN_NAME);
+		String base = String.format("%s/favorite/destroy.json?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
@@ -400,30 +357,30 @@ public class E621
 		
 		try
 		{
-			HttpResponse response = tryHttpPost(base, params, 5);
+			HttpResponse response = tryHttpPost(base,params,5);
 			
 			StatusLine statusLine = response.getStatusLine();
 			
-			if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-			{
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				response.getEntity().writeTo(out);
-				out.close();
-				String responseString = out.toString();
-
-				JSONObject jsonResponse = new JSONObject(responseString);
-
-				return jsonResponse.optBoolean("success", false);
-			}
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONObject jsonResponse = new JSONObject(responseString);
+		        
+		        return jsonResponse.optBoolean("success",false);
+		    }
 		}
-		catch(ClientProtocolException e)
+		catch (ClientProtocolException e)
 		{
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 		}
-		catch(JSONException e)
-		{
+		catch (JSONException e)
+        {
 		}
 		
 		return null;
@@ -431,49 +388,49 @@ public class E621
 	
 	public E621Vote post__vote(int id, boolean up, String login, String password_hash)
 	{
-		String base = String.format("%s/post/vote.json?", DOMAIN_NAME);
+		String base = String.format("%s/post/vote.json?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
 		params.add(new BasicNameValuePair("id", String.valueOf(id)));
-		params.add(new BasicNameValuePair("score", (up ? "1" : "-1")));
+		params.add(new BasicNameValuePair("score", (up?"1":"-1")));
 		params.add(new BasicNameValuePair("login", login));
 		params.add(new BasicNameValuePair("password_hash", password_hash));
 		
 		try
 		{
-			HttpResponse response = tryHttpPost(base, params, 5);
+			HttpResponse response = tryHttpPost(base,params,5);
 			
 			StatusLine statusLine = response.getStatusLine();
 			
-			if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-			{
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				response.getEntity().writeTo(out);
-				out.close();
-				String responseString = out.toString();
-
-				JSONObject jsonResponse = new JSONObject(responseString);
-
-				if(jsonResponse.optBoolean("success", false))
-				{
-					int change = (up ? 1 : -1);
-					return new E621Vote(jsonResponse.getInt("score"), (jsonResponse.getInt("change") * change) > 0);
-				}
-				else
-				{
-					return new E621Vote();
-				}
-			}
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONObject jsonResponse = new JSONObject(responseString);
+		        
+		        if(jsonResponse.optBoolean("success",false))
+		        {
+		        	int change = (up?1:-1);
+		        	return new E621Vote(jsonResponse.getInt("score"),(jsonResponse.getInt("change")*change) > 0);
+		        }
+		        else
+		        {
+		        	return new E621Vote();
+		        }
+		    }
 		}
-		catch(ClientProtocolException e)
+		catch (ClientProtocolException e)
 		{
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 		}
-		catch(JSONException e)
-		{
+		catch (JSONException e)
+        {
 		}
 		
 		return null;
@@ -481,18 +438,12 @@ public class E621
 	
 	public ArrayList<E621Comment> comment__index(Integer post_id, Integer page)
 	{
-		String base = String.format("%s/comment/index.json?", DOMAIN_NAME);
+		String base = String.format("%s/comment/index.json?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
-		if(post_id != null)
-		{
-			params.add(new BasicNameValuePair("post_id", String.valueOf(post_id)));
-		}
-		if(page != null)
-		{
-			params.add(new BasicNameValuePair("page", String.valueOf(page + 1)));
-		}
+		if(post_id != null) params.add(new BasicNameValuePair("post_id", String.valueOf(post_id)));
+		if(page != null) params.add(new BasicNameValuePair("page", String.valueOf(page+1)));
 		
 		base += URLEncodedUtils.format(params, "utf-8");
 		
@@ -500,37 +451,37 @@ public class E621
 		{
 			ArrayList<E621Comment> comments = new ArrayList<E621Comment>();
 			
-			HttpResponse response = tryHttpGet(base, 5);
+			HttpResponse response = tryHttpGet(base,5);
 			
 			StatusLine statusLine = response.getStatusLine();
 			
-			if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-			{
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				response.getEntity().writeTo(out);
-				out.close();
-				String responseString = out.toString();
-
-				JSONArray jsonResponse = new JSONArray(responseString);
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONArray jsonResponse = new JSONArray(responseString);
 				
 				int i = 0;
 				
-				for(i = 0; i < jsonResponse.length(); i++)
+				for(i=0; i<jsonResponse.length(); i++)
 				{
 					comments.add(E621Comment.fromJson(jsonResponse.getJSONObject(i)));
 				}
 				
 				return comments;
-			}
+		    }
 		}
-		catch(ClientProtocolException e)
+		catch (ClientProtocolException e)
 		{
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 		}
-		catch(JSONException e)
-		{
+		catch (JSONException e)
+        {
 		}
 		
 		return null;
@@ -538,7 +489,7 @@ public class E621
 	
 	public Boolean comment__create(int id, String body, String login, String password_hash)
 	{
-		String base = String.format("%s/comment/create.json?", DOMAIN_NAME);
+		String base = String.format("%s/comment/create.json?",DOMAIN_NAME);
 		
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		
@@ -549,45 +500,42 @@ public class E621
 		
 		try
 		{
-			HttpResponse response = tryHttpPost(base, params, 5);
+			HttpResponse response = tryHttpPost(base,params,5);
 			
 			StatusLine statusLine = response.getStatusLine();
 			
-			if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-			{
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				response.getEntity().writeTo(out);
-				out.close();
-				String responseString = out.toString();
-
-				JSONObject jsonResponse;
+		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+		    {
+		        ByteArrayOutputStream out = new ByteArrayOutputStream();
+		        response.getEntity().writeTo(out);
+		        out.close();
+		        String responseString = out.toString();
+		        
+		        JSONObject jsonResponse;
 				
-				try
-				{
+		        try {
 					jsonResponse = new JSONObject(responseString);
-				}
-				catch(JSONException e)
-				{
+				} catch (JSONException e) {
 					return true;
 				}
-
-				if(jsonResponse.optBoolean("success", false))
-				{
-					return false;
-				}
-				else
-				{
-					return true;
-				}
-			}
-
-			return true;
+		        
+		        if(jsonResponse.optBoolean("success",false))
+		        {
+		        	return false;
+		        }
+		        else
+		        {
+		        	return true;
+		        }
+		    }
+		    
+		    return true;
 		}
-		catch(ClientProtocolException e)
+		catch (ClientProtocolException e)
 		{
 			e.printStackTrace();
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
@@ -600,22 +548,17 @@ public class E621
 		url = Uri.parse(url).buildUpon().appendQueryParameter("client", client).build().toString();
 		
 		final HttpParams httpParams = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT);
-		HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT);
+	    HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT);
+	    HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT);
 		HttpClient httpclient = new DefaultHttpClient(httpParams);
 		
-		for(; tries >= 0; tries--)
+		for(;tries>=0; tries--)
 		{
-			try
-			{
+			try {
 				return httpclient.execute(new HttpGet(url));
-			}
-			catch(ClientProtocolException e1)
-			{
+			} catch (ClientProtocolException e1) {
 				continue;
-			}
-			catch(IOException e1)
-			{
+			} catch (IOException e1) {
 				continue;
 			}
 		}
@@ -628,23 +571,18 @@ public class E621
 		pairs.add(new BasicNameValuePair("client", client));
 		
 		final HttpParams httpParams = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT);
+	    HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT);
 		HttpClient httpclient = new DefaultHttpClient(httpParams);
 		
-		for(; tries >= 0; tries--)
+		for(;tries>=0; tries--)
 		{
-			try
-			{
+			try {
 				HttpPost post = new HttpPost(url);
 				post.setEntity(new UrlEncodedFormEntity(pairs));
 				return httpclient.execute(post);
-			}
-			catch(ClientProtocolException e1)
-			{
+			} catch (ClientProtocolException e1) {
 				continue;
-			}
-			catch(IOException e1)
-			{
+			} catch (IOException e1) {
 				continue;
 			}
 		}

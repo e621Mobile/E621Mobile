@@ -34,7 +34,6 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	public E621Middleware e621;
 
 	ArrayList<ImageView> recyclableImageViews = new ArrayList<ImageView>();
-	private boolean alive = false;
 
 	public ImageView gimmeRecyclableImageView()
 	{
@@ -44,40 +43,34 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 
 		return iv;
 	}
-	
-	public Intent shareIntent(String str)
-	{
-		Intent sendIntent = new Intent();
-		sendIntent.setAction(Intent.ACTION_SEND);
-		sendIntent.putExtra(Intent.EXTRA_TEXT, str);
-		sendIntent.setType("text/plain");
-		return sendIntent;
-	}
+
+    public Intent shareIntent(String str)
+    {
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, str);
+        sendIntent.setType("text/plain");
+        return sendIntent;
+    }
 	
 	protected int dpToPx(int dp)
 	{
-		DisplayMetrics displayMetrics = getApplicationContext().getResources().getDisplayMetrics();
-		int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
-		return px;
+	    DisplayMetrics displayMetrics = getApplicationContext().getResources().getDisplayMetrics();
+	    int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
+	    return px;
 	}
 	
 	private String safeObjToStr(Object obj)
 	{
-		if(obj == null)
-		{
-			return "null";
-		}
-
+		if(obj == null) return "null";
+		
 		return obj.toString();
 	}
-
+	
 	private String safeObjToClassName(Object obj)
 	{
-		if(obj == null)
-		{
-			return "null";
-		}
-
+		if(obj == null) return "null";
+		
 		return obj.getClass().getName();
 	}
 
@@ -91,7 +84,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 
 		t.send(new HitBuilders.AppViewBuilder().build());
 	}
-	
+
 	public void sendAnalyticsError(Throwable e)
 	{
 		String analyticsPath = this.getClass().getName();
@@ -99,9 +92,9 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		Tracker t = ((E621Application) getApplication()).getTracker();
 
 		t.send(new HitBuilders.ExceptionBuilder().
-														 setDescription(new StandardExceptionParser(this, null).getDescription(analyticsPath, e)).
-																																						 setFatal(false).
-																																												build()
+			setDescription(new StandardExceptionParser(this, null).getDescription(analyticsPath, e)).
+			setFatal(false).
+			build()
 		);
 
 	}
@@ -109,17 +102,17 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
-		Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onCreate() " + this.getClass().getName());
-
+        Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onCreate() " + this.getClass().getName());
+		
 		Intent intent = getIntent();
 		if(intent != null)
 		{
 			Bundle bundle = intent.getExtras();
-
+			
 			if(bundle != null)
 			{
 				Set<String> keys = bundle.keySet();
-
+				
 				for(String key : keys)
 				{
 					Object value = bundle.get(key);
@@ -127,11 +120,11 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 				}
 			}
 		}
-
+		
 		super.onCreate(savedInstanceState);
-
+		
 		e621 = E621Middleware.getInstance(this);
-
+		
 		Thread.setDefaultUncaughtExceptionHandler(this);
 	}
 	
@@ -139,20 +132,20 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	protected void onDestroy()
 	{
 		Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onDestroy() " + this.getClass().getName());
-
+		
 		super.onDestroy();
 	}
 	
 	@Override
 	protected void onStart()
 	{
-		sendAnalytics();
+        sendAnalytics();
 
 		Log.i(E621Middleware.LOG_TAG + "_Browsing", hashCode() + " onStart() " + this.getClass().getName());
-
+		
 		super.onStart();
 	}
-
+	
 	@Override
 	protected void onStop()
 	{
@@ -161,7 +154,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		for(ImageView iv : recyclableImageViews)
 		{
 			Drawable drawable = iv.getDrawable();
-			if(drawable instanceof BitmapDrawable)
+			if (drawable instanceof BitmapDrawable)
 			{
 				BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
 				Bitmap bitmap = bitmapDrawable.getBitmap();
@@ -174,9 +167,11 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		}
 
 		recyclableImageViews.clear();
-
+		
 		super.onStop();
 	}
+
+	private boolean alive = false;
 
 	public boolean isAlive()
 	{
@@ -213,15 +208,15 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	
 	public void uncaughtException()
 	{
-		Intent intent = new Intent(getApplicationContext(), ErrorReportActivity.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		startActivity(intent);
+        Intent intent = new Intent(getApplicationContext(), ErrorReportActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |   Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
 	}
 	
 	@Override
 	public void uncaughtException(Thread thread, Throwable e)
 	{
-		Log.e(E621Middleware.LOG_TAG + "_Exception", Log.getStackTraceString(e));
+		Log.e(E621Middleware.LOG_TAG + "_Exception",Log.getStackTraceString(e));
 
 		sendAnalyticsError(e);
 
@@ -248,13 +243,13 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		//Decode image size
 		BitmapFactory.Options o = new BitmapFactory.Options();
 		o.inJustDecodeBounds = true;
-		BitmapFactory.decodeStream(in, null, o);
+		BitmapFactory.decodeStream(in,null,o);
 
 		try
 		{
 			in.close();
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 			e.printStackTrace();
 
@@ -262,24 +257,23 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		}
 
 		//Find the correct scale value. It should be the power of 2.
-		int scale = 1;
-		while(o.outWidth / scale / 2 >= width && o.outHeight / scale / 2 >= height)
+		int scale=1;
+		while(o.outWidth/scale/2>=width && o.outHeight/scale/2>=height)
 		{
-			scale *= 2;
+			scale*=2;
 		}
 
 		in = new ByteArrayInputStream(bytes);
 
 		//Decode with inSampleSize
 		BitmapFactory.Options o2 = new BitmapFactory.Options();
-		o2.inSampleSize = scale;
+		o2.inSampleSize=scale;
 		Bitmap bitmap_temp = BitmapFactory.decodeStream(in, null, o2);
 
 		try
 		{
 			in.close();
-		}
-		catch(IOException e)
+		} catch (IOException e)
 		{
 			e.printStackTrace();
 		}
@@ -293,7 +287,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		}
 		else
 		{
-			Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp, width, height, false);
+			Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
 
 			bitmap_temp.recycle();
 
@@ -305,12 +299,12 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	{
 		if(width == bmp.getWidth() && height == bmp.getHeight())
 		{
-			return bmp.copy(bmp.getConfig(), false);
+			return bmp.copy(bmp.getConfig(),false);
 		}
 		
-		Bitmap ret = Bitmap.createScaledBitmap(bmp, width, height, false);
-
-		return ret;
+		Bitmap ret = Bitmap.createScaledBitmap(bmp,width,height,false);
+        
+        return ret;
 	}
 	
 	public void drawInputStreamToImageView(final InputStream in, final ImageView imgView)
@@ -324,8 +318,8 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 				Bitmap bitmap = decodeFile(in, imgView.getLayoutParams().width, imgView.getLayoutParams().height);
 				
 				Message msg = handler.obtainMessage();
-				msg.obj = bitmap;
-				handler.sendMessage(msg);
+		    	msg.obj = bitmap;
+		    	handler.sendMessage(msg);
 			}
 		}).start();
 	}
@@ -342,12 +336,28 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 				bmp.recycle();
 				
 				Message msg = handler.obtainMessage();
-				msg.obj = bitmap;
-				handler.sendMessage(msg);
+		    	msg.obj = bitmap;
+		    	handler.sendMessage(msg);
 			}
 		}).start();
 	}
 	
+	private static class ImageViewHandler extends Handler
+	{
+		private ImageView imgView;
+		
+		public ImageViewHandler(ImageView imgView)
+		{
+			this.imgView = imgView;
+		}
+		
+		public void handleMessage(Message msg)
+		{
+			this.imgView.setBackgroundResource(0);
+			this.imgView.setImageBitmap((Bitmap)msg.obj);
+		}
+	}
+
 	public int getWidth()
 	{
 		return getWindow().getDecorView().getWidth();
@@ -356,21 +366,5 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 	public int getHeight()
 	{
 		return getWindow().getDecorView().getHeight();
-	}
-
-	private static class ImageViewHandler extends Handler
-	{
-		private ImageView imgView;
-
-		public ImageViewHandler(ImageView imgView)
-		{
-			this.imgView = imgView;
-		}
-
-		public void handleMessage(Message msg)
-		{
-			this.imgView.setBackgroundResource(0);
-			this.imgView.setImageBitmap((Bitmap) msg.obj);
-		}
 	}
 }

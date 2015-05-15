@@ -3,7 +3,6 @@ package info.beastarman.e621.frontend;
 import info.beastarman.e621.R;
 import info.beastarman.e621.qrcode.Contents;
 import info.beastarman.e621.qrcode.QRCodeEncoder;
-
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -25,7 +24,7 @@ import com.google.zxing.WriterException;
 public class DonateActivity extends BaseActivity
 {
 	@Override
-	protected void onCreate(Bundle savedInstanceState)
+    protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		
@@ -42,7 +41,7 @@ public class DonateActivity extends BaseActivity
 			{
 				ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 				
-				ClipData clip = ClipData.newPlainText("simple text", paypalEmail.getText());
+				ClipData clip = ClipData.newPlainText("simple text",paypalEmail.getText());
 				
 				clipboard.setPrimaryClip(clip);
 				
@@ -58,7 +57,7 @@ public class DonateActivity extends BaseActivity
 			{
 				ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 				
-				ClipData clip = ClipData.newPlainText("simple text", bitcoinWallet.getText());
+				ClipData clip = ClipData.newPlainText("simple text",bitcoinWallet.getText());
 				
 				clipboard.setPrimaryClip(clip);
 				
@@ -72,18 +71,15 @@ public class DonateActivity extends BaseActivity
 		int qrCodeDimention = 512;
 
 		QRCodeEncoder qrCodeEncoder = new QRCodeEncoder(qrData, null,
-															   Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), qrCodeDimention);
+		        Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), qrCodeDimention);
 
-		try
-		{
-			Bitmap bitmap = qrCodeEncoder.encodeAsBitmap();
-			bitcoinQRCode.setImageBitmap(bitmap);
+		try {
+		    Bitmap bitmap = qrCodeEncoder.encodeAsBitmap();
+		    bitcoinQRCode.setImageBitmap(bitmap);
+		} catch (WriterException e) {
+		    e.printStackTrace();
 		}
-		catch(WriterException e)
-		{
-			e.printStackTrace();
-		}
-	}
+    }
 	
 	public void paypalDonate(View v)
 	{

@@ -42,7 +42,7 @@ public class SearchContinueActivity extends SearchActivity
 			
 			if(max_id != null)
 			{
-				max_id = Math.max(max_id, ids.max_id);
+				max_id = Math.max(max_id,ids.max_id);
 			}
 			else
 			{
@@ -54,18 +54,15 @@ public class SearchContinueActivity extends SearchActivity
 	@Override
 	protected Integer getSearchResultsPages(String search, int limit)
 	{
-		return e621.getSearchContinueResultsPages(search, limit);
+		return e621.getSearchContinueResultsPages(search,limit);
 	}
 	
 	@Override
 	protected E621Search get_results(int page)
 	{
-		try
-		{
+		try {
 			return e621.continue_search(search, page, limit);
-		}
-		catch(IOException e)
-		{
+		} catch (IOException e) {
 			return null;
 		}
 	}
@@ -81,7 +78,7 @@ public class SearchContinueActivity extends SearchActivity
 		intent.putExtra(SearchContinueActivity.MAX_ID, cur_max_id);
 		intent.putExtra(SearchContinueActivity.PREVIOUS_PAGE, page);
 
-		if(nextE621Search != null && newPage == page + 1)
+		if(nextE621Search != null && newPage==page+1)
 		{
 			intent.putExtra(SearchContinueActivity.PRELOADED_SEARCH, nextE621Search);
 		}
@@ -89,16 +86,15 @@ public class SearchContinueActivity extends SearchActivity
 		startActivity(intent);
 	}
 
-	public void imageClick(View view)
-	{
+	public void imageClick(View view) {
 		Intent intent = new Intent(this, ImageFullScreenActivity.class);
 		intent.putExtra(ImageFullScreenActivity.NAVIGATOR, new OnlineContinueImageNavigator(
-																								   (E621Image) view.getTag(R.id.imageObject),
-																								   (Integer) view.getTag(R.id.imagePosition),
-																								   search,
-																								   limit,
-																								   e621Search));
-		intent.putExtra(ImageFullScreenActivity.INTENT, getIntent());
+				(E621Image) view.getTag(R.id.imageObject),
+				(Integer) view.getTag(R.id.imagePosition),
+				search,
+				limit,
+				e621Search));
+		intent.putExtra(ImageFullScreenActivity.INTENT,getIntent());
 		startActivity(intent);
 	}
 }

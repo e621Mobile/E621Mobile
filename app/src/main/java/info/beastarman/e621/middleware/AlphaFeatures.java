@@ -10,9 +10,19 @@ import info.beastarman.e621.backend.Pair;
 public class AlphaFeatures
 {
 	private SharedPreferences settings;
-	private Map<String, String> registeredFeatures;
+	private Map<String,String> registeredFeatures;
 
-	public AlphaFeatures(SharedPreferences settings, Map<String, String> registeredFeatures)
+	public String prepareKey(String feature)
+	{
+		return ("AlphaFeature__" + feature);
+	}
+
+	public String prepareName(String feature)
+	{
+		return feature.replace("AlphaFeature__","");
+	}
+
+	public AlphaFeatures(SharedPreferences settings, Map<String,String> registeredFeatures)
 	{
 		this.settings = settings;
 		this.registeredFeatures = registeredFeatures;
@@ -23,41 +33,31 @@ public class AlphaFeatures
 		{
 			if(!settings.contains(r))
 			{
-				editor.putBoolean(prepareKey(r), false);
+				editor.putBoolean(prepareKey(r),false);
 			}
 		}
 
 		editor.apply();
 	}
 
-	public String prepareKey(String feature)
-	{
-		return ("AlphaFeature__" + feature);
-	}
-
-	public String prepareName(String feature)
-	{
-		return feature.replace("AlphaFeature__", "");
-	}
-
 	public boolean isEnabled(String feature)
 	{
-		return registeredFeatures.containsKey(feature) && settings.getBoolean(prepareKey(feature), false);
+		return registeredFeatures.containsKey(feature) && settings.getBoolean(prepareKey(feature),false);
 	}
 
 	public void enable(String feature)
 	{
-		settings.edit().putBoolean(prepareKey(feature), true).apply();
+		settings.edit().putBoolean(prepareKey(feature),true).apply();
 	}
 
 	public void disable(String feature)
 	{
-		settings.edit().putBoolean(prepareKey(feature), false).apply();
+		settings.edit().putBoolean(prepareKey(feature),false).apply();
 	}
 
-	public HashMap<String, Pair<String, Boolean>> getFeatures()
+	public HashMap<String,Pair<String,Boolean>> getFeatures()
 	{
-		HashMap<String, Pair<String, Boolean>> features = new HashMap<String, Pair<String, Boolean>>();
+		HashMap<String,Pair<String,Boolean>> features = new HashMap<String,Pair<String,Boolean>>();
 
 		for(String feature : settings.getAll().keySet())
 		{
@@ -68,7 +68,7 @@ public class AlphaFeatures
 					continue;
 				}
 
-				features.put(prepareName(feature), new Pair(registeredFeatures.get(prepareName(feature)), isEnabled(feature)));
+				features.put(prepareName(feature), new Pair(registeredFeatures.get(prepareName(feature)),isEnabled(feature)));
 			}
 		}
 

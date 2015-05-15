@@ -48,59 +48,55 @@ public class SlideMenuBaseActivity extends BaseActivity
 {
 	public ArrayList<InterruptedSearch> saved_searches;
 
-	EventManager event = new EventManager()
-	{
-		@SuppressWarnings("unchecked")
+    EventManager event = new EventManager()
+    {
+    	@SuppressWarnings("unchecked")
 		@Override
 		public void onTrigger(Object obj)
-		{
-			saved_searches = (ArrayList<InterruptedSearch>) obj;
-
-			update_interrupted_searches(saved_searches);
+    	{
+    		saved_searches = (ArrayList<InterruptedSearch>)obj;
+    		
+    		update_interrupted_searches(saved_searches);
 		}
-	};
-	boolean user_is_open = false;
-	boolean continue_is_open = false;
-	boolean sidemenu_is_open = false;
+    };
 	
 	@Override
-	protected void onCreate(Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
-
-		RelativeLayout fullLayout = (RelativeLayout) getLayoutInflater().inflate(R.layout.activity_base, null);
-		super.setContentView(fullLayout);
-
-		getActionBar().setDisplayHomeAsUpEnabled(true);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        RelativeLayout fullLayout = (RelativeLayout) getLayoutInflater().inflate(R.layout.activity_base, null);
+        super.setContentView(fullLayout);
+        
+        getActionBar().setDisplayHomeAsUpEnabled(true);
 
 		fullLayout.setOnTouchListener(new SidebarTouchListener());
-	}
+    }
 	
 	protected void onStart()
 	{
 		super.onStart();
-
+		
 		getWindow().getDecorView().post(new Runnable()
-		{
-			@Override
+        {
+        	@Override
 			public void run()
-			{
-				update_sidebar();
+        	{
+        		update_sidebar();
 			}
-		});
+        });
 	}
-
+	
 	protected void onStop()
 	{
 		super.onStop();
-
+		
 		e621.unbindContinueSearch(event);
 	}
 	
 	protected void onPause()
 	{
 		super.onPause();
-
+		
 		if(sidemenu_is_open)
 		{
 			close_sidemenu(0);
@@ -110,19 +106,16 @@ public class SlideMenuBaseActivity extends BaseActivity
 	private void update_sidebar()
 	{
 		FrameLayout wrapper = (FrameLayout) findViewById(R.id.sidemenu_wrapper);
-
-		if(wrapper == null)
-		{
-			return;
-		}
-
-		update_interrupted_searches();
-
-		loginout_front();
-
-		updateButton();
+		
+		if(wrapper == null) return;
+		
+        update_interrupted_searches();
+        
+        loginout_front();
+        
+        updateButton();
 	}
-	
+
 	public boolean hasUpdate()
 	{
 		int lastVersion = e621.mostRecentKnownVersion();
@@ -133,7 +126,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 		{
 			pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
 		}
-		catch(NameNotFoundException e)
+		catch (NameNotFoundException e)
 		{
 			e.printStackTrace();
 			return false;
@@ -161,37 +154,37 @@ public class SlideMenuBaseActivity extends BaseActivity
 	public void update_interrupted_searches(final ArrayList<InterruptedSearch> saved_searches)
 	{
 		runOnUiThread(new Runnable()
-		{
-			public void run()
-			{
-				final LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
-				saved_search_container.removeAllViews();
-
-				for(final InterruptedSearch search : saved_searches)
-				{
-					View row = getSearchItemView(search);
-					saved_search_container.addView(row);
-
-					View hr = getLayoutInflater().inflate(R.layout.hr, saved_search_container, false);
-					saved_search_container.addView(hr);
-
-					row.setTag(R.id.hr, hr);
-				}
-			}
-		});
-
-		if(saved_searches.size() == 0)
-		{
-			final TextView continue_search_label = (TextView) findViewById(R.id.continue_search_label);
-
-			runOnUiThread(new Runnable()
-			{
-				public void run()
-				{
-					continue_search_label.setTextColor(getResources().getColor(R.color.gray));
-				}
-			});
-		}
+        {
+        	public void run()
+        	{
+        		final LinearLayout saved_search_container = (LinearLayout) findViewById(R.id.savedSearchContainer);
+                saved_search_container.removeAllViews();
+        		
+        		for(final InterruptedSearch search : saved_searches)
+                {
+                	View row = getSearchItemView(search);
+                	saved_search_container.addView(row);
+                	
+                	View hr = getLayoutInflater().inflate(R.layout.hr, saved_search_container, false);
+                	saved_search_container.addView(hr);
+                	
+                	row.setTag(R.id.hr, hr);
+                }
+        	}
+        });
+        
+        if(saved_searches.size() == 0)
+        {
+        	final TextView continue_search_label = (TextView) findViewById(R.id.continue_search_label);
+        	
+        	runOnUiThread(new Runnable()
+        	{
+        		public void run()
+        		{
+        			continue_search_label.setTextColor(getResources().getColor(R.color.gray));
+        		}
+        	});
+        }
 	}
 	
 	private View getSearchItemView(final InterruptedSearch search)
@@ -199,80 +192,79 @@ public class SlideMenuBaseActivity extends BaseActivity
 		RelativeLayout row = new RelativeLayout(getApplicationContext());
 		row.setPadding(dpToPx(10), 0, 0, 0);
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-																				ViewGroup.LayoutParams.MATCH_PARENT,
-																				dpToPx(36 + 16));
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				dpToPx(36+16));
 		row.setLayoutParams(params);
-
+		
 		final ImageView img = new ImageView(getApplicationContext());
 		img.setBackgroundResource(android.R.drawable.ic_menu_gallery);
 		RelativeLayout.LayoutParams rparams = new RelativeLayout.LayoutParams(
-																					 dpToPx(36 + 16),
-																					 dpToPx(36 + 16));
+				dpToPx(36+16),
+				dpToPx(36+16));
 		img.setPadding(0, dpToPx(8), 0, dpToPx(8));
 		img.setLayoutParams(rparams);
-
+		
 		Bitmap bmp = e621.getContinueSearchThumbnail(search.search);
 		if(bmp != null)
 		{
-			drawInputStreamToImageView(bmp, img);
+			drawInputStreamToImageView(bmp,img);
 		}
-
+		
 		TextView text = new TextView(getApplicationContext());
 		text.setText(search.search);
-		text.setPadding(dpToPx(36 + 12 + 10), 0, 0, 0);
+		text.setPadding(dpToPx(36+12+10), 0, 0, 0);
 		text.setTextAppearance(getApplicationContext(), android.R.attr.textAppearanceSmall);
 		text.setTextColor(getResources().getColor(R.color.white));
 		rparams = new RelativeLayout.LayoutParams(
-														 ViewGroup.LayoutParams.WRAP_CONTENT,
-														 ViewGroup.LayoutParams.MATCH_PARENT);
+				ViewGroup.LayoutParams.WRAP_CONTENT,
+				ViewGroup.LayoutParams.MATCH_PARENT);
 		text.setLayoutParams(rparams);
 		text.setGravity(Gravity.CENTER_VERTICAL);
-
+		
 		if(search.new_images > 0)
 		{
 			text.setPadding(text.getPaddingLeft(), 0, 0, dpToPx(8));
-
+			
 			TextView new_count = new TextView(getApplicationContext());
 			new_count.setText(String.valueOf(search.new_images) + " new");
-			new_count.setPadding(0, 0, dpToPx(8), 0);
+			new_count.setPadding(0,0,dpToPx(8),0);
 			new_count.setTextAppearance(getApplicationContext(), android.R.attr.textAppearanceSmall);
 			new_count.setTextSize(getResources().getDimension(R.dimen.new_images_text_size));
 			new_count.setTextColor(getResources().getColor(R.color.white));
 			rparams = new RelativeLayout.LayoutParams(
-															 ViewGroup.LayoutParams.WRAP_CONTENT,
-															 ViewGroup.LayoutParams.WRAP_CONTENT);
+					ViewGroup.LayoutParams.WRAP_CONTENT,
+					ViewGroup.LayoutParams.WRAP_CONTENT);
 			rparams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
 			rparams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 			new_count.setLayoutParams(rparams);
 			row.addView(new_count);
 		}
-
+		
 		row.addView(img);
 		row.addView(text);
-
+		
 		row.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
 			public void onClick(View arg0)
 			{
 				Intent intent = new Intent(getApplication(), SearchContinueActivity.class);
-				intent.putExtra(DownloadsActivity.SEARCH, search.search);
+				intent.putExtra(DownloadsActivity.SEARCH,search.search);
 				startActivity(intent);
 			}
 		});
-
+		
 		row.setOnLongClickListener(new OnLongClickListener()
 		{
 			@Override
-			public boolean onLongClick(final View v)
-			{
+			public boolean onLongClick(final View v) {
 				final SlideMenuBaseActivity activity = SlideMenuBaseActivity.this;
-
+				
 				E621ConfirmDialogFragment fragment = new E621ConfirmDialogFragment();
 				fragment.setTitle("Do you want to remove this search?");
 				fragment.setConfirmLabel("Yes");
 				fragment.setCancelLabel("No");
-
+				
 				fragment.setConfirmRunnable(new Runnable()
 				{
 					public void run()
@@ -280,53 +272,51 @@ public class SlideMenuBaseActivity extends BaseActivity
 						e621.removeSearch(search.search);
 					}
 				});
-
+				
 				fragment.show(getFragmentManager(), "RemoveSearchDialog");
-
+				
 				return true;
 			}
 		});
-
+		
 		return row;
 	}
 	
 	@Override
 	public void setContentView(final int layoutResID)
 	{
-		RelativeLayout view_container = (RelativeLayout) findViewById(R.id.view_container);
-		getLayoutInflater().inflate(layoutResID, view_container, true);
-
-		view_container.post(new Runnable()
-		{
-			public void run()
-			{
-				View arrow = findViewById(R.id.sidebar_arrow);
-
-				if((e621.isFirstRun() || hasUpdate()) && arrow != null)
-				{
-					arrow.setVisibility(View.VISIBLE);
-
-					Animation animation = AnimationUtils.loadAnimation(SlideMenuBaseActivity.this, R.anim.alpha_glow);
-					arrow.startAnimation(animation);
-				}
-			}
-		});
+		RelativeLayout view_container= (RelativeLayout) findViewById(R.id.view_container);
+        getLayoutInflater().inflate(layoutResID, view_container, true);
+        
+        view_container.post(new Runnable()
+        {
+        	public void run()
+        	{
+        		View arrow = findViewById(R.id.sidebar_arrow);
+        		
+        		if((e621.isFirstRun() || hasUpdate()) && arrow!=null)
+        		{
+        			arrow.setVisibility(View.VISIBLE);
+        			
+        			Animation animation = AnimationUtils.loadAnimation(SlideMenuBaseActivity.this, R.anim.alpha_glow);
+        			arrow.startAnimation(animation);
+        		}
+        	}
+        });
 	}
 	
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
-		// Handle item selection
-		switch(item.getItemId())
-		{
-			case android.R.id.home:
-				toggle_sidebar();
-
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
-		}
-	}
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case android.R.id.home:
+            	toggle_sidebar();
+            	
+            	return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 	
 	public void sendErrorReport(View v)
 	{
@@ -338,10 +328,12 @@ public class SlideMenuBaseActivity extends BaseActivity
 		if(e621.isLoggedIn())
 		{
 			Intent intent = new Intent(this, SearchActivity.class);
-			intent.putExtra(SearchActivity.SEARCH, "fav:" + e621.getLoggedUser());
+			intent.putExtra(SearchActivity.SEARCH,"fav:"+e621.getLoggedUser());
 			startActivity(intent);
 		}
 	}
+	
+	boolean user_is_open = false;
 	
 	public void userClick(View v)
 	{
@@ -359,9 +351,9 @@ public class SlideMenuBaseActivity extends BaseActivity
 	{
 		FrameLayout wrapper = (FrameLayout) findViewById(R.id.userOptionsWrapper);
 		ImageView arrow = (ImageView) findViewById(R.id.continue_arrow_user);
-
-		open_sidemenu_submenu(wrapper, arrow);
-
+		
+		open_sidemenu_submenu(wrapper,arrow);
+		
 		user_is_open = true;
 	}
 	
@@ -369,11 +361,13 @@ public class SlideMenuBaseActivity extends BaseActivity
 	{
 		FrameLayout wrapper = (FrameLayout) findViewById(R.id.userOptionsWrapper);
 		ImageView arrow = (ImageView) findViewById(R.id.continue_arrow_user);
-
-		close_sidemenu_submenu(wrapper, arrow);
-
+		
+		close_sidemenu_submenu(wrapper,arrow);
+		
 		user_is_open = false;
 	}
+	
+	boolean continue_is_open = false;
 	
 	public void toggleContinueSearch(View v)
 	{
@@ -385,10 +379,10 @@ public class SlideMenuBaseActivity extends BaseActivity
 		if(saved_searches.size() == 0)
 		{
 			Toast.makeText(getApplicationContext(), "No saved searches yet. Add some on the options menu in any online search.", Toast.LENGTH_SHORT).show();
-
+			
 			return;
 		}
-
+		
 		if(!continue_is_open)
 		{
 			open_continue();
@@ -402,60 +396,60 @@ public class SlideMenuBaseActivity extends BaseActivity
 	private void open_sidemenu_submenu(final FrameLayout wrapper, final ImageView arrow)
 	{
 		wrapper.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-		final int targetHeight = wrapper.getMeasuredHeight();
-
+	    final int targetHeight = wrapper.getMeasuredHeight();
+		
 		Animation a = new Animation()
 		{
-			@Override
-			protected void applyTransformation(float interpolatedTime, Transformation t)
-			{
-				ViewGroup.LayoutParams drawerParams = (ViewGroup.LayoutParams) wrapper.getLayoutParams();
-
-				drawerParams.height = (int) (interpolatedTime * targetHeight);
-				wrapper.setLayoutParams(drawerParams);
-
-				arrow.setRotation(270f + (90f * interpolatedTime));
-			}
+		    @Override
+		    protected void applyTransformation(float interpolatedTime, Transformation t)
+		    {
+		    	ViewGroup.LayoutParams drawerParams = (ViewGroup.LayoutParams) wrapper.getLayoutParams();
+		    	
+		        drawerParams.height = (int) (interpolatedTime * targetHeight);
+		        wrapper.setLayoutParams(drawerParams);
+		        
+		        arrow.setRotation(270f + (90f*interpolatedTime));
+		    }
 		};
-
+		
 		a.setDuration(300);
 		wrapper.startAnimation(a);
-		((View) wrapper.getParent()).invalidate();
+		((View)wrapper.getParent()).invalidate();
 	}
 	
 	private void close_sidemenu_submenu(final FrameLayout wrapper, final ImageView arrow)
 	{
 		wrapper.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-		final int targetHeight = wrapper.getMeasuredHeight();
-
+	    final int targetHeight = wrapper.getMeasuredHeight();
+		
 		Animation a = new Animation()
 		{
-			@Override
-			protected void applyTransformation(float interpolatedTime, Transformation t)
-			{
-				interpolatedTime = 1f - interpolatedTime;
-
-				ViewGroup.LayoutParams drawerParams = (ViewGroup.LayoutParams) wrapper.getLayoutParams();
-
-				drawerParams.height = (int) (interpolatedTime * targetHeight);
-				wrapper.setLayoutParams(drawerParams);
-
-				arrow.setRotation(270f + (90f * interpolatedTime));
-			}
+		    @Override
+		    protected void applyTransformation(float interpolatedTime, Transformation t)
+		    {
+		    	interpolatedTime = 1f - interpolatedTime;
+		    	
+		    	ViewGroup.LayoutParams drawerParams = (ViewGroup.LayoutParams) wrapper.getLayoutParams();
+		    	
+		        drawerParams.height = (int) (interpolatedTime * targetHeight);
+		        wrapper.setLayoutParams(drawerParams);
+		        
+		        arrow.setRotation(270f + (90f*interpolatedTime));
+		    }
 		};
 
 		a.setDuration(300);
 		wrapper.startAnimation(a);
-		((View) wrapper.getParent()).invalidate();
+		((View)wrapper.getParent()).invalidate();
 	}
 	
 	public void open_continue()
 	{
 		FrameLayout wrapper = (FrameLayout) findViewById(R.id.savedSearchWrapper);
 		ImageView arrow = (ImageView) findViewById(R.id.continue_arrow);
-
-		open_sidemenu_submenu(wrapper, arrow);
-
+		
+		open_sidemenu_submenu(wrapper,arrow);
+		
 		continue_is_open = true;
 	}
 	
@@ -463,11 +457,13 @@ public class SlideMenuBaseActivity extends BaseActivity
 	{
 		FrameLayout wrapper = (FrameLayout) findViewById(R.id.savedSearchWrapper);
 		ImageView arrow = (ImageView) findViewById(R.id.continue_arrow);
-
-		close_sidemenu_submenu(wrapper, arrow);
-
+		
+		close_sidemenu_submenu(wrapper,arrow);
+		
 		continue_is_open = false;
 	}
+	
+	boolean sidemenu_is_open = false;
 	
 	public void toggle_sidebar()
 	{
@@ -500,29 +496,29 @@ public class SlideMenuBaseActivity extends BaseActivity
 
 		Animation a = new Animation()
 		{
-			@Override
-			protected void applyTransformation(float interpolatedTime, Transformation t)
-			{
-				RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
+		    @Override
+		    protected void applyTransformation(float interpolatedTime, Transformation t)
+		    {
+		    	RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
 
-				int width = sidemenu.getWidth();
+		    	int width = sidemenu.getWidth();
 
-				drawerParams.width = initialWidth + (int) (interpolatedTime * (width - initialWidth));
-				wrapper.setLayoutParams(drawerParams);
+		        drawerParams.width = initialWidth + (int) (interpolatedTime * (width - initialWidth));
+		        wrapper.setLayoutParams(drawerParams);
 
-				float initialAlpha = ((float) drawerParams.width / width) / 2;
+				float initialAlpha = ((float)drawerParams.width/width)/2;
 
 				if(initialAlpha < 0.001f)
-				{
-					close_sidemenu_area.setVisibility(FrameLayout.GONE);
-				}
-				else
-				{
-					close_sidemenu_area.setVisibility(FrameLayout.VISIBLE);
-				}
+		        {
+		        	close_sidemenu_area.setVisibility(FrameLayout.GONE);
+		        }
+		        else
+		        {
+		        	close_sidemenu_area.setVisibility(FrameLayout.VISIBLE);
+		        }
 
-				close_sidemenu_area.setAlpha(initialAlpha + (interpolatedTime * (0.5f - initialAlpha)));
-			}
+		        close_sidemenu_area.setAlpha(initialAlpha + (interpolatedTime * (0.5f - initialAlpha)));
+		    }
 		};
 
 		a.setDuration(delta);
@@ -551,31 +547,31 @@ public class SlideMenuBaseActivity extends BaseActivity
 
 		Animation a = new Animation()
 		{
-			@Override
-			protected void applyTransformation(float interpolatedTime, Transformation t)
-			{
-				interpolatedTime = 1f - interpolatedTime;
-
-				RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
+		    @Override
+		    protected void applyTransformation(float interpolatedTime, Transformation t)
+		    {
+		    	interpolatedTime = 1f - interpolatedTime;
+		    	
+		    	RelativeLayout.LayoutParams drawerParams = (RelativeLayout.LayoutParams) wrapper.getLayoutParams();
 
 				int width = sidemenu.getWidth();
 
-				drawerParams.width = (int) (interpolatedTime * initialWidth);
-				wrapper.setLayoutParams(drawerParams);
+		        drawerParams.width = (int) (interpolatedTime * initialWidth);
+		        wrapper.setLayoutParams(drawerParams);
+		        
+		        if(interpolatedTime < 0.001f)
+		        {
+		        	close_sidemenu_area.setVisibility(FrameLayout.GONE);
+		        }
+		        else
+		        {
+		        	close_sidemenu_area.setVisibility(FrameLayout.VISIBLE);
+		        }
 
-				if(interpolatedTime < 0.001f)
-				{
-					close_sidemenu_area.setVisibility(FrameLayout.GONE);
-				}
-				else
-				{
-					close_sidemenu_area.setVisibility(FrameLayout.VISIBLE);
-				}
+				float initialAlpha = ((float)initialWidth/width)/2;
 
-				float initialAlpha = ((float) initialWidth / width) / 2;
-
-				close_sidemenu_area.setAlpha(((float) drawerParams.width / width) / 2f);
-			}
+				close_sidemenu_area.setAlpha(((float)drawerParams.width/width)/2f);
+		    }
 		};
 
 		a.setDuration(delta);
@@ -594,16 +590,16 @@ public class SlideMenuBaseActivity extends BaseActivity
 
 		int width = sidemenu.getWidth();
 
-		float interpolatedTime = Math.max(0, Math.min(1, ((float) position) / width));
+		float interpolatedTime = Math.max(0,Math.min(1,((float)position) / width));
 
 		drawerParams.width = (int) (interpolatedTime * width);
 		wrapper.setLayoutParams(drawerParams);
 
 		close_sidemenu_area.setVisibility(FrameLayout.VISIBLE);
 
-		close_sidemenu_area.setAlpha(interpolatedTime / 2f);
+		close_sidemenu_area.setAlpha(interpolatedTime/2f);
 	}
-
+	 
 	public void login(View v)
 	{
 		LoginDialogFragment fragment = new LoginDialogFragment();
@@ -710,7 +706,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 			@Override
 			public void run()
 			{
-				if(!e621.login(username, password, remember))
+				if(!e621.login(username, password,remember))
 				{
 					runOnUiThread(new Runnable()
 					{
@@ -743,12 +739,9 @@ public class SlideMenuBaseActivity extends BaseActivity
 				
 				try
 				{
-					try
-					{
+					try {
 						pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-					}
-					catch(NameNotFoundException e)
-					{
+					} catch (NameNotFoundException e) {
 						e.printStackTrace();
 						throw new FailException(0);
 					}
@@ -766,7 +759,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 					if(version.versionCode > currentVersion)
 					{
 						final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(SlideMenuBaseActivity.this).setTitle("New Version Found").setCancelable(true).
-																																											   setMessage(String.format(getResources().getString(R.string.new_version_found), version.versionName));
+								setMessage(String.format(getResources().getString(R.string.new_version_found),version.versionName));
 						
 						runOnUiThread(new Runnable()
 						{
@@ -774,10 +767,10 @@ public class SlideMenuBaseActivity extends BaseActivity
 							{
 								final AlertDialog dialog = dialogBuilder.create();
 								
-								dialog.setButton(AlertDialog.BUTTON_POSITIVE, "Update", new DialogInterface.OnClickListener()
+								dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Update", new DialogInterface.OnClickListener()
 								{
 									@Override
-									public void onClick(DialogInterface arg0, int arg1)
+									public void onClick(DialogInterface arg0,int arg1)
 									{
 										dialog.dismiss();
 										
@@ -791,54 +784,54 @@ public class SlideMenuBaseActivity extends BaseActivity
 											public void onTrigger(Object obj)
 											{
 												if(obj == E621Middleware.UpdateState.START)
-												{
-													runOnUiThread(new Runnable()
-													{
-														public void run()
-														{
-															dialogWrapper.obj.addStep("Retrieving package file").showStepsMessage();
-														}
-													});
-												}
-												else if(obj == E621Middleware.UpdateState.DOWNLOADED)
-												{
-													runOnUiThread(new Runnable()
-													{
-														public void run()
-														{
-															dialogWrapper.obj.addStep("Package downloaded").showStepsMessage();
-														}
-													});
-												}
-												else if(obj == E621Middleware.UpdateState.SUCCESS)
-												{
-													runOnUiThread(new Runnable()
-													{
-														public void run()
-														{
-															dialogWrapper.obj.setDone("Starting package install");
-														}
-													});
-												}
-												else if(obj == E621Middleware.UpdateState.FAILURE)
-												{
-													runOnUiThread(new Runnable()
-													{
-														public void run()
-														{
-															dialogWrapper.obj.setDone("Package could not be retrieved");
-														}
-													});
-												}
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.addStep("Retrieving package file").showStepsMessage();
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.DOWNLOADED)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.addStep("Package downloaded").showStepsMessage();
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.SUCCESS)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.setDone("Starting package install");
+								    					}
+								    				});
+								    			}
+								    			else if(obj == E621Middleware.UpdateState.FAILURE)
+								    			{
+								    				runOnUiThread(new Runnable()
+								    				{
+								    					public void run()
+								    					{
+								    						dialogWrapper.obj.setDone("Package could not be retrieved");
+								    					}
+								    				});
+								    			}
 											}
 										});
 									}
 								});
 								
-								dialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Maybe later", new DialogInterface.OnClickListener()
+								dialog.setButton(AlertDialog.BUTTON_NEGATIVE,"Maybe later", new DialogInterface.OnClickListener()
 								{
 									@Override
-									public void onClick(DialogInterface arg0, int arg1)
+									public void onClick(DialogInterface arg0,int arg1)
 									{
 										dialog.dismiss();
 									}
@@ -856,7 +849,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 				catch(FailException e)
 				{
 					final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(SlideMenuBaseActivity.this).setTitle("Update").
-																																			setCancelable(true);
+							setCancelable(true);
 					
 					switch(e.code)
 					{
@@ -877,10 +870,10 @@ public class SlideMenuBaseActivity extends BaseActivity
 						{
 							final AlertDialog dialog = dialogBuilder.create();
 							
-							dialog.setButton(AlertDialog.BUTTON_POSITIVE, "Ok", new DialogInterface.OnClickListener()
+							dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Ok", new DialogInterface.OnClickListener()
 							{
 								@Override
-								public void onClick(DialogInterface arg0, int arg1)
+								public void onClick(DialogInterface arg0,int arg1)
 								{
 									dialog.dismiss();
 								}
@@ -904,27 +897,25 @@ public class SlideMenuBaseActivity extends BaseActivity
 		{
 			this.code = code;
 		}
-	}
-
-	;
+	};
 	
 	public static class LoginDialogFragment extends DialogFragment
 	{
 		@Override
-		public Dialog onCreateDialog(Bundle savedInstanceState)
+	    public Dialog onCreateDialog(Bundle savedInstanceState)
 		{
 			LayoutInflater inflater = getActivity().getLayoutInflater();
 			
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 			
-			final View view = inflater.inflate(R.layout.sign_up_dialog, null);
+			final View view = inflater.inflate(R.layout.sign_up_dialog,null);
 			
 			view.post(new Runnable()
 			{
 				@Override
 				public void run()
 				{
-					final SlideMenuBaseActivity activity = ((SlideMenuBaseActivity) getActivity());
+					final SlideMenuBaseActivity activity = ((SlideMenuBaseActivity)getActivity());
 					Button confirm = (Button) view.findViewById(R.id.confirmSignUp);
 					
 					confirm.setOnClickListener(new OnClickListener()
@@ -936,7 +927,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 							EditText password = (EditText) view.findViewById(R.id.password);
 							CheckBox remember = (CheckBox) view.findViewById(R.id.rememberCheckBox);
 							
-							activity.confirmSignUp(v, username.getText().toString(), password.getText().toString(), remember.isChecked());
+							activity.confirmSignUp(v,username.getText().toString(),password.getText().toString(),remember.isChecked());
 							dismiss();
 						}
 					});
@@ -957,43 +948,41 @@ public class SlideMenuBaseActivity extends BaseActivity
 			
 			builder.setView(view);
 			
-			return builder.create();
-		}
+	        return builder.create();
+	    }
 	}
 
 	private class SidebarTouchListener implements View.OnTouchListener
 	{
-		private final int STEP_1_THRESHOLD = 40;
 		int step = 0;
-		float downX = 0;
-		float lastX = 0;
-		float curX = 0;
 
 		@Override
 		public boolean onTouch(View view, MotionEvent motionEvent)
 		{
 			if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
 			{
-				return onDown(view, motionEvent);
+				return onDown(view,motionEvent);
 			}
 			else if(motionEvent.getAction() == MotionEvent.ACTION_MOVE)
 			{
 				if(step == 1)
 				{
-					onMoveStep1(view, motionEvent);
+					onMoveStep1(view,motionEvent);
 				}
 				else if(step == 2)
 				{
-					onMoveStep2(view, motionEvent);
+					onMoveStep2(view,motionEvent);
 				}
 			}
 			else if(motionEvent.getAction() == MotionEvent.ACTION_UP)
 			{
-				return onUp(view, motionEvent);
+				return onUp(view,motionEvent);
 			}
 
 			return false;
 		}
+
+		float downX = 0;
 
 		public boolean onDown(View view, MotionEvent motionEvent)
 		{
@@ -1004,9 +993,11 @@ public class SlideMenuBaseActivity extends BaseActivity
 			return true;
 		}
 
+		private final int STEP_1_THRESHOLD = 40;
+
 		public boolean onMoveStep1(View view, MotionEvent motionEvent)
 		{
-			int distance = (int) Math.max(0f, motionEvent.getX() - downX);
+			int distance = (int)Math.max(0f,motionEvent.getX() - downX);
 
 			if(distance > STEP_1_THRESHOLD)
 			{
@@ -1017,12 +1008,15 @@ public class SlideMenuBaseActivity extends BaseActivity
 			return true;
 		}
 
+		float lastX = 0;
+		float curX = 0;
+
 		public boolean onMoveStep2(View view, MotionEvent motionEvent)
 		{
 			lastX = curX;
 			curX = motionEvent.getX();
 
-			int distance = (int) Math.max(0f, curX - downX);
+			int distance = (int)Math.max(0f,curX - downX);
 
 			preview_sidebar(distance);
 

@@ -20,6 +20,27 @@ import org.json.JSONObject;
 
 public class AndroidAppUpdater
 {
+	public static class AndroidAppVersion
+	{
+		public int versionCode;
+		public String versionName;
+		public String apkURL;
+		public String domain;
+		
+		public AndroidAppVersion(int versionCode, String versionName, String apkURL, String domain)
+		{
+			this.versionCode = versionCode;
+			this.versionName = versionName;
+			this.apkURL = apkURL;
+			this.domain = domain;
+		}
+		
+		public String getFullApkURL()
+		{
+			return domain + apkURL;
+		}
+	}
+	
 	private URL url;
 	
 	public AndroidAppUpdater(URL url)
@@ -30,78 +51,57 @@ public class AndroidAppUpdater
 	public AndroidAppVersion getLatestVersionInfo()
 	{
 		final HttpParams httpParams = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(httpParams, 30000);
-		HttpClient httpclient = new PersistentHttpClient(new DefaultHttpClient(httpParams), 5);
-
+	    HttpConnectionParams.setConnectionTimeout(httpParams, 30000);
+		HttpClient httpclient = new PersistentHttpClient(new DefaultHttpClient(httpParams),5);
+		
 		HttpResponse response = null;
-
+		
 		try
 		{
 			response = httpclient.execute(new HttpGet(url.toString()));
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 			e.printStackTrace();
 			return null;
 		}
-
+		
 		StatusLine statusLine = response.getStatusLine();
-
-		if(statusLine.getStatusCode() == HttpStatus.SC_OK)
-		{
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-			try
-			{
+		
+	    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+	    {
+	        ByteArrayOutputStream out = new ByteArrayOutputStream();
+	        
+	        try
+	        {
 				response.getEntity().writeTo(out);
 				out.close();
 			}
-			catch(IOException e)
-			{
+	        catch (IOException e)
+	        {
 				e.printStackTrace();
 				return null;
 			}
-
-			String responseString = out.toString();
-			JSONObject obj;
-
-			try
-			{
+	        
+	        String responseString = out.toString();
+	        JSONObject obj;
+	        
+	        try
+	        {
 				obj = new JSONObject(responseString);
-
-				return new AndroidAppVersion(obj.getInt("versionCode"), obj.getString("versionName"), obj.getString("apkFile"),
-													url.getProtocol() + "://" + url.getAuthority());
+				
+				return new AndroidAppVersion(obj.getInt("versionCode"),obj.getString("versionName"),obj.getString("apkFile"),
+						url.getProtocol() + "://" + url.getAuthority());
 			}
-			catch(JSONException e)
-			{
+	        catch (JSONException e)
+	        {
 				e.printStackTrace();
 				return null;
 			}
-		}
-		else
-		{
-			return null;
-		}
-	}
-	
-	public static class AndroidAppVersion
-	{
-		public int versionCode;
-		public String versionName;
-		public String apkURL;
-		public String domain;
-
-		public AndroidAppVersion(int versionCode, String versionName, String apkURL, String domain)
-		{
-			this.versionCode = versionCode;
-			this.versionName = versionName;
-			this.apkURL = apkURL;
-			this.domain = domain;
-		}
-
-		public String getFullApkURL()
-		{
-			return domain + apkURL;
-		}
+	    }
+	    else
+	    {
+	    	return null;
+	    }
 	}
 }

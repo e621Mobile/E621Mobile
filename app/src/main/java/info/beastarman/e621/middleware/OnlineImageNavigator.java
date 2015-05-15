@@ -60,7 +60,7 @@ public class OnlineImageNavigator extends ImageNavigator
 	@Override
 	public ImageNavigator next()
 	{
-		int new_position = position + 1;
+		int new_position = position+1;
 		
 		if(new_position >= total)
 		{
@@ -69,17 +69,14 @@ public class OnlineImageNavigator extends ImageNavigator
 
 		while(!(new_position < cache_offset + cache.size()))
 		{
-			int page_append = (int) Math.floor(((double) cache_offset + cache.size()) / results_per_page);
+			int page_append = (int) Math.floor(((double)cache_offset + cache.size())/results_per_page);
 			int slice_from = (cache_offset + cache.size()) % results_per_page;
 			
 			ArrayList<E621Image> results;
 			
-			try
-			{
+			try {
 				results = search(query, page_append, results_per_page).images;
-			}
-			catch(IOException e)
-			{
+			} catch (IOException e) {
 				return null;
 			}
 			
@@ -93,14 +90,14 @@ public class OnlineImageNavigator extends ImageNavigator
 				return null;
 			}
 			
-			results.subList(0, slice_from).clear();
+			results.subList(0,slice_from).clear();
 			
 			cache.addAll(results);
 		}
 		
 		if(new_position < cache_offset + cache.size())
 		{
-			return new OnlineImageNavigator(cache.get(new_position - cache_offset), new_position, query, results_per_page, cache, cache_offset, total);
+			return new OnlineImageNavigator(cache.get(new_position - cache_offset),new_position,query,results_per_page, cache,cache_offset,total);
 		}
 		
 		return null;
@@ -109,7 +106,7 @@ public class OnlineImageNavigator extends ImageNavigator
 	@Override
 	public ImageNavigator prev()
 	{
-		int new_position = position - 1;
+		int new_position = position-1;
 		
 		if(new_position < 0)
 		{
@@ -118,17 +115,14 @@ public class OnlineImageNavigator extends ImageNavigator
 		
 		while(!(new_position >= cache_offset))
 		{
-			int page_append = (int) Math.floor(((double) cache_offset - 1) / results_per_page);
+			int page_append = (int) Math.floor(((double)cache_offset -1)/results_per_page);
 			int slice_to = ((cache_offset - 1) % results_per_page) + 1;
 			
 			ArrayList<E621Image> results;
 			
-			try
-			{
+			try {
 				results = search(query, page_append, results_per_page).images;
-			}
-			catch(IOException e)
-			{
+			} catch (IOException e) {
 				return null;
 			}
 			
@@ -142,24 +136,23 @@ public class OnlineImageNavigator extends ImageNavigator
 				return null;
 			}
 			
-			results.subList(slice_to, results.size()).clear();
+			results.subList(slice_to,results.size()).clear();
 			
-			cache.addAll(0, results);
+			cache.addAll(0,results);
 			
 			cache_offset -= results.size();
 		}
 		
 		if(new_position >= cache_offset)
 		{
-			return new OnlineImageNavigator(cache.get(new_position - cache_offset), new_position, query, results_per_page, cache, cache_offset, total);
+			return new OnlineImageNavigator(cache.get(new_position - cache_offset),new_position,query,results_per_page, cache,cache_offset,total);
 		}
 		
 		return null;
 	}
 
 	@Override
-	public Integer getId()
-	{
+	public Integer getId() {
 		return img.id;
 	}
 

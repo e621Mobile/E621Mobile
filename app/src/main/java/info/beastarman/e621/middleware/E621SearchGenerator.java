@@ -9,7 +9,6 @@ public class E621SearchGenerator
 	final String tags;
 	final int page;
 	final int limit;
-	E621Search searchCache = null;
 
 	public E621SearchGenerator(String tags, int page, int limit)
 	{
@@ -18,6 +17,7 @@ public class E621SearchGenerator
 		this.page = page;
 	}
 
+	E621Search searchCache = null;
 	public E621Search generate() throws IOException
 	{
 		if(searchCache == null)
@@ -37,6 +37,6 @@ public class E621SearchGenerator
 			return null;
 		}
 
-		return new E621SearchGenerator(tags, page + 1, limit);
+		return new E621SearchGenerator(tags,page+1,limit);
 	}
 }

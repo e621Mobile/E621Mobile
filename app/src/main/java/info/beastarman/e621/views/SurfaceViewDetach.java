@@ -8,62 +8,59 @@ import android.view.View;
 /**
  * Created by beastarman on 4/25/2015.
  */
-public class SurfaceViewDetach extends SurfaceView
-{
-	OnDetachedFromWindowListener listener = null;
-	OnSeekListener slistener = null;
+public class SurfaceViewDetach extends SurfaceView {
+    public SurfaceViewDetach(Context context) {
+        super(context);
+    }
 
-	public SurfaceViewDetach(Context context)
-	{
-		super(context);
-	}
+    public SurfaceViewDetach(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
 
-	public SurfaceViewDetach(Context context, AttributeSet attrs)
-	{
-		super(context, attrs);
-	}
+    public SurfaceViewDetach(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
 
-	public SurfaceViewDetach(Context context, AttributeSet attrs, int defStyle)
-	{
-		super(context, attrs, defStyle);
-	}
+    OnDetachedFromWindowListener listener = null;
 
-	public void setOnDetachedFromWindowListener(OnDetachedFromWindowListener _listener)
-	{
-		listener = _listener;
-	}
+    public void setOnDetachedFromWindowListener(OnDetachedFromWindowListener _listener)
+    {
+        listener = _listener;
+    }
 
-	@Override
-	protected void onDetachedFromWindow()
-	{
-		if(listener != null)
-		{
-			listener.onDetach(this);
-		}
+    @Override
+    protected void onDetachedFromWindow()
+    {
+        if(listener != null)
+        {
+            listener.onDetach(this);
+        }
 
-		super.onDetachedFromWindow();
-	}
+        super.onDetachedFromWindow();
+    }
 
-	public void setOnSeekListener(OnSeekListener _slistener)
-	{
-		slistener = _slistener;
-	}
+    public static interface OnDetachedFromWindowListener
+    {
+        public void onDetach(View v);
+    }
 
-	public void seek(int i)
-	{
-		if(slistener != null)
-		{
-			slistener.onSeek(this, i);
-		}
-	}
+    OnSeekListener slistener = null;
 
-	public static interface OnDetachedFromWindowListener
-	{
-		public void onDetach(View v);
-	}
+    public void setOnSeekListener(OnSeekListener _slistener)
+    {
+        slistener = _slistener;
+    }
 
-	public static interface OnSeekListener
-	{
-		public void onSeek(View v, int position);
-	}
+    public void seek(int i)
+    {
+        if(slistener != null)
+        {
+            slistener.onSeek(this,i);
+        }
+    }
+
+    public static interface OnSeekListener
+    {
+        public void onSeek(View v, int position);
+    }
 }

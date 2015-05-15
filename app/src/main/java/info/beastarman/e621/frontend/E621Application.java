@@ -9,24 +9,23 @@ import java.util.HashMap;
 
 public class E621Application extends Application
 {
-	HashMap<TrackerName, Tracker> mTrackers = new HashMap<TrackerName, Tracker>();
+    public enum TrackerName {
+        APP_TRACKER, // Tracker used only in this app.
+    }
 
-	synchronized Tracker getTracker()
-	{
-		TrackerName trackerId = TrackerName.APP_TRACKER;
+    HashMap<TrackerName, Tracker> mTrackers = new HashMap<TrackerName, Tracker>();
 
-		if(!mTrackers.containsKey(trackerId))
-		{
-			GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
-			Tracker t = analytics.newTracker("UA-55342416-1");
-			mTrackers.put(trackerId, t);
-		}
+    synchronized Tracker getTracker()
+    {
+        TrackerName trackerId = TrackerName.APP_TRACKER;
 
-		return mTrackers.get(trackerId);
-	}
+        if (!mTrackers.containsKey(trackerId))
+        {
+            GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
+            Tracker t = analytics.newTracker("UA-55342416-1");
+            mTrackers.put(trackerId, t);
+        }
 
-	public enum TrackerName
-	{
-		APP_TRACKER, // Tracker used only in this app.
-	}
+        return mTrackers.get(trackerId);
+    }
 }

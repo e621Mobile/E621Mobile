@@ -68,13 +68,12 @@ public class DownloadsActivity extends BaseActivity
 	};
 	
 	@Override
-	protected void onCreate(Bundle savedInstanceState)
-	{
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_search);
 		
 		ActionBar actionBar = getActionBar();
-		actionBar.setDisplayHomeAsUpEnabled(true);
+	    actionBar.setDisplayHomeAsUpEnabled(true);
 		
 		search = getIntent().getStringExtra(SearchActivity.SEARCH);
 		if(search == null)
@@ -95,7 +94,7 @@ public class DownloadsActivity extends BaseActivity
 
 	public void warnNoTags()
 	{
-		if(!e621.hasMetadata() && search.length() > 0)
+		if(!e621.hasMetadata() && search.length()>0)
 		{
 			AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(this);
 			confirmFullUpdateBuilder.setTitle("No tags found!");
@@ -113,8 +112,7 @@ public class DownloadsActivity extends BaseActivity
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu)
-	{
+	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		if(exported)
 		{
@@ -128,15 +126,14 @@ public class DownloadsActivity extends BaseActivity
 	}
 	
 	@Override
-	public void onStart()
-	{
+	public void onStart() {
 		super.onStart();
 		
 		total_pages = e621.pages(limit, search);
 
 		Resources res = getResources();
 		String text = String.format(res.getString(R.string.page_counter),
-										   String.valueOf(page + 1), String.valueOf(total_pages));
+				String.valueOf(page + 1),String.valueOf(total_pages));
 
 		TextView page_counter = (TextView) findViewById(R.id.page_counter);
 		page_counter.setText(text);
@@ -149,21 +146,15 @@ public class DownloadsActivity extends BaseActivity
 	}
 	
 	@Override
-	public void onStop()
-	{
+	public void onStop() {
 		super.onStop();
 
-		for(ImageView img : imageViews)
-		{
+		for (ImageView img : imageViews) {
 			Drawable drawable = img.getDrawable();
-			if(drawable instanceof BitmapDrawable)
-			{
+			if (drawable instanceof BitmapDrawable) {
 				BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
 				Bitmap bitmap = bitmapDrawable.getBitmap();
-				if(bitmap != null)
-				{
-					bitmap.recycle();
-				}
+				if(bitmap != null) bitmap.recycle();
 			}
 		}
 
@@ -176,26 +167,24 @@ public class DownloadsActivity extends BaseActivity
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
+	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
-		switch(item.getItemId())
-		{
-			case R.id.action_settings:
-				open_settings();
-				return true;
-			case R.id.action_export:
-			case R.id.action_update_export:
-				export();
-				return true;
-			case R.id.action_remove_export:
-				remove();
-				return true;
-			case R.id.action_online_search:
-				online_search();
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
+		switch (item.getItemId()) {
+		case R.id.action_settings:
+			open_settings();
+			return true;
+		case R.id.action_export:
+		case R.id.action_update_export:
+			export();
+			return true;
+		case R.id.action_remove_export:
+			remove();
+			return true;
+		case R.id.action_online_search:
+			online_search();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
 		}
 	}
 	
@@ -208,7 +197,7 @@ public class DownloadsActivity extends BaseActivity
 	
 	public void export()
 	{
-		final ProgressDialog dialog = ProgressDialog.show(DownloadsActivity.this, "", "Exporting images. Please wait...", true);
+		final ProgressDialog dialog = ProgressDialog.show(DownloadsActivity.this, "","Exporting images. Please wait...", true);
 		dialog.setIndeterminate(true);
 		dialog.show();
 		
@@ -225,7 +214,7 @@ public class DownloadsActivity extends BaseActivity
 					@Override
 					public void onMediaScannerConnected()
 					{
-						connection.obj.scanFile(dir.getAbsolutePath(), "image/*");
+						connection.obj.scanFile(dir.getAbsolutePath(),"image/*");
 					}
 
 					@Override
@@ -265,30 +254,27 @@ public class DownloadsActivity extends BaseActivity
 	
 	public void remove()
 	{
-		final ProgressDialog dialog = ProgressDialog.show(DownloadsActivity.this, "", "Removing images. Please wait...", true);
+		final ProgressDialog dialog = ProgressDialog.show(DownloadsActivity.this, "","Removing images. Please wait...", true);
 		dialog.setIndeterminate(true);
 		dialog.show();
 		
 		new Thread(new Runnable()
 		{
 			@Override
-			public void run()
-			{
+			public void run() {
 				e621.removeExported(search);
 				dialog.dismiss();
 			}
 		}).start();
 	}
 
-	public void open_settings()
-	{
+	public void open_settings() {
 		Intent intent;
 		intent = new Intent(this, SettingsActivity.class);
 		startActivity(intent);
 	}
 	
-	public void update_results()
-	{
+	public void update_results() {
 		final LinearLayout layout = (LinearLayout) findViewById(R.id.content_wrapper);
 		layout.removeAllViews();
 		
@@ -297,8 +283,7 @@ public class DownloadsActivity extends BaseActivity
 			@Override
 			public void run()
 			{
-				if(downloads.size() == 0)
-				{
+				if (downloads.size() == 0) {
 					TextView t = new TextView(getApplicationContext());
 					t.setText(R.string.no_results);
 					t.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -311,18 +296,18 @@ public class DownloadsActivity extends BaseActivity
 				
 				int layout_width = layout.getWidth();
 				
-				LazyRunScrollView scroll = (LazyRunScrollView) findViewById(R.id.resultsScrollView);
+				LazyRunScrollView scroll = (LazyRunScrollView)findViewById(R.id.resultsScrollView);
 				
 				int image_y = 0;
-				int position = page * e621.resultsPerPage();
+				int position = page*e621.resultsPerPage();
 
-				for(E621DownloadedImage img : downloads)
+				for (E621DownloadedImage img : downloads)
 				{
 					ImageView imgView = new ImageView(getApplicationContext());
 					RelativeLayout rel = new RelativeLayout(getApplicationContext());
 					ProgressBar bar = new ProgressBar(getApplicationContext());
 					
-					int image_height = (int) (layout_width * (((double) img.height) / img.width));
+					int image_height = (int) (layout_width * (((double)img.height) / img.width));
 
 					if(image_height == 0)
 					{
@@ -330,8 +315,8 @@ public class DownloadsActivity extends BaseActivity
 					}
 
 					LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-																						layout_width,
-																						image_height);
+							layout_width,
+							image_height);
 					imgView.setLayoutParams(lp);
 
 					rel.setPadding(0, 20, 0, 20);
@@ -345,27 +330,22 @@ public class DownloadsActivity extends BaseActivity
 					imgView.setTag(R.id.imagePosition, position);
 					imgView.setTag(R.id.imageObject, img);
 
-					imgView.setOnClickListener(new View.OnClickListener()
-					{
+					imgView.setOnClickListener(new View.OnClickListener() {
 						@Override
-						public void onClick(View v)
-						{
+						public void onClick(View v) {
 							imageClick(v);
 						}
 					});
 					
 					RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) bar.getLayoutParams();
-					layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+					layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT,RelativeLayout.TRUE);
 					bar.setLayoutParams(layoutParams);
 					
 					ImageViewHandler handler = new ImageViewHandler(imgView, bar);
 					
 					scroll.addThread(new Thread(new ImageLoadRunnable(handler, img)), image_y);
 					
-					if(e621.lazyLoad())
-					{
-						image_y += image_height + 40;
-					}
+					if(e621.lazyLoad()) image_y += image_height + 40;
 					
 					position++;
 				}
@@ -373,18 +353,16 @@ public class DownloadsActivity extends BaseActivity
 		});
 	}
 	
-	public void imageClick(View view)
-	{
+	public void imageClick(View view) {
 		Intent intent = new Intent(this, ImageFullScreenActivity.class);
 		intent.putExtra(ImageFullScreenActivity.NAVIGATOR, new OfflineImageNavigator(
-																							(Integer) view.getTag(R.id.imagePosition),
-																							search));
-		intent.putExtra(ImageFullScreenActivity.INTENT, getIntent());
+				(Integer) view.getTag(R.id.imagePosition),
+				search));
+		intent.putExtra(ImageFullScreenActivity.INTENT,getIntent());
 		startActivity(intent);
 	}
 	
-	public void search(View view)
-	{
+	public void search(View view) {
 		EditText editText = (EditText) findViewById(R.id.searchInput);
 		String search = editText.getText().toString().trim();
 
@@ -399,19 +377,19 @@ public class DownloadsActivity extends BaseActivity
 		{
 			final PageSelectorDialog dialog = new PageSelectorDialog(this, total_pages);
 
-			dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener()
+			dialog.setButton(DialogInterface.BUTTON_NEGATIVE,"Cancel",new DialogInterface.OnClickListener()
 			{
 				@Override
 				public void onClick(DialogInterface dialogInterface, int i)
 				{
 				}
 			});
-			dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Jump", new DialogInterface.OnClickListener()
+			dialog.setButton(DialogInterface.BUTTON_POSITIVE,"Jump",new DialogInterface.OnClickListener()
 			{
 				@Override
 				public void onClick(DialogInterface dialogInterface, int i)
 				{
-					goToPage(dialog.getValue() - 1);
+					goToPage(dialog.getValue()-1);
 				}
 			});
 
@@ -421,7 +399,7 @@ public class DownloadsActivity extends BaseActivity
 
 	public void prev(View view)
 	{
-		if(page > 0)
+		if (page > 0)
 		{
 			goToPage(page - 1);
 		}
@@ -431,7 +409,7 @@ public class DownloadsActivity extends BaseActivity
 	{
 		if(page + 1 < total_pages)
 		{
-			goToPage(page + 1);
+			goToPage(page+1);
 		}
 	}
 
@@ -459,10 +437,10 @@ public class DownloadsActivity extends BaseActivity
 		public void run()
 		{
 			InputStream in = e621.getDownloadedImageThumb(id);
-			Message msg = handler.obtainMessage();
-			msg.obj = in;
-
-			handler.sendMessage(msg);
+	    	Message msg = handler.obtainMessage();
+	    	msg.obj = in;
+	    	
+	    	handler.sendMessage(msg);
 		}
 	}
 }

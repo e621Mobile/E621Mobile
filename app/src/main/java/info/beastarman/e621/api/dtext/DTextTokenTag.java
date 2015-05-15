@@ -28,9 +28,9 @@ public class DTextTokenTag implements DTextToken
 	public String toString()
 	{
 		return "[" +
-					   (opening ? "" : "/") +
-					   tag +
-					   (extraValue == null ? "" : "=" + extraValue) +
-					   "]";
+				(opening?"":"/") +
+				tag +
+				(extraValue==null?"":"="+extraValue) +
+				"]";
 	}
 }

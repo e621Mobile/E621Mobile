@@ -16,22 +16,26 @@ public class ZoomableRelativeLayout extends RelativeLayout
 
 	float MIN_SCALE = 1f;
 	float MAX_SCALE = 20f;
-	int leftPadding = 0;
-	int topPadding = 0;
-	int rightPadding = 0;
-	int downPadding = 0;
+
 	public ZoomableRelativeLayout(Context context)
 	{
 		super(context);
 	}
+
 	public ZoomableRelativeLayout(Context context, AttributeSet attrs)
 	{
 		super(context, attrs);
 	}
+
 	public ZoomableRelativeLayout(Context context, AttributeSet attrs, int defStyle)
 	{
 		super(context, attrs, defStyle);
 	}
+
+	int leftPadding = 0;
+	int topPadding = 0;
+	int rightPadding = 0;
+	int downPadding = 0;
 
 	public void setPivotPadding(int left, int top, int right, int down)
 	{
@@ -46,20 +50,20 @@ public class ZoomableRelativeLayout extends RelativeLayout
 	{
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-		mPivotX = getWidth() / 2;
-		mPivotY = getHeight() / 2;
+		mPivotX = getWidth()/2;
+		mPivotY = getHeight()/2;
 	}
 
 	protected void dispatchDraw(Canvas canvas)
 	{
-		mPivotX = Math.min(Math.max(mPivotX, leftPadding), getWidth() - rightPadding);
-		mPivotY = Math.min(Math.max(mPivotY, topPadding), getHeight() - downPadding);
+		mPivotX = Math.min(Math.max(mPivotX,leftPadding),getWidth() - rightPadding);
+		mPivotY = Math.min(Math.max(mPivotY,topPadding),getHeight() - downPadding);
 
 		canvas.save(Canvas.MATRIX_SAVE_FLAG);
 
 		if(mScaleFactor <= 1)
 		{
-			canvas.scale(mScaleFactor, mScaleFactor, getWidth() / 2, getHeight() / 2);
+			canvas.scale(mScaleFactor, mScaleFactor, getWidth()/2, getHeight()/2);
 		}
 		else
 		{
@@ -70,8 +74,7 @@ public class ZoomableRelativeLayout extends RelativeLayout
 		canvas.restore();
 	}
 
-	public void scale(float scaleFactor, float pivotX, float pivotY)
-	{
+	public void scale(float scaleFactor, float pivotX, float pivotY) {
 		mScaleFactor = scaleFactor;
 		mPivotX = pivotX;
 		mPivotY = pivotY;
@@ -92,8 +95,8 @@ public class ZoomableRelativeLayout extends RelativeLayout
 		}
 		else
 		{
-			pivotX = getWidth() / 2;
-			pivotY = getHeight() / 2;
+			pivotX = getWidth()/2;
+			pivotY = getHeight()/2;
 
 			mPivotX = mPivotX + (pivotX - mPivotX) * (1 - scaleFactor);
 			mPivotY = mPivotY + (pivotY - mPivotY) * (1 - scaleFactor);
@@ -104,8 +107,8 @@ public class ZoomableRelativeLayout extends RelativeLayout
 
 	public void move(float x, float y)
 	{
-		mPivotX += x / mScaleFactor;
-		mPivotY += y / mScaleFactor;
+		mPivotX += x/mScaleFactor;
+		mPivotY += y/mScaleFactor;
 
 		invalidate();
 	}
@@ -121,7 +124,7 @@ public class ZoomableRelativeLayout extends RelativeLayout
 				@Override
 				protected void applyTransformation(float interpolatedTime, Transformation t)
 				{
-					scale(startScaleFactor + (1f - startScaleFactor) * interpolatedTime, mPivotX, mPivotY);
+					scale(startScaleFactor + (1f - startScaleFactor)*interpolatedTime,mPivotX,mPivotY);
 				}
 			};
 
@@ -142,9 +145,9 @@ public class ZoomableRelativeLayout extends RelativeLayout
 			protected void applyTransformation(float interpolatedTime, Transformation t)
 			{
 				scale(
-							 startScaleFactor + (scale - startScaleFactor) * interpolatedTime,
-							 startPivotX + (getWidth() / 2 - startPivotX) * interpolatedTime,
-							 startPivotY + (getHeight() / 2 - startPivotY) * interpolatedTime
+						startScaleFactor + (scale - startScaleFactor)*interpolatedTime,
+						startPivotX + (getWidth()/2 - startPivotX)*interpolatedTime,
+						startPivotY + (getHeight()/2 - startPivotY)*interpolatedTime
 				);
 			}
 		};
@@ -163,9 +166,9 @@ public class ZoomableRelativeLayout extends RelativeLayout
 			protected void applyTransformation(float interpolatedTime, Transformation t)
 			{
 				scale(
-							 startScaleFactor + (scale - startScaleFactor) * interpolatedTime,
-							 mPivotX,
-							 mPivotY
+						startScaleFactor + (scale - startScaleFactor)*interpolatedTime,
+						mPivotX,
+						mPivotY
 				);
 			}
 		};

@@ -4,11 +4,10 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-public interface ImageCacheManagerInterface
-{
+public interface ImageCacheManagerInterface {
 
 	public static final SimpleDateFormat dateFormat = new SimpleDateFormat(
-																				  "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+			"yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 
 	public abstract boolean hasFile(String id);
 

@@ -14,11 +14,12 @@ public class E621Tag implements Serializable, Comparable<E621Tag>
 	public static Integer COPYRIGHT = 3;
 	public static Integer CHARACTER = 4;
 	public static Integer SPECIES = 5;
+	
+	private String tag;
+	private Integer id;
 	public Integer count;
 	public Integer type;
 	public Boolean ambiguous;
-	private String tag;
-	private Integer id;
 	
 	public E621Tag(String s, Integer id)
 	{
@@ -38,23 +39,23 @@ public class E621Tag implements Serializable, Comparable<E621Tag>
 	public static E621Tag fromJson(JSONObject json)
 	{
 		return new E621Tag(
-								  json.optString("name", ""),
-								  json.optInt("id", -1),
-								  json.optInt("count", -1),
-								  json.optInt("type", -1),
-								  json.optBoolean("ambiguous", false)
-		);
+				json.optString("name",""),
+				json.optInt("id",-1),
+				json.optInt("count",-1),
+				json.optInt("type",-1),
+				json.optBoolean("ambiguous",false)
+			);
 	}
 	
 	public static E621Tag fromXML(Element xml)
 	{
 		return new E621Tag(
-								  xml.getAttribute("name"),
-								  Integer.parseInt(xml.getAttribute("id")),
-								  Integer.parseInt(xml.getAttribute("count")),
-								  Integer.parseInt(xml.getAttribute("type")),
-								  xml.getAttribute("ambiguous").equals("true")
-		);
+				xml.getAttribute("name"),
+				Integer.parseInt(xml.getAttribute("id")),
+				Integer.parseInt(xml.getAttribute("count")),
+				Integer.parseInt(xml.getAttribute("type")),
+				xml.getAttribute("ambiguous").equals("true")
+			);
 	}
 
 	public String getTag()
@@ -83,24 +84,24 @@ public class E621Tag implements Serializable, Comparable<E621Tag>
 		return this.getTag();
 	}
 
-	public int compareTo(E621Tag that)
-	{
-		return tag.compareTo(that.tag);
-	}
+    public int compareTo(E621Tag that)
+    {
+        return tag.compareTo(that.tag);
+    }
 
-	@Override
-	public boolean equals(Object obj)
-	{
-		if(obj instanceof E621Tag)
-		{
-			return equals((E621Tag) obj);
-		}
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(obj instanceof E621Tag)
+        {
+            return equals((E621Tag)obj);
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	public boolean equals(E621Tag that)
-	{
-		return compareTo(that) == 0;
-	}
+    public boolean equals (E621Tag that)
+    {
+        return compareTo(that) == 0;
+    }
 }

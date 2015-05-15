@@ -16,17 +16,18 @@ import info.beastarman.e621.views.TouchImageView;
 
 public class TouchImageViewHandler extends ImageHandler
 {
-	private static Semaphore s = new Semaphore(3);
 	public TouchImageView imgView;
 	public int w;
 	public int h;
+
+	private static Semaphore s = new Semaphore(3);
 
 	public TouchImageViewHandler(TouchImageView imgView, View loader, int _w, int _h)
 	{
 		super(loader);
 		this.imgView = imgView;
-		w = _w;
-		h = _h;
+		w=_w;
+		h=_h;
 	}
 
 	private Bitmap decodeFile(InputStream in, int width, int height)
@@ -36,12 +37,9 @@ public class TouchImageViewHandler extends ImageHandler
 			return null;
 		}
 
-		try
-		{
+		try {
 			s.acquire();
-		}
-		catch(InterruptedException e)
-		{
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 
@@ -63,13 +61,13 @@ public class TouchImageViewHandler extends ImageHandler
 		//Decode image size
 		BitmapFactory.Options o = new BitmapFactory.Options();
 		o.inJustDecodeBounds = true;
-		BitmapFactory.decodeStream(in, null, o);
+		BitmapFactory.decodeStream(in,null,o);
 
 		try
 		{
 			in.close();
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 			e.printStackTrace();
 
@@ -77,10 +75,10 @@ public class TouchImageViewHandler extends ImageHandler
 		}
 
 		//Find the correct scale value. It should be the power of 2.
-		int scale = 1;
-		while(((float) o.outWidth / scale) / 2 >= width && ((float) o.outHeight / scale) / 2 >= height)
+		int scale=1;
+		while(((float)o.outWidth/scale)/2>=width && ((float)o.outHeight/scale)/2>=height)
 		{
-			scale *= 2;
+			scale*=2;
 		}
 
 		Bitmap bitmap_temp = null;
@@ -95,8 +93,7 @@ public class TouchImageViewHandler extends ImageHandler
 		try
 		{
 			in2.close();
-		}
-		catch(IOException e)
+		} catch (IOException e)
 		{
 			e.printStackTrace();
 		}
@@ -116,7 +113,7 @@ public class TouchImageViewHandler extends ImageHandler
 		}
 		else
 		{
-			Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp, width, height, false);
+			Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
 
 			bitmap_temp.recycle();
 
@@ -134,20 +131,20 @@ public class TouchImageViewHandler extends ImageHandler
 			int width = w;
 			int height = h;
 
-			double scale = Math.max(1, Math.max(width / 2048, height / 2048));
+			double scale = Math.max(1,Math.max(width/2048,height/2048));
 
-			Bitmap bitmap = decodeFile(in, (int) (width / scale), (int) (height / scale));
+			Bitmap bitmap = decodeFile(in, (int)(width/scale), (int)(height/scale));
 
 			this.imgView.setImageBitmap(bitmap);
 
 			this.imgView.invalidate();
 			this.imgView.setZoom(0.9999999f);
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
 
-			ViewGroup v = ((ViewGroup) this.imgView.getParent());
+			ViewGroup v = ((ViewGroup)this.imgView.getParent());
 
 			v.removeView(this.imgView);
 		}

@@ -4,7 +4,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import info.beastarman.e621.R;
 
 public class FeedbackActivity extends ErrorReportActivity
@@ -29,6 +28,6 @@ public class FeedbackActivity extends ErrorReportActivity
 	{
 		super.sendReport(v);
 		
-		Toast.makeText(this, "Thank you for the feedback!", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this,"Thank you for the feedback!",Toast.LENGTH_SHORT).show();
 	}
 }

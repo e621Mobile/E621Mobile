@@ -21,9 +21,10 @@ import info.beastarman.e621.R;
 
 public class ImageViewHandler extends ImageHandler
 {
-	private static Semaphore s = new Semaphore(3);
 	public ImageView imgView;
 	public DisplayMetrics dm;
+	
+	private static Semaphore s = new Semaphore(3);
 	
 	public ImageViewHandler(ImageView imgView, View loader)
 	{
@@ -38,12 +39,9 @@ public class ImageViewHandler extends ImageHandler
 			return null;
 		}
 
-		try
-		{
+		try {
 			s.acquire();
-		}
-		catch(InterruptedException e)
-		{
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 
@@ -65,26 +63,26 @@ public class ImageViewHandler extends ImageHandler
 		//Decode image size
 		BitmapFactory.Options o = new BitmapFactory.Options();
 		o.inJustDecodeBounds = true;
-		BitmapFactory.decodeStream(in, null, o);
+		BitmapFactory.decodeStream(in,null,o);
 
 		try
 		{
 			in.close();
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 			e.printStackTrace();
 
 			return null;
 		}
 
-		height = (int) (width * (((double) o.outHeight) / o.outWidth));
+		height = (int) (width * (((double)o.outHeight) / o.outWidth));
 
 		//Find the correct scale value. It should be the power of 2.
-		int scale = 1;
-		while(((float) o.outWidth / scale) / 2 >= width && ((float) o.outHeight / scale) / 2 >= height)
+		int scale=1;
+		while(((float)o.outWidth/scale)/2>=width && ((float)o.outHeight/scale)/2>=height)
 		{
-			scale *= 2;
+			scale*=2;
 		}
 
 		Bitmap bitmap_temp = null;
@@ -99,8 +97,7 @@ public class ImageViewHandler extends ImageHandler
 		try
 		{
 			in2.close();
-		}
-		catch(IOException e)
+		} catch (IOException e)
 		{
 			e.printStackTrace();
 		}
@@ -112,22 +109,22 @@ public class ImageViewHandler extends ImageHandler
 			return null;
 		}
 
-		if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())
-		{
-			s.release();
-
-			return bitmap_temp;
-		}
-		else
-		{
-			Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp, width, height, false);
-
-			bitmap_temp.recycle();
-
-			s.release();
-
-			return ret;
-		}
+        if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())
+        {
+        	s.release();
+        	
+        	return bitmap_temp;
+        }
+        else
+        {
+	        Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+	        
+	        bitmap_temp.recycle();
+	        
+	        s.release();
+	        
+	        return ret;
+        }
 	}
 	
 	@Override
@@ -138,15 +135,15 @@ public class ImageViewHandler extends ImageHandler
 			int width = imgView.getLayoutParams().width;
 			int height = imgView.getLayoutParams().height;
 			
-			double scale = Math.max(1, Math.max(width / 2048, height / 2048));
+			double scale = Math.max(1,Math.max(width/2048,height/2048));
 			
-			Bitmap bitmap = decodeFile(in, (int) (width / scale), (int) (height / scale));
+			Bitmap bitmap = decodeFile(in, (int)(width/scale), (int)(height/scale));
 
 			if(bitmap != null)
 			{
 				ViewGroup.LayoutParams params = this.imgView.getLayoutParams();
 				params.width = imgView.getWidth();
-				params.height = (int) (params.width * (((double) bitmap.getHeight()) / bitmap.getWidth()));
+				params.height = (int) (params.width * (((double)bitmap.getHeight()) / bitmap.getWidth()));
 				this.imgView.setLayoutParams(params);
 
 				this.imgView.setImageBitmap(bitmap);
@@ -156,11 +153,11 @@ public class ImageViewHandler extends ImageHandler
 				this.imgView.setImageResource(R.drawable.bad_image);
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
 			
-			ViewGroup v = ((ViewGroup) this.imgView.getParent());
+			ViewGroup v = ((ViewGroup)this.imgView.getParent()); 
 			
 			v.removeView(this.imgView);
 		}

@@ -6,13 +6,6 @@ import info.beastarman.e621.middleware.BlackList;
 
 public class HighlightDialog extends BlackListDialog
 {
-	public HighlightDialog(Context context, BlackList blacklist)
-	{
-		super(context, blacklist);
-
-		setTitle("Highlights");
-	}
-
 	@Override
 	protected String getAddTitle()
 	{
@@ -23,5 +16,12 @@ public class HighlightDialog extends BlackListDialog
 	protected String getAddHint()
 	{
 		return "Type query to highlight...";
+	}
+
+	public HighlightDialog(Context context, BlackList blacklist)
+	{
+		super(context, blacklist);
+
+		setTitle("Highlights");
 	}
 }

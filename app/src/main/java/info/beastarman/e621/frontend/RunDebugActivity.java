@@ -7,22 +7,22 @@ import android.os.Bundle;
 
 public class RunDebugActivity extends Activity
 {
-	@Override
-	protected void onCreate(Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
+    @Override
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
 
-		boolean isDebuggable = (0 != (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE));
+        boolean isDebuggable =  ( 0 != ( getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE ) );
 
-		Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this,MainActivity.class);
 
-		if(isDebuggable)
-		{
-			intent = new Intent(this, ErrorReportActivity.class);
-		}
+        if(isDebuggable)
+        {
+            intent = new Intent(this,ErrorReportActivity.class);
+        }
 
-		startActivity(intent);
+        startActivity(intent);
 
-		finish();
-	}
+        finish();
+    }
 }

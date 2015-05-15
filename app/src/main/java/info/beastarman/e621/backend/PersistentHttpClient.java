@@ -27,7 +27,7 @@ public class PersistentHttpClient implements HttpClient
 	@Override
 	public HttpResponse execute(HttpUriRequest request) throws IOException, ClientProtocolException
 	{
-		for(int i = 0; i < tries - 1; i++)
+		for(int i=0; i<tries-1; i++)
 		{
 			try
 			{
@@ -44,24 +44,24 @@ public class PersistentHttpClient implements HttpClient
 	@Override
 	public HttpResponse execute(HttpUriRequest request, HttpContext context) throws IOException, ClientProtocolException
 	{
-		for(int i = 0; i < tries - 1; i++)
+		for(int i=0; i<tries-1; i++)
 		{
 			try
 			{
-				return client.execute(request, context);
+				return client.execute(request,context);
 			}
 			catch(IOException e)
 			{
 			}
 		}
 		
-		return client.execute(request, context);
+		return client.execute(request,context);
 	}
 
 	@Override
 	public HttpResponse execute(HttpHost target, HttpRequest request) throws IOException, ClientProtocolException
 	{
-		for(int i = 0; i < tries - 1; i++)
+		for(int i=0; i<tries-1; i++)
 		{
 			try
 			{
@@ -78,7 +78,7 @@ public class PersistentHttpClient implements HttpClient
 	@Override
 	public <T> T execute(HttpUriRequest arg0, ResponseHandler<? extends T> arg1) throws IOException, ClientProtocolException
 	{
-		for(int i = 0; i < tries - 1; i++)
+		for(int i=0; i<tries-1; i++)
 		{
 			try
 			{
@@ -95,7 +95,7 @@ public class PersistentHttpClient implements HttpClient
 	@Override
 	public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context) throws IOException, ClientProtocolException
 	{
-		for(int i = 0; i < tries - 1; i++)
+		for(int i=0; i<tries-1; i++)
 		{
 			try
 			{
@@ -112,7 +112,7 @@ public class PersistentHttpClient implements HttpClient
 	@Override
 	public <T> T execute(HttpUriRequest arg0, ResponseHandler<? extends T> arg1, HttpContext arg2) throws IOException, ClientProtocolException
 	{
-		for(int i = 0; i < tries - 1; i++)
+		for(int i=0; i<tries-1; i++)
 		{
 			try
 			{
@@ -129,7 +129,7 @@ public class PersistentHttpClient implements HttpClient
 	@Override
 	public <T> T execute(HttpHost arg0, HttpRequest arg1, ResponseHandler<? extends T> arg2) throws IOException, ClientProtocolException
 	{
-		for(int i = 0; i < tries - 1; i++)
+		for(int i=0; i<tries-1; i++)
 		{
 			try
 			{
@@ -146,7 +146,7 @@ public class PersistentHttpClient implements HttpClient
 	@Override
 	public <T> T execute(HttpHost arg0, HttpRequest arg1, ResponseHandler<? extends T> arg2, HttpContext arg3) throws IOException, ClientProtocolException
 	{
-		for(int i = 0; i < tries - 1; i++)
+		for(int i=0; i<tries-1; i++)
 		{
 			try
 			{
@@ -161,8 +161,7 @@ public class PersistentHttpClient implements HttpClient
 	}
 
 	@Override
-	public ClientConnectionManager getConnectionManager()
-	{
+	public ClientConnectionManager getConnectionManager() {
 		return client.getConnectionManager();
 	}
 

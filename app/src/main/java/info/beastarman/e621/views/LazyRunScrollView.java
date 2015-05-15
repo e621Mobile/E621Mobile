@@ -12,11 +12,10 @@ import android.util.AttributeSet;
 public class LazyRunScrollView extends ObservableScrollView
 {
 	private HashSet<ThreadTrigger> threads = new HashSet<ThreadTrigger>();
-	private int max_y = 0;
+	private int max_y= 0;
 	private int step = 1;
 	
-	public LazyRunScrollView(Context context)
-	{
+	public LazyRunScrollView(Context context) {
 		super(context);
 		
 		final LazyRunScrollView self = this;
@@ -27,27 +26,25 @@ public class LazyRunScrollView extends ObservableScrollView
 		post(new Runnable()
 		{
 			@Override
-			public void run()
-			{
+			public void run() {
 				t.onScrollChanged(self, 0, 0, 0, 0);
 			}
 		});
 	}
 	
-	public LazyRunScrollView(Context context, AttributeSet attrs)
-	{
+	public LazyRunScrollView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		
 		TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.LazyRunScrollView, 0, 0);
 		
 		try
-		{
-			step = a.getInteger(R.styleable.LazyRunScrollView_step, 1);
-		}
-		finally
-		{
-			a.recycle();
-		}
+        {
+            step = a.getInteger(R.styleable.LazyRunScrollView_step, 1);
+        }
+        finally
+        {
+            a.recycle();
+        }
 		
 		final LazyRunScrollView self = this;
 		final LazyRunScrollViewListener t = new LazyRunScrollViewListener();
@@ -57,27 +54,25 @@ public class LazyRunScrollView extends ObservableScrollView
 		post(new Runnable()
 		{
 			@Override
-			public void run()
-			{
+			public void run() {
 				t.onScrollChanged(self, 0, 0, 0, 0);
 			}
 		});
 	}
 	
-	public LazyRunScrollView(Context context, AttributeSet attrs, int defStyle)
-	{
+	public LazyRunScrollView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		
 		TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.LazyRunScrollView, 0, 0);
 		
 		try
-		{
-			step = a.getInteger(R.styleable.LazyRunScrollView_step, 1);
-		}
-		finally
-		{
-			a.recycle();
-		}
+        {
+            step = a.getInteger(R.styleable.LazyRunScrollView_step, 1);
+        }
+        finally
+        {
+            a.recycle();
+        }
 		
 		final LazyRunScrollView self = this;
 		final LazyRunScrollViewListener t = new LazyRunScrollViewListener();
@@ -87,8 +82,7 @@ public class LazyRunScrollView extends ObservableScrollView
 		post(new Runnable()
 		{
 			@Override
-			public void run()
-			{
+			public void run() {
 				t.onScrollChanged(self, 0, 0, 0, 0);
 			}
 		});
@@ -96,7 +90,7 @@ public class LazyRunScrollView extends ObservableScrollView
 	
 	public void addThread(Thread thread, int trigger)
 	{
-		ThreadTrigger t = new ThreadTrigger(thread, trigger);
+		ThreadTrigger t = new ThreadTrigger(thread,trigger);
 		
 		if(!t.start(max_y))
 		{
@@ -120,7 +114,7 @@ public class LazyRunScrollView extends ObservableScrollView
 				
 				int new_y = y + scrollView.getHeight();
 				
-				new_y = (int) (Math.ceil(((double) new_y) / step) * step);
+				new_y = (int)(Math.ceil(((double)new_y)/step)*step);
 				
 				if(new_y > max_y)
 				{

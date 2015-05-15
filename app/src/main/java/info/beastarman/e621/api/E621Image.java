@@ -23,11 +23,14 @@ import info.beastarman.e621.middleware.E621Middleware;
 
 public class E621Image implements Serializable
 {
+	private static final long serialVersionUID = 4972427634331752322L;
+
 	public static final SimpleDateFormat DATE_FORMAT_XML = new SimpleDateFormat("EEE MMM d HH:mm:ss ZZZ yyyy");
+	
 	public static final int PREVIEW = 1;
 	public static final int SAMPLE = 2;
 	public static final int FULL = 3;
-	private static final long serialVersionUID = 4972427634331752322L;
+	
 	public static int ACTIVE = 1;
 	public static int FLAGGED = 2;
 	public static int PENDING = 3;
@@ -117,43 +120,34 @@ public class E621Image implements Serializable
 	{
 		E621Image img = new E621Image();
 
-		img.file_url = json.optString("file_url", "");
-		if(img.file_url.startsWith("/"))
-		{
-			img.file_url = "http://e621.net" + img.file_url;
-		}
+		img.file_url = json.optString("file_url","");
+		if(img.file_url.startsWith("/")) img.file_url = "http://e621.net" + img.file_url;
 
-		img.sample_url = json.optString("sample_url", img.file_url);
-		if(img.sample_url.startsWith("/"))
-		{
-			img.sample_url = "http://e621.net" + img.sample_url;
-		}
+		img.sample_url = json.optString("sample_url",img.file_url);
+		if(img.sample_url.startsWith("/")) img.sample_url = "http://e621.net" + img.sample_url;
 
-		img.preview_url = json.optString("preview_url", img.sample_url);
-		if(img.preview_url.startsWith("/"))
-		{
-			img.preview_url = "http://e621.net" + img.preview_url;
-		}
+		img.preview_url = json.optString("preview_url",img.sample_url);
+		if(img.preview_url.startsWith("/")) img.preview_url = "http://e621.net" + img.preview_url;
 
-		img.description = json.optString("description", "").trim();
+		img.description = json.optString("description","").trim();
 
 		img.id = json.optInt("id", 666);
 		
 		img.rating = json.optString("rating", EXPLICIT);
 		
-		img.file_ext = json.optString("file_ext", "jpg");
+		img.file_ext = json.optString("file_ext","jpg");
 		
 		img.preview_width = json.optInt("preview_width", 1);
 		
-		img.preview_height = json.optInt("preview_height", 1);
+		img.preview_height = json.optInt("preview_height",1);
 		
-		img.sample_width = json.optInt("sample_width", 1);
+		img.sample_width = json.optInt("sample_width",1); 
 		
-		img.sample_height = json.optInt("sample_height", 1);
+		img.sample_height = json.optInt("sample_height",1);
 		
-		img.width = json.optInt("width", 1);
+		img.width = json.optInt("width",1); 
 		
-		img.height = json.optInt("height", 1);
+		img.height = json.optInt("height",1);
 		
 		img.has_children = json.optBoolean("has_children", false);
 
@@ -167,10 +161,10 @@ public class E621Image implements Serializable
 			img.parent_id = String.valueOf(json.optInt("parent_id"));
 		}
 		
-		img.score = json.optInt("score", 0);
-		img.fav_count = json.optInt("fav_count", 0);
+		img.score = json.optInt("score",0);
+		img.fav_count = json.optInt("fav_count",0);
 
-		String status = json.optString("status", "active");
+		String status = json.optString("status","active");
 		if(status.equals("active"))
 		{
 			img.status = ACTIVE;
@@ -188,7 +182,7 @@ public class E621Image implements Serializable
 			img.status = DELETED;
 		}
 		
-		String children = json.optString("children", "").trim();
+		String children = json.optString("children","").trim();
 		if(children.length() > 0)
 		{
 			img.children = new ArrayList<String>(Arrays.asList(children.split(",")));
@@ -200,10 +194,9 @@ public class E621Image implements Serializable
 
 		try
 		{
-			img.created_at_raw = String.valueOf(json.getJSONObject("created_at").optLong("s", -1));
-			img.created_at = new Date(json.getJSONObject("created_at").optLong("s", 0) * 1000);
-		}
-		catch(JSONException e)
+			img.created_at_raw = String.valueOf(json.getJSONObject("created_at").optLong("s",-1));
+			img.created_at = new Date(json.getJSONObject("created_at").optLong("s",0)*1000);
+		} catch (JSONException e)
 		{
 			e.printStackTrace();
 		}
@@ -213,9 +206,9 @@ public class E621Image implements Serializable
 
 		if(sources != null)
 		{
-			for(int i = 0; i < sources.length(); i++)
+			for(int i=0; i<sources.length(); i++)
 			{
-				img.sources.add(sources.optString(i, "").trim());
+				img.sources.add(sources.optString(i,"").trim());
 			}
 		}
 
@@ -224,21 +217,18 @@ public class E621Image implements Serializable
 
 		if(artist != null)
 		{
-			for(int i = 0; i < artist.length(); i++)
+			for(int i=0; i<artist.length(); i++)
 			{
-				img.artist.add(artist.optString(i, "").trim());
+				img.artist.add(artist.optString(i,"").trim());
 			}
 		}
 		
-		for(String tag : json.optString("tags", "").split("\\s"))
+		for(String tag : json.optString("tags","").split("\\s"))
 		{
-			if(tag.length() > 0)
-			{
-				img.tags.add(new E621Tag(tag, null));
-			}
+			if(tag.length() > 0)img.tags.add(new E621Tag(tag,null));
 		}
 		
-		img.has_comments = json.optBoolean("has_comments", false);
+		img.has_comments = json.optBoolean("has_comments",false);
 		
 		return img;
 	}
@@ -248,36 +238,27 @@ public class E621Image implements Serializable
 		E621Image img = new E621Image();
 
 		img.file_url = xml.getAttribute("file_url");
-		if(img.file_url.startsWith("/"))
-		{
-			img.file_url = "http://e621.net" + img.file_url;
-		}
+		if(img.file_url.startsWith("/")) img.file_url = "http://e621.net" + img.file_url;
 
 		img.sample_url = xml.getAttribute("sample_url");
-		if(img.sample_url.startsWith("/"))
-		{
-			img.sample_url = "http://e621.net" + img.sample_url;
-		}
+		if(img.sample_url.startsWith("/")) img.sample_url = "http://e621.net" + img.sample_url;
 
 		img.preview_url = xml.getAttribute("preview_url");
-		if(img.preview_url.startsWith("/"))
-		{
-			img.preview_url = "http://e621.net" + img.preview_url;
-		}
+		if(img.preview_url.startsWith("/")) img.preview_url = "http://e621.net" + img.preview_url;
 
 		img.description = xml.getAttribute("description").trim();
 
 		img.id = Integer.parseInt(xml.getAttribute("id"));
-		img.rating = xml.getAttribute("rating");
+		img.rating = xml.getAttribute("rating"); 
 		img.file_ext = xml.getAttribute("file_ext");
 		img.has_comments = xml.getAttribute("has_comments").equals("true");
-		img.has_children = xml.getAttribute("has_children").equals("true");
+		img.has_children= xml.getAttribute("has_children").equals("true");
 
 		try
 		{
 			img.file_size = Integer.parseInt(xml.getAttribute("file_size"));
 		}
-		catch(NumberFormatException e)
+		catch (NumberFormatException e)
 		{
 			img.file_size = 0;
 		}
@@ -286,7 +267,7 @@ public class E621Image implements Serializable
 		{
 			img.creator_id = Integer.parseInt(xml.getAttribute("creator_id"));
 		}
-		catch(NumberFormatException e)
+		catch (NumberFormatException e)
 		{
 			img.creator_id = 0;
 		}
@@ -312,8 +293,7 @@ public class E621Image implements Serializable
 		{
 			img.created_at_raw = xml.getAttribute("created_at");
 			img.created_at = DATE_FORMAT_XML.parse(img.created_at_raw);
-		}
-		catch(ParseException e)
+		} catch (ParseException e)
 		{
 			e.printStackTrace();
 		}
@@ -327,12 +307,12 @@ public class E621Image implements Serializable
 			{
 				JSONArray sourcesArray = new JSONArray(sources);
 
-				for(int i = 0; i < sourcesArray.length(); i++)
+				for(int i=0; i<sourcesArray.length(); i++)
 				{
-					img.sources.add(sourcesArray.optString(i, "").trim());
+					img.sources.add(sourcesArray.optString(i,"").trim());
 				}
 			}
-			catch(JSONException e)
+			catch (JSONException e)
 			{
 				e.printStackTrace();
 			}
@@ -347,12 +327,12 @@ public class E621Image implements Serializable
 			{
 				JSONArray artistArray = new JSONArray(artist);
 
-				for(int i = 0; i < artistArray.length(); i++)
+				for(int i=0; i<artistArray.length(); i++)
 				{
-					img.artist.add(artistArray.optString(i, "").trim());
+					img.artist.add(artistArray.optString(i,"").trim());
 				}
 			}
-			catch(JSONException e)
+			catch (JSONException e)
 			{
 				e.printStackTrace();
 			}
@@ -377,65 +357,33 @@ public class E621Image implements Serializable
 			img.status = DELETED;
 		}
 		
-		try
-		{
+		try{
 			img.preview_width = Integer.parseInt(xml.getAttribute("preview_width"));
-		}
-		catch(NumberFormatException e)
-		{
-		}
-		try
-		{
+		} catch (NumberFormatException e) {}
+		try{
 			img.preview_height = Integer.parseInt(xml.getAttribute("preview_height"));
-		}
-		catch(NumberFormatException e)
-		{
-		}
-		try
-		{
+		} catch (NumberFormatException e) {}
+		try{
 			img.sample_width = Integer.parseInt(xml.getAttribute("sample_width"));
-		}
-		catch(NumberFormatException e)
-		{
-		}
-		try
-		{
+		} catch (NumberFormatException e) {}
+		try{
 			img.sample_height = Integer.parseInt(xml.getAttribute("sample_height"));
-		}
-		catch(NumberFormatException e)
-		{
-		}
-		try
-		{
+		} catch (NumberFormatException e) {}
+		try{
 			img.width = Integer.parseInt(xml.getAttribute("width"));
-		}
-		catch(NumberFormatException e)
-		{
-		}
-		try
-		{
+		} catch (NumberFormatException e) {}
+		try{
 			img.height = Integer.parseInt(xml.getAttribute("height"));
-		}
-		catch(NumberFormatException e)
-		{
-		}
-		try
-		{
+		} catch (NumberFormatException e) {}
+		try{
 			img.score = Integer.parseInt(xml.getAttribute("score"));
-		}
-		catch(NumberFormatException e)
-		{
-		}
-		try
-		{
+		} catch (NumberFormatException e) {}
+		try{
 			img.fav_count = Integer.parseInt(xml.getAttribute("fav_count"));
-		}
-		catch(NumberFormatException e)
-		{
-		}
+		} catch (NumberFormatException e) {}
 		for(String tag : xml.getAttribute("tags").split("\\s"))
 		{
-			img.tags.add(new E621Tag(tag, null));
+			img.tags.add(new E621Tag(tag,null));
 		}
 		
 		return img;
@@ -452,16 +400,16 @@ public class E621Image implements Serializable
 		return String.valueOf(id);
 	}
 
-	public Pair<Integer, Integer> getSize(int size)
+	public Pair<Integer,Integer> getSize(int size)
 	{
-		switch(size)
+		switch (size)
 		{
 			case PREVIEW:
-				return new Pair<Integer, Integer>(preview_width, preview_height);
+				return new Pair<Integer, Integer>(preview_width,preview_height);
 			case SAMPLE:
-				return new Pair<Integer, Integer>(sample_width, sample_height);
+				return new Pair<Integer, Integer>(sample_width,sample_height);
 			default:
-				return new Pair<Integer, Integer>(width, height);
+				return new Pair<Integer, Integer>(width,height);
 		}
 	}
 }

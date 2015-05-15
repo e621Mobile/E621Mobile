@@ -6,7 +6,7 @@ public class FIleNameTestCase extends InstrumentationTestCase
 {
 	public void runTest(String s)
 	{
-		assertEquals(s, FileName.decodeFileName(FileName.encodeFileName(s)));
+		assertEquals(s,FileName.decodeFileName(FileName.encodeFileName(s)));
 	}
 
 	public void test() throws Exception

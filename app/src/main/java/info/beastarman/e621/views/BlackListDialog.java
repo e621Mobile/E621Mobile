@@ -29,6 +29,16 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 
 	ArrayList<String> queriesToRemove = new ArrayList<String>();
 
+	protected String getAddTitle()
+	{
+		return "New blacklist query";
+	}
+
+	protected String getAddHint()
+	{
+		return "Type query to blacklist...";
+	}
+
 	public BlackListDialog(final Context context, BlackList blacklist)
 	{
 		super(context);
@@ -42,14 +52,14 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 		wrapper.setOrientation(LinearLayout.VERTICAL);
 		wrapper.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-		Map<String, Boolean> blacklistMap = blacklist.getBlacklist();
+		Map<String,Boolean> blacklistMap = blacklist.getBlacklist();
 
 		for(String key : blacklistMap.keySet())
 		{
-			wrapper.addView(getView(key, blacklistMap.get(key)));
+			wrapper.addView(getView(key,blacklistMap.get(key)));
 		}
 
-		View blackListAdd = getLayoutInflater().inflate(R.layout.blacklist_add, null);
+		View blackListAdd = getLayoutInflater().inflate(R.layout.blacklist_add,null);
 		blackListAdd.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
@@ -60,7 +70,7 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 
 				(new AlertDialog.Builder(context)).setTitle(getAddTitle())
 						.setView(edit).setCancelable(false)
-						.setPositiveButton("Add", new OnClickListener()
+						.setPositiveButton("Add",new OnClickListener()
 						{
 							@Override
 							public void onClick(DialogInterface dialogInterface, int i)
@@ -68,7 +78,7 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 								addQuery(edit.getText().toString());
 							}
 						})
-						.setNegativeButton("Cancel", new OnClickListener()
+						.setNegativeButton("Cancel",new OnClickListener()
 						{
 							@Override
 							public void onClick(DialogInterface dialogInterface, int i)
@@ -84,50 +94,40 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 
 		setView(scroll);
 
-		setButton(BUTTON_NEGATIVE, "Cancel", new OnClickListener()
+		setButton(BUTTON_NEGATIVE,"Cancel",new OnClickListener()
 		{
 			@Override
 			public void onClick(DialogInterface dialogInterface, int i)
 			{
 			}
 		});
-		setButton(BUTTON_POSITIVE, "Save", this);
+		setButton(BUTTON_POSITIVE,"Save",this);
 
 		setCanceledOnTouchOutside(false);
-	}
-
-	protected String getAddTitle()
-	{
-		return "New blacklist query";
-	}
-
-	protected String getAddHint()
-	{
-		return "Type query to blacklist...";
 	}
 
 	public void addQuery(String query)
 	{
 		if(query.trim().length() == 0)
 		{
-			Toast.makeText(getContext(), "Query cannot be empty", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getContext(),"Query cannot be empty",Toast.LENGTH_SHORT).show();
 
 			return;
 		}
 
-		LinearLayout wrapper = (LinearLayout) findViewById(R.id.linearLayout1);
+		LinearLayout wrapper = (LinearLayout)findViewById(R.id.linearLayout1);
 
-		wrapper.addView(getView(query, true), wrapper.getChildCount() - 1);
+		wrapper.addView(getView(query,true),wrapper.getChildCount()-1);
 	}
 
 	private View getView(final String key, Boolean enabled)
 	{
-		final View blackListEntry = getLayoutInflater().inflate(R.layout.blacklist_item, null);
+		final View blackListEntry = getLayoutInflater().inflate(R.layout.blacklist_item,null);
 
-		TextView query = (TextView) blackListEntry.findViewById(R.id.query);
+		TextView query = (TextView)blackListEntry.findViewById(R.id.query);
 		query.setText(key);
 
-		ImageView remove = (ImageView) blackListEntry.findViewById(R.id.imageView);
+		ImageView remove = (ImageView)blackListEntry.findViewById(R.id.imageView);
 		remove.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
@@ -135,11 +135,11 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 			{
 				queriesToRemove.add(key);
 
-				((ViewGroup) blackListEntry.getParent()).removeView(blackListEntry);
+				((ViewGroup)blackListEntry.getParent()).removeView(blackListEntry);
 			}
 		});
 
-		final CheckBox checkBox = (CheckBox) blackListEntry.findViewById(R.id.checkBox);
+		final CheckBox checkBox = (CheckBox)blackListEntry.findViewById(R.id.checkBox);
 		checkBox.setChecked(enabled);
 
 		final HorizontalScrollView s = (HorizontalScrollView) blackListEntry.findViewById(R.id.horizontalScrollView);
@@ -160,7 +160,7 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 			{
 				int scrollLength = s.getChildAt(0).getWidth() - s.getWidth();
 
-				s.scrollTo((int) (scrollLength * interpolatedTime), 0);
+				s.scrollTo((int)(scrollLength*interpolatedTime),0);
 			}
 		};
 
@@ -191,15 +191,15 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 	@Override
 	public void onClick(DialogInterface dialogInterface, int i)
 	{
-		LinearLayout wrapper = (LinearLayout) findViewById(R.id.linearLayout1);
+		LinearLayout wrapper = (LinearLayout)findViewById(R.id.linearLayout1);
 
-		final HashMap<String, Boolean> list = new HashMap<String, Boolean>();
+		final HashMap<String,Boolean> list = new HashMap<String, Boolean>();
 
-		for(i = 0; i < wrapper.getChildCount(); i++)
+		for(i=0; i<wrapper.getChildCount(); i++)
 		{
 			View v = wrapper.getChildAt(i);
 
-			if(v.getTag() == null || !v.getTag().equals("BLACK"))
+			if(v.getTag()==null || !v.getTag().equals("BLACK"))
 			{
 				continue;
 			}
@@ -207,7 +207,7 @@ public class BlackListDialog extends AlertDialog implements DialogInterface.OnCl
 			String query = ((TextView) v.findViewById(R.id.query)).getText().toString();
 			Boolean active = ((CheckBox) v.findViewById(R.id.checkBox)).isChecked();
 
-			list.put(query, active);
+			list.put(query,active);
 		}
 
 		new Thread(new Runnable()
