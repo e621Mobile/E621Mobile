@@ -1,13 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.R;
-import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.middleware.E621Middleware.Mascot;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
@@ -19,6 +11,14 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+
+import info.beastarman.e621.R;
+import info.beastarman.e621.middleware.E621Middleware;
+import info.beastarman.e621.middleware.E621Middleware.Mascot;
 
 public class E621MascotSelect extends E621ConfirmDialogFragment
 {

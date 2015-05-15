@@ -21,6 +21,7 @@ public class NoHorizontalScrollView extends HorizontalScrollView
 	{
 		super(context, attrs);
 	}
+
 	public NoHorizontalScrollView(Context context, AttributeSet attrs, int defStyle)
 	{
 		super(context, attrs, defStyle);

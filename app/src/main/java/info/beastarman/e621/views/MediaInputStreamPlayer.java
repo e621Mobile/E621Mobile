@@ -1,10 +1,7 @@
 package info.beastarman.e621.views;
 
-import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Environment;
-import android.util.AttributeSet;
-import android.widget.VideoView;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

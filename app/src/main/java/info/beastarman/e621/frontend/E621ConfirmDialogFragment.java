@@ -1,7 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.R;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -11,6 +9,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+
+import info.beastarman.e621.R;
 
 public class E621ConfirmDialogFragment extends DialogFragment
 {

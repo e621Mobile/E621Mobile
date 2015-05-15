@@ -1,11 +1,5 @@
 package info.beastarman.e621.middleware;
 
-import info.beastarman.e621.backend.PersistentHttpClient;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.URL;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
@@ -17,6 +11,12 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.URL;
+
+import info.beastarman.e621.backend.PersistentHttpClient;
 
 public class AndroidAppUpdater
 {

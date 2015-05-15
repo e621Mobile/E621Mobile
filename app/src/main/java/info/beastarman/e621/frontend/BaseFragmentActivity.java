@@ -25,7 +25,6 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Set;
 
-import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
 
 public class BaseFragmentActivity extends FragmentActivity implements UncaughtExceptionHandler

@@ -20,14 +20,17 @@ public class ZoomableRelativeLayout extends RelativeLayout
 	int topPadding = 0;
 	int rightPadding = 0;
 	int downPadding = 0;
+
 	public ZoomableRelativeLayout(Context context)
 	{
 		super(context);
 	}
+
 	public ZoomableRelativeLayout(Context context, AttributeSet attrs)
 	{
 		super(context, attrs);
 	}
+
 	public ZoomableRelativeLayout(Context context, AttributeSet attrs, int defStyle)
 	{
 		super(context, attrs, defStyle);

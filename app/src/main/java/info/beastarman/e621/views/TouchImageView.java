@@ -39,8 +39,6 @@ import android.widget.ImageView;
 import android.widget.OverScroller;
 import android.widget.Scroller;
 
-import info.beastarman.e621.middleware.E621Middleware;
-
 public class TouchImageView extends ImageView
 {
 	
@@ -93,6 +91,7 @@ public class TouchImageView extends ImageView
 	private GestureDetector.OnDoubleTapListener doubleTapListener = null;
 	private OnTouchListener userTouchListener = null;
 	private OnTouchImageViewListener touchImageViewListener = null;
+
 	public TouchImageView(Context context)
 	{
 		super(context);
