@@ -87,7 +87,11 @@ public class MainActivity extends SlideMenuBaseActivity
 		switch (version)
 		{
 			case 17:
+			case 18:
 				message = getString(R.string.version_17);
+				break;
+			default:
+				break;
 		}
 
 		if(message == null) return;
