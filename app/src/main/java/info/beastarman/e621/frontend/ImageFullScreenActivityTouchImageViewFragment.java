@@ -438,9 +438,17 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
                                         }
                                     });
 
+									player.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
+									{
+										@Override
+										public void onCompletion(MediaPlayer mediaPlayer)
+										{
+											mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+										}
+									});
+
                                     if(in != null)
                                     {
-                                        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
                                         player.setVideoInputStream(in);
                                     }
                                 } catch (IOException e) {
@@ -485,30 +493,42 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 						ll.setLayoutParams(params);
 						rl.addView(ll);
 
-						ll.setOnLongClickListener(new View.OnLongClickListener() {
+						ll.setOnLongClickListener(new View.OnLongClickListener()
+                        {
                             @Override
-                            public boolean onLongClick(View view) {
+                            public boolean onLongClick(View view)
+                            {
                                 final Intent i = new Intent();
                                 i.setAction(Intent.ACTION_VIEW);
 
-                                if (file_url != null) {
+                                if(file_url != null)
+                                {
                                     i.setData(Uri.parse(file_url));
                                     startActivity(i);
-                                } else {
-                                    new Thread(new Runnable() {
+                                }
+                                else
+                                {
+                                    new Thread(new Runnable()
+                                    {
                                         @Override
-                                        public void run() {
-                                            try {
+                                        public void run()
+                                        {
+                                            try
+                                            {
                                                 E621Image img = E621Middleware.getInstance().post__show(id);
                                                 i.setData(Uri.parse(img.file_url));
 
-                                                getActivity().runOnUiThread(new Runnable() {
+                                                getActivity().runOnUiThread(new Runnable()
+                                                {
                                                     @Override
-                                                    public void run() {
+                                                    public void run()
+                                                    {
                                                         startActivity(i);
                                                     }
                                                 });
-                                            } catch (IOException e) {
+                                            }
+                                            catch(IOException e)
+                                            {
                                                 e.printStackTrace();
                                             }
                                         }
