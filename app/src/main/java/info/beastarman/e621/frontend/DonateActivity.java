@@ -1,6 +1,8 @@
 package info.beastarman.e621.frontend;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.backend.DonationManager;
+import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.qrcode.Contents;
 import info.beastarman.e621.qrcode.QRCodeEncoder;
 import android.content.ActivityNotFoundException;
@@ -11,6 +13,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
@@ -21,7 +24,7 @@ import android.widget.Toast;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 
-public class DonateActivity extends BaseActivity
+public class DonateActivity extends BaseActivity implements Runnable
 {
 	@Override
     protected void onCreate(Bundle savedInstanceState)
@@ -48,37 +51,8 @@ public class DonateActivity extends BaseActivity
 				Toast.makeText(getApplicationContext(), "Address copied to the clipboard", Toast.LENGTH_SHORT).show();
 			}
 		});
-		
-		final EditText bitcoinWallet = (EditText) findViewById(R.id.bitcoinWallet);
-		bitcoinWallet.setOnClickListener(new OnClickListener()
-		{
-			@Override
-			public void onClick(View arg0)
-			{
-				ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-				
-				ClipData clip = ClipData.newPlainText("simple text",bitcoinWallet.getText());
-				
-				clipboard.setPrimaryClip(clip);
-				
-				Toast.makeText(getApplicationContext(), "Address copied to the clipboard", Toast.LENGTH_SHORT).show();
-			}
-		});
-		
-		final ImageView bitcoinQRCode = (ImageView) findViewById(R.id.bitcoinQRCode);
-		
-		String qrData = "bitcoin:" + getString(R.string.bitcoin);
-		int qrCodeDimention = 512;
 
-		QRCodeEncoder qrCodeEncoder = new QRCodeEncoder(qrData, null,
-		        Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), qrCodeDimention);
-
-		try {
-		    Bitmap bitmap = qrCodeEncoder.encodeAsBitmap();
-		    bitcoinQRCode.setImageBitmap(bitmap);
-		} catch (WriterException e) {
-		    e.printStackTrace();
-		}
+		new Thread(this).start();
     }
 	
 	public void paypalDonate(View v)
@@ -87,19 +61,15 @@ public class DonateActivity extends BaseActivity
 		i.setData(Uri.parse(getString(R.string.paypal_donation_link)));
 		startActivity(i);
 	}
-	
-	public void bitcoinDonate(View v)
+
+	@Override
+	public void run()
 	{
-		Intent i = new Intent(Intent.ACTION_VIEW);
-		i.setData(Uri.parse("bitcoin:" + getString(R.string.bitcoin)));
-		
-		try
+		Log.d(E621Middleware.LOG_TAG, String.valueOf(e621.getDonationManager().getTotalDonations()));
+
+		for(DonationManager.Donator d : e621.getDonationManager().getOldestDonators())
 		{
-			startActivity(i);
-		}
-		catch(ActivityNotFoundException e)
-		{
-			Toast.makeText(getApplicationContext(), "No bitcoin application found", Toast.LENGTH_SHORT).show();
+			Log.d(E621Middleware.LOG_TAG,d.name);
 		}
 	}
 }

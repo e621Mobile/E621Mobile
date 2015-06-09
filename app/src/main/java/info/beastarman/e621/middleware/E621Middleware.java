@@ -80,6 +80,7 @@ import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.backend.BackupManager;
 import info.beastarman.e621.backend.DirectImageCacheManager;
+import info.beastarman.e621.backend.DonationManager;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.FileName;
 import info.beastarman.e621.backend.GTFO;
@@ -4640,5 +4641,12 @@ public class E621Middleware extends E621 {
 	public boolean hasMetadata()
 	{
 		return download_manager.hasTags();
+	}
+
+	DonationManager donationManager = new DonationManager(Uri.parse("http://beastarman.info/donations/ong/e621/"));
+
+	public DonationManager getDonationManager()
+	{
+		return donationManager;
 	}
 }

@@ -86,68 +86,6 @@
 
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/textView3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="2. Bitcoin"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textColor="@color/white" />
-
-                <ImageView
-                    android:id="@+id/imageView3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:layout_marginTop="8dp"
-                    android:adjustViewBounds="true"
-                    android:src="@drawable/bitcoin" />
-
-                <TextView
-                    android:id="@+id/textView4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Wallet"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="@color/white" />
-
-                <EditText
-                    android:id="@+id/bitcoinWallet"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:inputType="none"
-                    android:selectAllOnFocus="true"
-                    android:text="@string/bitcoin"
-                    android:textColor="@color/white" />
-
-                <ImageView
-                    android:id="@+id/bitcoinQRCode"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-
-                <ImageView
-                    android:id="@+id/imageView4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    android:layout_marginLeft="40dp"
-                    android:layout_marginRight="40dp"
-                    android:layout_marginTop="20dp"
-                    android:adjustViewBounds="true"
-                    android:onClick="bitcoinDonate"
-                    android:src="@drawable/bitcoin_donate" />
-
-            </LinearLayout>
-
         </LinearLayout>
     </ScrollView>
 
