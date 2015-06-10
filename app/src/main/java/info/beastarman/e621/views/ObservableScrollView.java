@@ -2,6 +2,7 @@ package info.beastarman.e621.views;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.ScrollView;
 
 public class ObservableScrollView extends ScrollView
@@ -31,4 +32,13 @@ public class ObservableScrollView extends ScrollView
             scrollViewListener.onScrollChanged(this, x, y, oldx, oldy);
         }
     }
+
+	public boolean isAtBottom()
+	{
+		View view = getChildAt(getChildCount()-1);
+
+		int diff = (view.getBottom()-(getHeight()+getScrollY()));
+
+		return diff <= 0;
+	}
 }

@@ -1,6 +1,7 @@
 package info.beastarman.e621.backend;
 
 import android.net.Uri;
+import android.util.Patterns;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -181,9 +182,17 @@ public class DonationManager
 	{
 		try
 		{
+			String s = object.optString("url","");
+			Uri uri = null;
+
+			if(Patterns.WEB_URL.matcher(s).matches())
+			{
+				uri = Uri.parse(s);
+			}
+
 			return new Donator
 						   (
-								   Uri.parse(object.optString("url","")),
+								   uri,
 								   object.optString("name","Anonymous"),
 								   (float)object.getDouble("ammount"),
 								   DATE_FORMAT.parse(object.getString("first_donation")),
