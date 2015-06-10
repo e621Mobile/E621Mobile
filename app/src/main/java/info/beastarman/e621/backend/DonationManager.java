@@ -230,7 +230,7 @@ public class DonationManager
 			@Override
 			public int compare(Donator d1, Donator d2)
 			{
-				return d2.firstDonation.compareTo(d1.firstDonation);
+				return d2.lastDonation.compareTo(d1.lastDonation);
 			}
 		};
 	}
@@ -242,7 +242,7 @@ public class DonationManager
 			@Override
 			public int compare(Donator d1, Donator d2)
 			{
-				return d1.lastDonation.compareTo(d2.lastDonation);
+				return d1.firstDonation.compareTo(d2.firstDonation);
 			}
 		};
 	}
