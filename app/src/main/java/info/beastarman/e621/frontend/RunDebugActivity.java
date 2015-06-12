@@ -18,7 +18,8 @@ public class RunDebugActivity extends Activity
 
         if(isDebuggable)
         {
-            intent = new Intent(this,DonateActivity.class);
+            intent = new Intent(this,SearchContinueActivity.class);
+			intent.putExtra(SearchContinueActivity.SEARCH,"onta");
         }
 
         startActivity(intent);

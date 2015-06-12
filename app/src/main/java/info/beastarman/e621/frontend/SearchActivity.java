@@ -523,7 +523,7 @@ public class SearchActivity extends BaseActivity
 															@Override
 															public void run()
 															{
-																if(bmp != null)
+																if(bmp != null && !bmp.isRecycled())
                                                                 {
                                                                     imgView.setImageBitmap(bmp);
 
