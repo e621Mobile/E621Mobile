@@ -103,4 +103,8 @@
     Sync can now have a custom interval or be disabled completely.
     \n\n
     Posts now can be shared easily.</string>
+
+    <string name="version_19">I send a huge thanks to everyone who trusted me their money. You can now find a list of everyone who did so on the Donation screen.
+        \n\n
+        Optional beta updates. You can now opt-in on the settings screen. (Not available in Play version).</string>
 </resources>
