@@ -6,12 +6,19 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
+import android.text.style.URLSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.File;
@@ -20,8 +27,10 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.backend.DonationManager;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.E621Middleware.Mascot;
+import info.beastarman.e621.views.NoHorizontalScrollView;
 
 public class MainActivity extends SlideMenuBaseActivity
 {
@@ -78,6 +87,80 @@ public class MainActivity extends SlideMenuBaseActivity
 		change_mascot();
 
         updateStatistics();
+
+		updateDonator();
+	}
+
+	private void updateDonator()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				final DonationManager.Donator donator = e621.getDonationManager().getHighlight();
+				final RelativeLayout wrapper = (RelativeLayout) findViewById(R.id.donation_highlight_wrapper);
+				final NoHorizontalScrollView s = (NoHorizontalScrollView) findViewById(R.id.donation_highlight_scroll);
+				final TextView text = (TextView) findViewById(R.id.donation_highlight_text);
+
+				final DecimalFormat df = new DecimalFormat();
+				df.setMinimumFractionDigits(2);
+				df.setMaximumFractionDigits(2);
+
+				if(donator != null)
+				{
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							SpannableString ss = new SpannableString(donator.name);
+
+							if(donator.url != null)
+							{
+								ss.setSpan(new URLSpan(donator.url.toString()),0,ss.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+								text.setMovementMethod(LinkMovementMethod.getInstance());
+							}
+
+							wrapper.setVisibility(View.VISIBLE);
+							text.setText("A big thanks to ");
+							text.append(ss);
+							text.append(" for donating a total of $" + df.format(donator.ammount));
+
+							final Animation a = new Animation()
+							{
+								@Override
+								protected void applyTransformation(float interpolatedTime, Transformation t)
+								{
+									int scrollLength = s.getChildAt(0).getWidth() - s.getWidth();
+
+									s.scrollTo((int)(scrollLength*interpolatedTime),0);
+								}
+							};
+
+							s.post(new Runnable()
+							{
+								@Override
+								public void run()
+								{
+									int scrollLength = s.getChildAt(0).getWidth() - s.getWidth();
+
+									if(scrollLength > 0)
+									{
+										a.setDuration(scrollLength * 10);
+										s.startAnimation(a);
+										a.setRepeatMode(Animation.REVERSE);
+										a.setRepeatCount(Animation.INFINITE);
+										a.setStartOffset(1000);
+										((View) s.getParent()).invalidate();
+									}
+								}
+							});
+						}
+					});
+				}
+			}
+		}).start();
 	}
 
 	private void newVersionPopup(int version)

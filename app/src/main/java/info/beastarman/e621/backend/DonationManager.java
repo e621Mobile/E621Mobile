@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Random;
 
 public class DonationManager
 {
@@ -109,6 +110,81 @@ public class DonationManager
 		return _donators;
 	}
 
+	ArrayList<Donator> _highlight = null;
+
+	private ArrayList<Donator> retrieveHighlight()
+	{
+		if(_highlight == null)
+		{
+			try
+			{
+				Uri url = Uri.withAppendedPath(baseUrl, "json/highlight/");
+
+				HttpClient client = new PersistentHttpClient(new DefaultHttpClient(), 5);
+
+				HttpResponse response = null;
+
+				try
+				{
+					response = client.execute(new HttpGet(url.toString()));
+				}
+				catch(ClientProtocolException e)
+				{
+					e.printStackTrace();
+				}
+
+				if(response != null)
+				{
+					StatusLine statusLine = response.getStatusLine();
+
+					if(statusLine.getStatusCode() == HttpStatus.SC_OK)
+					{
+						ByteArrayOutputStream out = new ByteArrayOutputStream();
+						response.getEntity().writeTo(out);
+						out.close();
+						String responseString = out.toString();
+
+						JSONArray jsonResponse = null;
+
+						try
+						{
+							jsonResponse = new JSONArray(responseString);
+						}
+						catch(JSONException e)
+						{
+							e.printStackTrace();
+						}
+
+						if(jsonResponse != null)
+						{
+							int i = 0;
+
+							_highlight = new ArrayList<Donator>();
+
+							for(i=0; i<jsonResponse.length(); i++)
+							{
+								try
+								{
+									_highlight.add(donatorFromJSONObject(jsonResponse.getJSONObject(i)));
+								}
+								catch(JSONException e)
+								{
+									e.printStackTrace();
+								}
+							}
+						}
+					}
+				}
+			}
+			catch(IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+
+		return _highlight;
+	}
+
 	private Float totalDonations = null;
 
 	public Float getTotalDonations()
@@ -160,6 +236,17 @@ public class DonationManager
 		return ret;
 	}
 
+	private static Random random = new Random();
+
+	public Donator getHighlight()
+	{
+		ArrayList<Donator> highlight = retrieveHighlight();
+
+		if(highlight == null || highlight.size()==0) return null;
+
+		return highlight.get(random.nextInt(highlight.size()));
+	}
+
 	public class Donator
 	{
 		public final Uri url;
@@ -190,13 +277,25 @@ public class DonationManager
 				uri = Uri.parse(s);
 			}
 
+			Date first_donation = null;
+			Date last_donation = null;
+
+			if(object.has("first_donation"))
+			{
+				first_donation = DATE_FORMAT.parse(object.getString("first_donation"));
+			}
+			if(object.has("last_donation"))
+			{
+				last_donation = DATE_FORMAT.parse(object.getString("last_donation"));
+			}
+
 			return new Donator
 						   (
 								   uri,
 								   object.optString("name","Anonymous"),
 								   (float)object.getDouble("ammount"),
-								   DATE_FORMAT.parse(object.getString("first_donation")),
-								   DATE_FORMAT.parse(object.getString("last_donation"))
+								   first_donation,
+								   last_donation
 						   );
 		}
 		catch(JSONException e)
