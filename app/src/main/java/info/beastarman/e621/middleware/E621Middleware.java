@@ -703,6 +703,11 @@ public class E621Middleware extends E621 {
 		return settings.getBoolean("lazyLoad", true);
 	}
 
+	public boolean betaReleases()
+	{
+		return settings.getBoolean("betaReleases", false);
+	}
+
 	public int getFileThummbnailSize(E621Image img)
 	{
 		if(img.file_ext.equals("gif") || img.file_ext.equals("swf")) return E621Image.PREVIEW;
@@ -4432,7 +4437,11 @@ public class E621Middleware extends E621 {
 	{
 		try
 		{
-			return new AndroidAppUpdater(new URL("http://beastarman.info/android/last_json/e621Mobile/"));
+			AndroidAppUpdater updater = new AndroidAppUpdater(new URL("http://beastarman.info/android/last_json/e621Mobile/"));
+
+			updater.setBeta(betaReleases());
+
+			return updater;
 		}
 		catch (MalformedURLException e) {
 			e.printStackTrace();

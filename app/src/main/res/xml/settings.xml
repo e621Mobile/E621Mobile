@@ -147,6 +147,11 @@
             android:key="fixMe"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="Feedback">
+        <CheckBoxPreference
+            android:key="betaReleases"
+            android:summary="Get beta releases"
+            android:title="Beta updates" >
+        </CheckBoxPreference>
         <Preference
             android:title="Send feedback/error report"
             android:summary="Send me usage info and a description of whatever problems you are facing"

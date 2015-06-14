@@ -259,9 +259,11 @@ public class SettingsActivity extends PreferenceActivity
 			restoreBackup.setDefaultValue(null);
 			restoreBackup.setEntries(entries);
 			restoreBackup.setEntryValues(entriesValues);
-			restoreBackup.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+			restoreBackup.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener()
+			{
 				@Override
-				public boolean onPreferenceChange(Preference preference, Object newValue) {
+				public boolean onPreferenceChange(Preference preference, Object newValue)
+				{
 					restoreBackup(new Date(Long.parseLong(newValue.toString())));
 
 					return false;
@@ -316,9 +318,11 @@ public class SettingsActivity extends PreferenceActivity
 			});
 
 			Preference update = (Preference) getPreferenceManager().findPreference("update");
-			update.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+			update.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
 				@Override
-				public boolean onPreferenceClick(Preference arg0) {
+				public boolean onPreferenceClick(Preference arg0)
+				{
 					update();
 					return true;
 				}
@@ -326,9 +330,11 @@ public class SettingsActivity extends PreferenceActivity
 
 			final SeekBarDialogPreference syncFrequency = (SeekBarDialogPreference) findPreference("syncFrequency");
 			syncFrequency.setProgress(e621.getSyncFrequency());
-			syncFrequency.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+			syncFrequency.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener()
+			{
 				@Override
-				public boolean onPreferenceChange(Preference preference, Object o) {
+				public boolean onPreferenceChange(Preference preference, Object o)
+				{
 					e621.setSyncFrequency((Integer) o);
 
 					return true;
@@ -375,29 +381,29 @@ public class SettingsActivity extends PreferenceActivity
 								@Override
 								public void onTrigger(Object obj)
 								{
-									if (obj instanceof E621Middleware.SyncState)
+									if(obj instanceof E621Middleware.SyncState)
 									{
-										if (obj == E621Middleware.SyncState.REPORTS)
+										if(obj == E621Middleware.SyncState.REPORTS)
 										{
 											lastMsg = "Sending remaining reports";
 										}
-										else if (obj == E621Middleware.SyncState.FAILED_DOWNLOADS)
+										else if(obj == E621Middleware.SyncState.FAILED_DOWNLOADS)
 										{
 											lastMsg = "Fixing failed downloads";
 										}
-										else if (obj == E621Middleware.SyncState.CHECKING_FOR_UPDATES)
+										else if(obj == E621Middleware.SyncState.CHECKING_FOR_UPDATES)
 										{
 											lastMsg = "Checking for updates";
 										}
-										else if (obj == E621Middleware.SyncState.BACKUP)
+										else if(obj == E621Middleware.SyncState.BACKUP)
 										{
 											lastMsg = "Creating new backup";
 										}
-										else if (obj == E621Middleware.SyncState.INTERRUPTED_SEARCHES)
+										else if(obj == E621Middleware.SyncState.INTERRUPTED_SEARCHES)
 										{
 											lastMsg = "Updating interrupted searches";
 										}
-										else if (obj == E621Middleware.SyncState.FINISHED)
+										else if(obj == E621Middleware.SyncState.FINISHED)
 										{
 											activity.runOnUiThread(new Runnable()
 											{
@@ -411,31 +417,31 @@ public class SettingsActivity extends PreferenceActivity
 											return;
 										}
 									}
-									else if (obj instanceof E621DownloadedImages.UpdateStates)
+									else if(obj instanceof E621DownloadedImages.UpdateStates)
 									{
-										if (obj == E621DownloadedImages.UpdateStates.CLEANING)
+										if(obj == E621DownloadedImages.UpdateStates.CLEANING)
 										{
 											lastMsg = "Cleaning metadata";
 										}
-										else if (obj == E621DownloadedImages.UpdateStates.TAG_SYNC)
+										else if(obj == E621DownloadedImages.UpdateStates.TAG_SYNC)
 										{
 											lastMsg = "Synchronizing tags";
 										}
-										else if (obj == E621DownloadedImages.UpdateStates.TAG_ALIAS_SYNC)
+										else if(obj == E621DownloadedImages.UpdateStates.TAG_ALIAS_SYNC)
 										{
 											lastMsg = "Synchronizing tag aliases";
 										}
-										else if (obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_SYNC)
+										else if(obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_SYNC)
 										{
 											lastMsg = "Synchronizing image tags";
 										}
-										else if (obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_DB)
+										else if(obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_DB)
 										{
 											lastMsg = "Saving image tags into database";
 										}
 									}
 
-									if (obj instanceof Pair)
+									if(obj instanceof Pair)
 									{
 										Pair<String, String> pair = ((Pair<String, String>) obj);
 
@@ -494,6 +500,9 @@ public class SettingsActivity extends PreferenceActivity
 
 			CheckBoxPreference lazyLoad = (CheckBoxPreference) findPreference("lazyLoad");
 			lazyLoad.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("lazyLoad", true));
+
+			CheckBoxPreference betaReleases = (CheckBoxPreference) findPreference("betaReleases");
+			betaReleases.setChecked(e621.betaReleases());
 		}
 
 		@Override
@@ -901,7 +910,12 @@ public class SettingsActivity extends PreferenceActivity
     	protected void update()
     	{
     		final AndroidAppUpdater appUpdater = e621.getAndroidAppUpdater();
-    		
+
+			final AlertDialog.Builder confirmDialogBuilder = new AlertDialog.Builder(activity).setTitle("Please wait...").setCancelable(true).
+				setMessage("Retrieving update info.");
+			final AlertDialog confirmDialog = confirmDialogBuilder.create();
+			confirmDialog.show();
+
     		new Thread(new Runnable()
     		{
     			public void run()
@@ -936,7 +950,8 @@ public class SettingsActivity extends PreferenceActivity
     						{
     							public void run()
     							{
-    								final AlertDialog dialog = dialogBuilder.create();
+									confirmDialog.dismiss();
+									final AlertDialog dialog = dialogBuilder.create();
     								
     								dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Update", new OnClickListener()
     								{
@@ -1039,7 +1054,8 @@ public class SettingsActivity extends PreferenceActivity
     					{
     						public void run()
     						{
-    							final AlertDialog dialog = dialogBuilder.create();
+								confirmDialog.dismiss();
+								final AlertDialog dialog = dialogBuilder.create();
     							
     							dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Ok", new OnClickListener()
     							{
