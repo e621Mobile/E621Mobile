@@ -172,10 +172,4 @@
             android:summary="Buy me a beer"
             android:key="donate"/>
     </PreferenceCategory>
-    <PreferenceCategory android:title="Testing">
-        <Preference
-            android:title="Alpha Features"
-            android:summary="Enable and comment on features yet not fully developed or tested"
-            android:key="alphaFeatures"/>
-    </PreferenceCategory>
 </PreferenceScreen>

@@ -492,23 +492,6 @@ public class SettingsActivity extends PreferenceActivity
 				}
 			});
 
-			Preference alphaFeatures = (Preference) getPreferenceManager().findPreference("alphaFeatures");
-			alphaFeatures.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
-			{
-				@Override
-				public boolean onPreferenceClick(Preference arg0)
-				{
-					Intent intent = new Intent(activity.getApplicationContext(), AlphaSettingsActivity.class);
-					startActivity(intent);
-
-					return true;
-				}
-			});
-			if (e621.alpha().getFeatures().size() == 0)
-			{
-				alphaFeatures.setEnabled(false);
-			}
-
 			CheckBoxPreference lazyLoad = (CheckBoxPreference) findPreference("lazyLoad");
 			lazyLoad.setChecked(getPreferenceManager().getSharedPreferences().getBoolean("lazyLoad", true));
 		}
