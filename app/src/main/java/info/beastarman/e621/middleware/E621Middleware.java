@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -87,6 +88,7 @@ import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.backend.ImageCacheManagerInterface;
 import info.beastarman.e621.backend.ObjectStorage;
 import info.beastarman.e621.backend.Pair;
+import info.beastarman.e621.backend.PendingTask;
 import info.beastarman.e621.backend.PersistentHttpClient;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
@@ -113,7 +115,7 @@ public class E621Middleware extends E621 {
 
     public static final String PREFS_NAME = "E621MobilePreferences";
 
-    SharedPreferences settings;
+	SharedPreferences settings;
     SharedPreferences.OnSharedPreferenceChangeListener settingsListener;
 
     HashSet<String> allowedRatings = new HashSet<String>();
@@ -381,6 +383,28 @@ public class E621Middleware extends E621 {
                     interval, alarmIntent);
         }
     }
+
+	private final String updateVideosWebmMp4 = "updateVideosWebmMp4";
+
+	public ArrayList<PendingTask> getPendingTasks()
+	{
+		ArrayList<PendingTask> tasks = new ArrayList<PendingTask>();
+
+		if(!settings.getBoolean(updateVideosWebmMp4,false))
+		{
+			tasks.add(new PendingTaskUpdateVideosWebmMp4(this)
+			{
+				@Override
+				public void onComplete(EventManager eventManager)
+				{
+					settings.edit().putBoolean(updateVideosWebmMp4,true).commit();
+					super.onComplete(eventManager);
+				}
+			});
+		}
+
+		return tasks;
+	}
 
     public int isNewVersion()
     {
@@ -806,6 +830,8 @@ public class E621Middleware extends E621 {
                 img.sample_width = 480;
 
 				img.file_url = getWebmVideoUrl(img.id);
+
+				img.file_ext = "mp4";
             }
 			
 			e621ImageCache.put(img.id, img);
@@ -836,6 +862,8 @@ public class E621Middleware extends E621 {
                     img.sample_width = 480;
 
 					img.file_url = getWebmVideoUrl(img.id);
+
+					img.file_ext = "mp4";
                 }
 
 				e621ImageCache.put(img.id, img);

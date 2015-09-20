@@ -132,7 +132,15 @@ public class E621DownloadedImages
                 else if(meta.equals("type"))
                 {
                     sql = sql + " AND";
-                    sql = sql + String.format(" image_file LIKE \"%%.%1$s\" ", value);
+
+					if(value.equals("webm"))
+					{
+						sql = sql + " ( " + String.format(" image_file LIKE \"%%.%1$s\" ", value) + " OR " + String.format(" image_file LIKE \"%%.%1$s\" ", "mp4") + " ) ";
+					}
+					else
+					{
+						sql = sql + String.format(" image_file LIKE \"%%.%1$s\" ", value);
+					}
                 }
                 else if(meta.equals("id"))
                 {
