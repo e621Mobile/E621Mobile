@@ -216,7 +216,7 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 					}
 				});
 			}
-			else if(file_ext.equals("webm"))
+			else if(file_ext.equals("webm") || file_ext.equals("mp4"))
 			{
 				rl.setOnFocusListener(new VideoOnFocusListener(this,image));
 			}
