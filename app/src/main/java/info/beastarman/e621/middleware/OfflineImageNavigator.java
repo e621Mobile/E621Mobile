@@ -82,8 +82,6 @@ public class OfflineImageNavigator extends ImageNavigator
 		}
 		else
 		{
-			Log.d(E621Middleware.LOG_TAG,"Next " + getPosition() + " " + getImages().size());
-
 			return null;
 		}
 	}
@@ -97,8 +95,6 @@ public class OfflineImageNavigator extends ImageNavigator
 		}
 		else
 		{
-			Log.d(E621Middleware.LOG_TAG,"Prev " + getPosition() + " " + getImages().size());
-
 			return null;
 		}
 	}

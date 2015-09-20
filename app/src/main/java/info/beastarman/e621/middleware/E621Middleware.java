@@ -774,10 +774,15 @@ public class E621Middleware extends E621 {
         return "http://beastarman.info/media/E621Webm/thumb/"+id+".jpg";
     }
 
-    private String getWebmSampleUrl(int id)
-    {
-        return "http://beastarman.info/media/E621Webm/image/"+id+".jpg";
-    }
+	private String getWebmSampleUrl(int id)
+	{
+		return "http://beastarman.info/media/E621Webm/image/"+id+".jpg";
+	}
+
+	private String getWebmVideoUrl(int id)
+	{
+		return "http://beastarman.info/media/E621Webm/video/"+id+".mp4";
+	}
 
 	@Override
 	public E621Image post__show(Integer id) throws IOException
@@ -799,6 +804,8 @@ public class E621Middleware extends E621 {
                 img.sample_url = getWebmSampleUrl(img.id);
                 img.sample_height = 480;
                 img.sample_width = 480;
+
+				img.file_url = getWebmVideoUrl(img.id);
             }
 			
 			e621ImageCache.put(img.id, img);
@@ -827,6 +834,8 @@ public class E621Middleware extends E621 {
 					img.sample_url = getWebmSampleUrl(img.id);
                     img.sample_height = 480;
                     img.sample_width = 480;
+
+					img.file_url = getWebmVideoUrl(img.id);
                 }
 
 				e621ImageCache.put(img.id, img);
@@ -1381,6 +1390,8 @@ public class E621Middleware extends E621 {
 		    }
 		    else
 		    {
+				Log.d(LOG_TAG,"Return code for " + url + ":" + statusLine.getStatusCode());
+
 		    	return null;
 		    }
 		}

@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -78,7 +79,9 @@ import info.beastarman.e621.middleware.ImageNavilagorLazyRelative;
 import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
 import info.beastarman.e621.views.DTextView;
+import info.beastarman.e621.views.FocusableRelativeLayout;
 import info.beastarman.e621.views.SurfaceViewDetach;
+import info.beastarman.e621.views.VideoOnFocusListener;
 
 public class ImageFullScreenActivity extends BaseFragmentActivity
 {
@@ -94,7 +97,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	DownloadEventManager downloadEventManager;
 
 	private ViewPager viewPager;
-	private PagerAdapter mPagerAdapter;
+	private ScreenSlidePagerAdapter mPagerAdapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -144,9 +147,35 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		viewPager.setCurrentItem(image.getPosition());
 		viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener()
 		{
+			Integer previousPosition = null;
+
 			@Override
 			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels)
 			{
+				position += Math.floor(positionOffset);
+				positionOffset -= Math.floor(positionOffset);
+
+				if(positionOffset == 0.0 && (previousPosition==null || previousPosition!=position))
+				{
+					View v = mPagerAdapter.getRegisteredFragment(position).getView().findViewById(R.id.focusableRelativeLayout);
+
+					if(v instanceof FocusableRelativeLayout)
+					{
+						((FocusableRelativeLayout) v).setFocus(true);
+					}
+
+					if(previousPosition != null)
+					{
+						v = mPagerAdapter.getRegisteredFragment(previousPosition).getView().findViewById(R.id.focusableRelativeLayout);
+
+						if(v instanceof FocusableRelativeLayout)
+						{
+							((FocusableRelativeLayout) v).setFocus(false);
+						}
+					}
+
+					previousPosition = position;
+				}
 			}
 
 			@Override
@@ -1882,14 +1911,20 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
     {
         if(resultCode == FullScreenVideoActivity.RESULT_VIDEO_POSITION)
         {
-            int position = data.getIntExtra(FullScreenVideoActivity.VIDEO_POSITION,0);
+            int position = data.getIntExtra(FullScreenVideoActivity.VIDEO_POSITION, 0);
+			int current = viewPager.getCurrentItem();
 
-            View v = getWindow().getDecorView().findViewWithTag(lastImg.id);
+			View v = mPagerAdapter.getRegisteredFragment(viewPager.getCurrentItem()).getView().findViewById(R.id.focusableRelativeLayout);
 
-            if(v != null && v instanceof SurfaceViewDetach)
-            {
-                ((SurfaceViewDetach) v).seek(position);
-            }
+			if(v instanceof FocusableRelativeLayout)
+			{
+				FocusableRelativeLayout.OnFocusListener onFocusListener = ((FocusableRelativeLayout) v).getOnFocusListener();
+
+				if(onFocusListener instanceof VideoOnFocusListener)
+				{
+					((VideoOnFocusListener)onFocusListener).restore((FocusableRelativeLayout)v, position);
+				}
+			}
         }
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -2028,6 +2063,8 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 
 	private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter
 	{
+		SparseArray<Fragment> registeredFragments = new SparseArray<Fragment>();
+
 		public ScreenSlidePagerAdapter(FragmentManager fm) {
 			super(fm);
 		}
@@ -2041,6 +2078,23 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		@Override
 		public int getCount() {
 			return image.getCount();
+		}
+
+		@Override
+		public Object instantiateItem(ViewGroup container, int position) {
+			Fragment fragment = (Fragment) super.instantiateItem(container, position);
+			registeredFragments.put(position, fragment);
+			return fragment;
+		}
+
+		@Override
+		public void destroyItem(ViewGroup container, int position, Object object) {
+			registeredFragments.remove(position);
+			super.destroyItem(container, position, object);
+		}
+
+		public Fragment getRegisteredFragment(int position) {
+			return registeredFragments.get(position);
 		}
 	}
 

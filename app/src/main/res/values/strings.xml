@@ -46,6 +46,8 @@
 		Developed by Douglas Vanny Bento (me@beastarman.info)
     </string>
     <string name="changelog">
+        Version 0.2a.9: Full Video Playback Support.
+        \n\n
         Version 0.2a.6: Video Playback. Disable Sync or set custom interval. Sharing.
         \n\n
         Version 0.2a: Stability. Full screen images. DText. Post comments.
@@ -107,4 +109,8 @@
     <string name="version_19">I send a huge thanks to everyone who trusted me their money. You can now find a list of everyone who did so on the Donation screen.
         \n\n
         Optional beta updates. You can now opt-in on the settings screen. (Not available in Play version).</string>
+
+    <string name="version_20">FULL Video Support is here!
+        \n\n
+        Regardless of you Android version, every video now should be supported with no problems.</string>
 </resources>

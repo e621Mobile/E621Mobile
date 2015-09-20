@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Environment;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.VideoView;
 
 import java.io.BufferedOutputStream;
@@ -13,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
+
+import info.beastarman.e621.middleware.E621Middleware;
 
 public class MediaInputStreamPlayer extends MediaPlayer
 {
@@ -107,15 +110,17 @@ public class MediaInputStreamPlayer extends MediaPlayer
         }).start();
     }
 
+	public boolean deleteOnClose = true;
+
     public void close()
     {
         seekTo(0);
         stop();
         release();
 
-        if(_f != null && _f.exists())
+        if(deleteOnClose && _f != null && _f.exists())
         {
-            _f.delete();
+			_f.delete();
         }
     }
 
