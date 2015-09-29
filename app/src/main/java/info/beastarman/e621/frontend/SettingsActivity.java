@@ -756,7 +756,7 @@ public class SettingsActivity extends PreferenceActivity
     				e621.restoreBackup(date,keep,new EventManager()
     		    	{
     		    		@Override
-    					public void onTrigger(Object obj)
+    					public void onTrigger(final Object obj)
     		    		{
     		    			if(obj == E621Middleware.BackupStates.OPENING)
     		    			{
@@ -879,16 +879,16 @@ public class SettingsActivity extends PreferenceActivity
     		    					}
     		    				});
     		    			}
-    		    			else if(obj == E621Middleware.BackupStates.FAILURE)
-    		    			{
-    		    				activity.runOnUiThread(new Runnable()
-    		    				{
-    		    					public void run()
-    		    					{
-    		    						dialogWrapper.obj.setDone("Backup could not be restored!");
-    		    					}
-    		    				});
-    		    			}
+							else if(obj == E621Middleware.BackupStates.FAILURE)
+							{
+								activity.runOnUiThread(new Runnable()
+								{
+									public void run()
+									{
+										dialogWrapper.obj.setDone("Backup could not be restored!");
+									}
+								});
+							}
     					}
     		    	});
     			}

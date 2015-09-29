@@ -395,7 +395,7 @@ public class E621Middleware extends E621 {
 			tasks.add(new PendingTaskUpdateVideosWebmMp4(this)
 			{
 				@Override
-				public void onComplete(EventManager eventManager)
+				protected void onComplete(EventManager eventManager)
 				{
 					settings.edit().putBoolean(updateVideosWebmMp4,true).commit();
 					super.onComplete(eventManager);
@@ -3332,7 +3332,7 @@ public class E621Middleware extends E621 {
 		for(i=currentDownloads.size()-1; i>=0; i--)
 		{
 			Integer id = currentDownloads.get(i).getId();
-			
+
 			if(!download_manager.hasFile(currentDownloads.get(i)))
 			{
 				download_manager.removeFile(id);

@@ -24,7 +24,7 @@ public abstract class PendingTask
 					onCancel(eventManager);
 				}
 			}
-		});
+		}).start();
 	}
 
 	protected abstract boolean runTask(EventManager eventManager);
@@ -36,17 +36,17 @@ public abstract class PendingTask
 		cancelled = true;
 	}
 
-	public boolean isCancelled()
+	protected boolean isCancelled()
 	{
 		return cancelled;
 	}
 
-	public void onCancel(final EventManager eventManager)
+	protected void onCancel(final EventManager eventManager)
 	{
 		eventManager.trigger(States.CANCEL);
 	}
 
-	public void onComplete(final EventManager eventManager)
+	protected void onComplete(final EventManager eventManager)
 	{
 		eventManager.trigger(States.COMPLETE);
 	}

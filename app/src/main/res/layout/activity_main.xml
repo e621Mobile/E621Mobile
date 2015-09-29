@@ -158,32 +158,39 @@
             </LinearLayout>
         </FrameLayout>
 
-        <RelativeLayout
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal|top"
-            android:id="@+id/donation_highlight_wrapper"
-            android:background="#80000000"
-            android:visibility="gone">
+            android:id="@+id/notification_area">
 
-            <info.beastarman.e621.views.NoHorizontalScrollView
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:scrollbars="none"
-                android:clickable="true"
-                android:id="@+id/donation_highlight_scroll">
+                android:layout_gravity="center_horizontal|top"
+                android:id="@+id/donation_highlight_wrapper"
+                android:background="#80000000"
+                android:visibility="gone">
 
-                <TextView
+                <info.beastarman.e621.views.NoHorizontalScrollView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:text="Thank you for donating"
-                    android:id="@+id/donation_highlight_text"
-                    android:padding="4dp"
-                    android:textColor="@color/white"/>
+                    android:scrollbars="none"
+                    android:clickable="true"
+                    android:id="@+id/donation_highlight_scroll">
 
-            </info.beastarman.e621.views.NoHorizontalScrollView>
-        </RelativeLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="Thank you for donating"
+                        android:id="@+id/donation_highlight_text"
+                        android:padding="4dp"
+                        android:textColor="@color/white"/>
+
+                </info.beastarman.e621.views.NoHorizontalScrollView>
+            </RelativeLayout>
+        </LinearLayout>
 
     </FrameLayout>
 

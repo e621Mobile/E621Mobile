@@ -14,10 +14,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -25,11 +27,16 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.DonationManager;
+import info.beastarman.e621.backend.EventManager;
+import info.beastarman.e621.backend.Pair;
+import info.beastarman.e621.backend.PendingTask;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.E621Middleware.Mascot;
+import info.beastarman.e621.middleware.PendingTaskUpdateVideosWebmMp4;
 import info.beastarman.e621.views.NoHorizontalScrollView;
 
 public class MainActivity extends SlideMenuBaseActivity
@@ -76,6 +83,8 @@ public class MainActivity extends SlideMenuBaseActivity
         {
             show_donate_popup();
         }
+
+		updateNotifications();
 	}
 	
 	protected void onStart()
@@ -86,9 +95,79 @@ public class MainActivity extends SlideMenuBaseActivity
 		
 		change_mascot();
 
-        updateStatistics();
+		updateStatistics();
 
 		updateDonator();
+	}
+
+	private void updateNotifications()
+	{
+		ArrayList<PendingTask> pendingTasks = e621.getPendingTasks();
+		LinearLayout notifications = (LinearLayout)findViewById(R.id.notification_area);
+
+		for(PendingTask task : pendingTasks)
+		{
+			if(task instanceof PendingTaskUpdateVideosWebmMp4)
+			{
+				notifications.addView(getVideoUpdateView((PendingTaskUpdateVideosWebmMp4)task), 0);
+			}
+		}
+	}
+
+	private View getVideoUpdateView(final PendingTaskUpdateVideosWebmMp4 task)
+	{
+		final View v = getLayoutInflater().inflate(R.layout.notification_videos_webm_mp4,null);
+
+		final TextView tv = (TextView) v.findViewById(R.id.notification_videos_webm_mp4_text);
+
+		v.setOnClickListener(new View.OnClickListener()
+		{
+			boolean started = false;
+
+			@Override
+			public void onClick(View view)
+			{
+				if(started) return;
+				started=true;
+
+				task.start(new EventManager()
+				{
+					@Override
+					public void onTrigger(final Object obj)
+					{
+						Log.d(E621Middleware.LOG_TAG,obj.toString());
+
+						if(obj instanceof PendingTaskUpdateVideosWebmMp4.States)
+						{
+							runOnUiThread(new Runnable()
+							{
+								@Override
+								public void run()
+								{
+									((ViewGroup) v.getParent()).removeView(v);
+								}
+							});
+						}
+
+						if(obj instanceof Pair<?,?>)
+						{
+							runOnUiThread(new Runnable()
+							{
+								@Override
+								public void run()
+								{
+									Pair<Integer, Integer> progress = (Pair<Integer, Integer>) obj;
+
+									tv.setText(String.format("Downloading video %1$d of %2$d", progress.left+1, progress.right));
+								}
+							});
+						}
+					}
+				});
+			}
+		});
+
+		return v;
 	}
 
 	private void updateDonator()
