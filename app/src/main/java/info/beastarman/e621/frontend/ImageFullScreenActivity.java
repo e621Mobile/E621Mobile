@@ -164,7 +164,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 						((FocusableRelativeLayout) v).setFocus(true);
 					}
 
-					if(previousPosition != null)
+					if(previousPosition != null && mPagerAdapter.getRegisteredFragment(previousPosition)!=null)
 					{
 						v = mPagerAdapter.getRegisteredFragment(previousPosition).getView().findViewById(R.id.focusableRelativeLayout);
 

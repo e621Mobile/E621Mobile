@@ -2194,42 +2194,16 @@ public class E621Middleware extends E621 {
 						return;
 					}
 
-					byte[] byteArray;
-
-					try
-					{
-						byteArray = IOUtils.toByteArray(inputStream);
-					}
-					catch (IOException e)
-					{
-						e.printStackTrace();
-						return;
-					}
-					finally
-					{
-						try
-						{
-							inputStream.close();
-						} catch (IOException e)
-						{
-							e.printStackTrace();
-						}
-					}
-
-					byte[] b2 = byteArray.clone();
-
-					inputStream = new ByteArrayInputStream(byteArray);
-
 					if (size == E621Image.PREVIEW)
 					{
 						thumb_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+						inputStream = thumb_cache.getFile(String.valueOf(img.id));
 					}
 					else
 					{
 						full_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+						inputStream = full_cache.getFile(String.valueOf(img.id));
 					}
-
-					inputStream = new ByteArrayInputStream(b2);
 
 					synchronized (lock)
 					{
@@ -2290,42 +2264,16 @@ public class E621Middleware extends E621 {
 				return null;
 			}
 
-			byte[] byteArray;
-
-			try
-			{
-				byteArray = IOUtils.toByteArray(inputStream);
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-				return null;
-			}
-			finally
-			{
-				try
-				{
-					inputStream.close();
-				} catch (IOException e)
-				{
-					e.printStackTrace();
-				}
-			}
-
-			byte[] b2 = byteArray.clone();
-
-			inputStream = new ByteArrayInputStream(byteArray);
-
 			if (size == E621Image.PREVIEW)
 			{
 				thumb_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+				inputStream = thumb_cache.getFile(String.valueOf(img.id));
 			}
 			else
 			{
 				full_cache.createOrUpdate(String.valueOf(img.id), inputStream);
+				inputStream = full_cache.getFile(String.valueOf(img.id));
 			}
-
-			inputStream = new ByteArrayInputStream(b2);
 
 			in.obj = inputStream;
 		}
