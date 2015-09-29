@@ -1489,21 +1489,24 @@ public class E621Middleware extends E621 {
         {
             return null;
         }
-        else if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())
-        {
-            return bitmap_temp;
-        }
         else
-        {
-            float ratio = ((float)bitmap_temp.getWidth())/width;
-            height = (int)(bitmap_temp.getHeight()/ratio);
+		{
+			float ratio = ((float)bitmap_temp.getWidth())/width;
+			height = (int)(bitmap_temp.getHeight()/ratio);
 
-            Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+			if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())
+			{
+				return bitmap_temp;
+			}
+			else
+			{
+				Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
 
-            bitmap_temp.recycle();
+				bitmap_temp.recycle();
 
-            return ret;
-        }
+				return ret;
+			}
+		}
     }
 
 	public static Bitmap decodeFile(InputStream in, int width, int height)
@@ -1589,10 +1592,10 @@ public class E621Middleware extends E621 {
 			{
 				InputStream inTemp = download_manager.getFile(id);
 
-				Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
-
 				if(inTemp != null)
 				{
+					Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
+
 					synchronized(lock)
 					{
 						if(in.obj == null)
@@ -1610,10 +1613,10 @@ public class E621Middleware extends E621 {
 			{
 				InputStream inTemp = full_cache.getFile(String.valueOf(id));
 
-				Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
-
 				if(inTemp != null)
 				{
+					Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
+
 					synchronized(lock)
 					{
 						if(in.obj == null)
@@ -1629,9 +1632,10 @@ public class E621Middleware extends E621 {
             public void run() {
                 InputStream inTemp = thumb_cache.getFile(String.valueOf(id));
 
-                Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
+                if (inTemp != null)
+				{
+					Bitmap bmp = decodeFileKeepRatio(inTemp, width, height);
 
-                if (inTemp != null) {
                     synchronized (lock) {
                         if (in.obj == null) {
                             storeInCache.obj = false;
@@ -1696,7 +1700,7 @@ public class E621Middleware extends E621 {
 
 					InputStream inputStream = getImageFromInternet(url);
 
-					if (in == null || inputStream == null)
+					if (in.obj == null || inputStream == null)
 					{
 						return;
 					}
@@ -1712,6 +1716,29 @@ public class E621Middleware extends E621 {
 					}
 				}
 			}));
+		}
+
+		for(Thread t : threads)
+		{
+			t.start();
+		}
+
+		while(in.obj == null)
+		{
+			int i=0;
+
+			for(i=threads.size(); i>0; i--)
+			{
+				if(!threads.get(i-1).isAlive())
+				{
+					threads.remove(i-1);
+				}
+			}
+
+			if(threads.size() == 0)
+			{
+				break;
+			}
 		}
 
 		if(in.obj != null)
@@ -1766,7 +1793,7 @@ public class E621Middleware extends E621 {
 			{
 				InputStream inputStream = getImageFromInternet(url);
 
-				if (in == null || inputStream == null)
+				if (inputStream == null)
 				{
 					return null;
 				}
