@@ -105,7 +105,7 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 						return;
 					}
 
-					ret.obj = new File(base_path,id).exists();
+					ret.obj = new File(base_path, id).exists();
 				}
 				finally
 				{
@@ -127,13 +127,19 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	{
 		final GTFO<InputStream> ret = new GTFO<InputStream>();
 
-		lock.read(new Runnable() {
-			public void run() {
-				if (hasFile(id)) {
-					try {
+		lock.read(new Runnable()
+		{
+			public void run()
+			{
+				if(hasFile(id))
+				{
+					try
+					{
 						ret.obj = new BufferedInputStream(new FileInputStream(new File(base_path, id)));
 						ret.obj = new ByteArrayInputStream(IOUtils.toByteArray(ret.obj));
-					} catch (IOException e) {
+					}
+					catch(IOException e)
+					{
 						e.printStackTrace();
 					}
 				}
@@ -147,47 +153,56 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	public boolean createOrUpdate(final String id, final InputStream in)
 	{
 		final boolean[] ret = new boolean[]{false};
+		final File outputFile = new File(base_path, id);
 
-		lock.write(new Runnable() {
-			public void run() {
-				byte[] data;
+		BufferedOutputStream out = null;
+		try
+		{
+			out = new BufferedOutputStream(new FileOutputStream(outputFile));
+			IOUtils.copy(in, out);
+			out.close();
+		}
+		catch(Throwable e)
+		{
+			e.printStackTrace();
+			outputFile.delete();
+			return false;
+		}
 
-				try {
-					data = IOUtils.toByteArray(in);
-				} catch (IOException e) {
-					return;
-				}
-
-				ContentValues values = new ContentValues();
-				values.put("id", id);
-				values.put("file_size", data.length + 4096);
-
-				String[] query_params = new String[]{id};
+		lock.write(new Runnable()
+		{
+			public void run()
+			{
 
 				SQLiteDatabase db = imageDbHelper.getWritableDatabase();
 
-				try {
-					try {
-						BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(new File(base_path, id)));
-						out.write(data);
-						out.close();
+				try
+				{
+					ContentValues values = new ContentValues();
+					values.put("id", id);
+					values.put("file_size", outputFile.length() + 4096);
 
-						try {
-							db.insert("images", null, values);
-						} catch (SQLiteException e) {
-							values.remove("id");
-							db.update("images", values, "(SELECT id FROM images WHERE id = ?)", query_params);
-						}
+					String[] query_params = new String[]{id};
 
-						ret[0] = true;
-					} catch (FileNotFoundException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					try
+					{
+						db.insert("images", null, values);
 					}
-				} finally {
+					catch(SQLiteException e)
+					{
+						values.remove("id");
+						db.update("images", values, "(SELECT id FROM images WHERE id = ?)", query_params);
+					}
+
+					ret[0] = true;
+				}
+				catch(Throwable throwable)
+				{
+					throwable.printStackTrace();
+					outputFile.delete();
+				}
+				finally
+				{
 					clean();
 				}
 			}

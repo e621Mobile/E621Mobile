@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="info.beastarman.e621"
     android:versionCode="20"
-    android:versionName="0.2a.9" >
+    android:versionName="0.2a.9 beta" >
 
     <uses-sdk
         android:minSdkVersion="14"

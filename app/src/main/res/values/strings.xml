@@ -46,7 +46,7 @@
 		Developed by Douglas Vanny Bento (me@beastarman.info)
     </string>
     <string name="changelog">
-        Version 0.2a.9: Full Video Playback Support.
+        Version 0.2a.9 beta: Full Video Playback Support. Memory usage reduction. Cache fixes.
         \n\n
         Version 0.2a.6: Video Playback. Disable Sync or set custom interval. Sharing.
         \n\n
