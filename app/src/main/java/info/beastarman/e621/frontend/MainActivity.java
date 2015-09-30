@@ -10,7 +10,6 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.URLSpan;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,8 +27,7 @@ import java.text.DecimalFormatSymbols;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.DonationManager;
-import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.middleware.E621Middleware.Mascot;
+import info.beastarman.e621.middleware.Mascot;
 import info.beastarman.e621.views.NoHorizontalScrollView;
 
 public class MainActivity extends SlideMenuBaseActivity
