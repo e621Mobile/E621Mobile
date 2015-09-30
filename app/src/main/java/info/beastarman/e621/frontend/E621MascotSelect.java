@@ -2,7 +2,7 @@ package info.beastarman.e621.frontend;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.middleware.E621Middleware.Mascot;
+import info.beastarman.e621.middleware.Mascot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +42,7 @@ public class E621MascotSelect extends E621ConfirmDialogFragment
 		
 		final View view = inflater.inflate(R.layout.e621_mascot_dialog,null);
 		
-		final HashMap<String,Mascot> mascots = e621.getAllMascots();
+		final HashMap<String,Mascot> mascots = Mascot.getAllMascots();
 		final ArrayList<Mascot> allowed_mascot = new ArrayList<Mascot>(Arrays.asList(e621.getMascots()));
 		
 		view.post(new Runnable()
