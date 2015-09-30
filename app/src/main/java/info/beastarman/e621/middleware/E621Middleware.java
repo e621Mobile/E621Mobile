@@ -66,6 +66,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -390,17 +391,39 @@ public class E621Middleware extends E621 {
 	{
 		ArrayList<PendingTask> tasks = new ArrayList<PendingTask>();
 
-		if(!settings.getBoolean(updateVideosWebmMp4,false))
+		tasks.add(new PendingTaskUpdateVideosWebmMp4(this)
 		{
-			tasks.add(new PendingTaskUpdateVideosWebmMp4(this)
+			@Override
+			public boolean isNeeded()
 			{
-				@Override
-				protected void onComplete(EventManager eventManager)
+				boolean flag = settings.getBoolean(updateVideosWebmMp4,false);
+
+				if(!flag && e621.localSearch(0, 1, "type:webm").size() > 0)
 				{
-					settings.edit().putBoolean(updateVideosWebmMp4,true).commit();
-					super.onComplete(eventManager);
+					return true;
 				}
-			});
+				else
+				{
+					if(!flag) settings.edit().putBoolean(updateVideosWebmMp4,true).commit();
+
+					return false;
+				}
+			}
+
+			@Override
+			protected void onComplete(EventManager eventManager)
+			{
+				settings.edit().putBoolean(updateVideosWebmMp4,true).commit();
+				super.onComplete(eventManager);
+			}
+		});
+
+		for (Iterator<PendingTask> it=tasks.iterator(); it.hasNext();)
+		{
+			if (!it.next().isNeeded())
+			{
+				it.remove();
+			}
 		}
 
 		return tasks;

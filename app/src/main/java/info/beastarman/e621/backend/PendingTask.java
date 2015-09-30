@@ -8,6 +8,11 @@ public abstract class PendingTask
 		COMPLETE
 	}
 
+	public boolean isNeeded()
+	{
+		return true;
+	}
+
 	public void start(final EventManager eventManager)
 	{
 		new Thread(new Runnable()
