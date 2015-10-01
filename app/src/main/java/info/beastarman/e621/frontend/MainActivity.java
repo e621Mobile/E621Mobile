@@ -120,52 +120,71 @@ public class MainActivity extends SlideMenuBaseActivity
 
 		final TextView tv = (TextView) v.findViewById(R.id.notification_videos_webm_mp4_text);
 
-		v.setOnClickListener(new View.OnClickListener()
+		final View clickable = v.findViewById(R.id.notification_videos_webm_mp4_scroll);
+
+		task.addEventManager(new EventManager()
 		{
-			boolean started = false;
-
 			@Override
-			public void onClick(View view)
+			public void onTrigger(final Object obj)
 			{
-				if(started) return;
-				started=true;
-
-				task.start(new EventManager()
+				if(obj instanceof PendingTaskUpdateVideosWebmMp4.States)
 				{
-					@Override
-					public void onTrigger(final Object obj)
+					if(obj.equals(PendingTaskUpdateVideosWebmMp4.States.START))
 					{
-						Log.d(E621Middleware.LOG_TAG,obj.toString());
-
-						if(obj instanceof PendingTaskUpdateVideosWebmMp4.States)
+						runOnUiThread(new Runnable()
 						{
-							runOnUiThread(new Runnable()
+							@Override
+							public void run()
 							{
-								@Override
-								public void run()
-								{
-									((ViewGroup) v.getParent()).removeView(v);
-								}
-							});
-						}
+								clickable.setClickable(false);
+								clickable.setEnabled(false);
+								clickable.setFocusable(false);
+								clickable.setFocusableInTouchMode(false);
 
-						if(obj instanceof Pair<?,?>)
-						{
-							runOnUiThread(new Runnable()
-							{
-								@Override
-								public void run()
-								{
-									Pair<Integer, Integer> progress = (Pair<Integer, Integer>) obj;
-
-									tv.setText(String.format("Downloading video %1$d of %2$d", progress.left+1, progress.right));
-								}
-							});
-						}
+								tv.setText("Starting...");
+							}
+						});
 					}
-				});
+					else
+					{
+						runOnUiThread(new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								((ViewGroup) v.getParent()).removeView(v);
+							}
+						});
+					}
+				}
+
+				if(obj instanceof Pair<?, ?>)
+				{
+					runOnUiThread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							Pair<Integer, Integer> progress = (Pair<Integer, Integer>) obj;
+
+							tv.setText(String.format("Downloading video %1$d of %2$d", progress.left + 1, progress.right));
+						}
+					});
+				}
 			}
 		});
+
+		if(clickable.isEnabled())
+		{
+			clickable.setOnClickListener(new View.OnClickListener()
+			{
+				@Override
+				public void onClick(View view)
+				{
+					if(clickable.isEnabled()) task.start();
+				}
+			});
+		}
 
 		return v;
 	}

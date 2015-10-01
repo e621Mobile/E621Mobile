@@ -1,9 +1,10 @@
 package info.beastarman.e621.backend;
 
-public abstract class PendingTask
+public abstract class PendingTask extends EventManagetMultiPlayer
 {
 	public enum States
 	{
+		START,
 		CANCEL,
 		COMPLETE
 	}
@@ -13,26 +14,28 @@ public abstract class PendingTask
 		return true;
 	}
 
-	public void start(final EventManager eventManager)
+	public void start()
 	{
 		new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				if(runTask(eventManager))
+				trigger(States.START);
+
+				if(runTask())
 				{
-					onComplete(eventManager);
+					onComplete();
 				}
 				else
 				{
-					onCancel(eventManager);
+					onCancel();
 				}
 			}
 		}).start();
 	}
 
-	protected abstract boolean runTask(EventManager eventManager);
+	protected abstract boolean runTask();
 
 	private boolean cancelled = false;
 
@@ -46,13 +49,13 @@ public abstract class PendingTask
 		return cancelled;
 	}
 
-	protected void onCancel(final EventManager eventManager)
+	protected void onCancel()
 	{
-		eventManager.trigger(States.CANCEL);
+		trigger(States.CANCEL);
 	}
 
-	protected void onComplete(final EventManager eventManager)
+	protected void onComplete()
 	{
-		eventManager.trigger(States.COMPLETE);
+		trigger(States.COMPLETE);
 	}
 }
