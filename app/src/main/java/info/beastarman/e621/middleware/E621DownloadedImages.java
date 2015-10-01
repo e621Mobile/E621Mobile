@@ -133,9 +133,9 @@ public class E621DownloadedImages
                 {
                     sql = sql + " AND";
 
-					if(value.equals("webm"))
+					if(value.equals("webm") || value.equals("mp4"))
 					{
-						sql = sql + " ( " + String.format(" image_file LIKE \"%%.%1$s\" ", value) + " OR " + String.format(" image_file LIKE \"%%.%1$s\" ", "mp4") + " ) ";
+						sql = sql + " ( " + String.format(" image_file LIKE \"%%.%1$s\" ", "webm") + " OR " + String.format(" image_file LIKE \"%%.%1$s\" ", "mp4") + " ) ";
 					}
 					else
 					{

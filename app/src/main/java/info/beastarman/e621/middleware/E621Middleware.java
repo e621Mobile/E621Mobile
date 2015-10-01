@@ -2355,7 +2355,7 @@ public class E621Middleware extends E621 {
         {
             return getDownloadedImage(id);
         }
-        else if(id.getType().equals("webm"))
+        else if(id.getType().equals("webm") || id.getType().equals("mp4"))
         {
             InputStream ret = webm_thumbnails.getFile(String.valueOf(id.id));
 

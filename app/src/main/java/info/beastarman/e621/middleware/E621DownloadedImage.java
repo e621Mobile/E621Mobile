@@ -33,6 +33,11 @@ public class E621DownloadedImage implements Serializable
     {
         String[] parts = filename.split("\\.");
 
-        return parts[parts.length-1];
+        String type = parts[parts.length-1];
+		if(type.equals("mp4"))
+		{
+			type = "webm";
+		}
+		return type;
     }
 }
