@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="info.beastarman.e621"
-    android:versionCode="20"
+    android:versionCode="21"
     android:versionName="0.2a.9_beta" >
 
     <uses-sdk

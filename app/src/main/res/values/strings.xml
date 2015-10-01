@@ -110,7 +110,10 @@
         \n\n
         Optional beta updates. You can now opt-in on the settings screen. (Not available in Play version).</string>
 
-    <string name="version_20">FULL Video Support is here!
+    <string name="version_21">Beta Features:
+        \n
+        Videos are now downloaded from a private server in mp4 using Android optimized settings, meaning that every video should run with no problems at all, but may take longer to download.
         \n\n
-        Regardless of you Android version, every video now should be supported with no problems.</string>
+        Memory usage reduced.
+    </string>
 </resources>
