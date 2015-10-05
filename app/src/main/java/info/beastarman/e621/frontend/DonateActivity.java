@@ -90,7 +90,7 @@ public class DonateActivity extends BaseActivity implements Runnable, ScrollView
 	{
 		DonationManager dm = e621.getDonationManager();
 
-		Float totalDonated = dm.getTotalDonations();
+		Float totalDonated = dm.getMonthDonations();
 
 		if(totalDonated != null)
 		{

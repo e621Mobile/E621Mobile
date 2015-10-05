@@ -203,6 +203,24 @@ public class DonationManager
 		return totalDonations;
 	}
 
+	private Float monthDonations = null;
+
+	public Float getMonthDonations()
+	{
+		if(monthDonations == null)
+		{
+			ArrayList<Donator> donators = retrieveDonators();
+			monthDonations = 0f;
+
+			for(Donator donator : donators)
+			{
+				monthDonations += donator.recent_total;
+			}
+		}
+
+		return monthDonations;
+	}
+
 	public ArrayList<Donator> getDonators()
 	{
 		ArrayList<Donator> ret = retrieveDonators();
@@ -252,16 +270,18 @@ public class DonationManager
 		public final Uri url;
 		public final String name;
 		public final float ammount;
+		public final float recent_total;
 		public final Date firstDonation;
 		public final Date lastDonation;
 
-		public Donator(Uri url, String name, float ammount, Date firstDonation, Date lastDonation)
+		public Donator(Uri url, String name, float ammount, Date firstDonation, Date lastDonation, float recent_total)
 		{
 			this.url = url;
 			this.name = name;
 			this.ammount = ammount;
 			this.firstDonation = firstDonation;
 			this.lastDonation = lastDonation;
+			this.recent_total = recent_total;
 		}
 	}
 
@@ -295,7 +315,8 @@ public class DonationManager
 								   object.optString("name","Anonymous"),
 								   (float)object.getDouble("ammount"),
 								   first_donation,
-								   last_donation
+								   last_donation,
+								   (float)object.getDouble("recent_total")
 						   );
 		}
 		catch(JSONException e)
