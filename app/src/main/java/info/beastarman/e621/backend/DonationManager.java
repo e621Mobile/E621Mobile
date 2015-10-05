@@ -270,11 +270,11 @@ public class DonationManager
 		public final Uri url;
 		public final String name;
 		public final float ammount;
-		public final float recent_total;
+		public final Float recent_total;
 		public final Date firstDonation;
 		public final Date lastDonation;
 
-		public Donator(Uri url, String name, float ammount, Date firstDonation, Date lastDonation, float recent_total)
+		public Donator(Uri url, String name, float ammount, Date firstDonation, Date lastDonation, Float recent_total)
 		{
 			this.url = url;
 			this.name = name;
@@ -300,6 +300,8 @@ public class DonationManager
 			Date first_donation = null;
 			Date last_donation = null;
 
+			Float recent_total = null;
+
 			if(object.has("first_donation"))
 			{
 				first_donation = DATE_FORMAT.parse(object.getString("first_donation"));
@@ -307,6 +309,10 @@ public class DonationManager
 			if(object.has("last_donation"))
 			{
 				last_donation = DATE_FORMAT.parse(object.getString("last_donation"));
+			}
+			if(object.has("recent_total"))
+			{
+				recent_total = (float)object.getDouble("recent_total");
 			}
 
 			return new Donator
@@ -316,7 +322,7 @@ public class DonationManager
 								   (float)object.getDouble("ammount"),
 								   first_donation,
 								   last_donation,
-								   (float)object.getDouble("recent_total")
+								   recent_total
 						   );
 		}
 		catch(JSONException e)
