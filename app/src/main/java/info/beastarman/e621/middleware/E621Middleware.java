@@ -1614,6 +1614,11 @@ public class E621Middleware extends E621 {
 
 	public Bitmap getThumbnail(final int id, final int width, final int height)
 	{
+		return getThumbnail(id,width,height,true);
+	}
+
+	public Bitmap getThumbnail(final int id, final int width, final int height, boolean save)
+	{
 		final GTFO<Bitmap> in = new GTFO<Bitmap>();
 		final GTFO<Boolean> storeInCache = new GTFO<Boolean>();
 		storeInCache.obj = true;
@@ -1779,7 +1784,7 @@ public class E621Middleware extends E621 {
 
 		if(in.obj != null)
 		{
-			if(storeInCache.obj)
+			if(storeInCache.obj && save)
 			{
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
 				in.obj.compress(Bitmap.CompressFormat.JPEG, 90, bos);

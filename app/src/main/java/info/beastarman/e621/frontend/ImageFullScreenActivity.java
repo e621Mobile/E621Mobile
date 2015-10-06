@@ -1366,14 +1366,9 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 										@Override
 										public void run()
 										{
-											InputStream in = e621.getImage(parent, E621Image.PREVIEW);
+											final Bitmap bmp = e621.getThumbnail(parent.id, width, height, false);
 
-											if (in == null)
-											{
-												return;
-											}
-
-											final Bitmap bmp = e621.decodeFile(in, width, height);
+											if(bmp == null) return;
 
 											final ImageView iv = (ImageView) parentWrapper.findViewById(R.id.parentThumbnail);
 
@@ -1542,14 +1537,9 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 							@Override
 							public void run()
 							{
-								InputStream in = e621.getImage(child, E621Image.PREVIEW);
+								final Bitmap bmp = e621.getThumbnail(child.id, width, height,false);
 
-								if (in == null)
-								{
-									return;
-								}
-
-								final Bitmap bmp = e621.decodeFile(in, width, height);
+								if(bmp == null) return;
 
 								final ImageView iv = (ImageView) view.findViewById(R.id.image_thumbnail);
 
