@@ -97,7 +97,7 @@
     <string name="share">Share</string>
     <string name="description">Media Controls</string>
     <string name="error_message">Something went wrong. Please don\'t hate me.</string>
-    <string name="total_donated">Total donated on past 30 days: %1$s</string>
+    <string name="total_donated">Total donated this month: %1$s</string>
 
     <string name="version_17">Video support arrived!\n
     Please keep in mind that Android currently does not support playback for some .webm files.
