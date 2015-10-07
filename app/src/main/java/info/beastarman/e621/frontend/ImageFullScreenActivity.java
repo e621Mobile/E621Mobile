@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
@@ -265,6 +266,20 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	{
 		if(lastImg != null) e621.unbindDownloadState(lastImg.id,downloadEventManager);
 
+		Fragment f;
+		View v;
+
+		f = mPagerAdapter.getRegisteredFragment(viewPager.getCurrentItem());
+		if(f != null)
+		{
+			v = f.getView().findViewById(R.id.focusableRelativeLayout);
+
+			if(v instanceof FocusableRelativeLayout)
+			{
+				((FocusableRelativeLayout) v).setFocus(false);
+			}
+		}
+
 		super.onStop();
 	}
 
@@ -290,13 +305,22 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 			@Override
 			public boolean onQueryTextSubmit(String s)
 			{
-				Intent i = new Intent(intent);
+				Intent i;
 
-				Set<String> set = i.getExtras().keySet();
-
-				for(String extra : set)
+				if(intent != null)
 				{
-					i.removeExtra(extra);
+					i = new Intent(intent);
+
+					Set<String> set = i.getExtras().keySet();
+
+					for(String extra : set)
+					{
+						i.removeExtra(extra);
+					}
+				}
+				else
+				{
+					i = new Intent(ImageFullScreenActivity.this, SearchActivity.class);
 				}
 
 				i.putExtra(SearchActivity.SEARCH,s);
@@ -344,6 +368,20 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	protected void onStart()
 	{
 		super.onStart();
+
+		Fragment f;
+		View v;
+
+		f = mPagerAdapter.getRegisteredFragment(viewPager.getCurrentItem());
+		if(f != null)
+		{
+			v = f.getView().findViewById(R.id.focusableRelativeLayout);
+
+			if(v instanceof FocusableRelativeLayout)
+			{
+				((FocusableRelativeLayout) v).setFocus(true);
+			}
+		}
 
 		getWindow().getDecorView().post(new Runnable()
 		{

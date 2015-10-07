@@ -40,6 +40,8 @@ public class FocusableRelativeLayout extends RelativeLayout
 
 	public void setFocus(boolean focus)
 	{
+		if(focus == this.focus) return;
+
 		this.focus = focus;
 
 		if(onFocusListener!=null)

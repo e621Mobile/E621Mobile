@@ -227,6 +227,7 @@ public class VideoOnFocusListener implements FocusableRelativeLayout.OnFocusList
 								Intent i = new Intent(fragment.getActivity(), FullScreenVideoActivity.class);
 								i.putExtra(FullScreenVideoActivity.VIDEO_PATH, pathTemp);
 								i.putExtra(FullScreenVideoActivity.VIDEO_POSITION, position);
+
 								fragment.startActivityForResult(i, FullScreenVideoActivity.RESULT_VIDEO_POSITION);
 
 								pauseView(rl);

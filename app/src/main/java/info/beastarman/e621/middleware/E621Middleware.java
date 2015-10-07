@@ -70,6 +70,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
 import info.beastarman.e621.api.E621;
@@ -90,6 +91,7 @@ import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.backend.PendingTask;
 import info.beastarman.e621.backend.PersistentHttpClient;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
+import info.beastarman.e621.backend.TemporaryFileInputStream;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.views.MediaInputStreamPlayer;
 import info.beastarman.e621.views.StepsProgressDialog;
@@ -198,6 +200,8 @@ public class E621Middleware extends E621 {
     }
 
     public void setup() {
+		if(!ctx.getExternalCacheDir().exists()) ctx.getExternalCacheDir().mkdirs();
+
         if (!cache_path.exists()) {
             cache_path.mkdirs();
         } else {
@@ -1252,7 +1256,7 @@ public class E621Middleware extends E621 {
 		
 		final InputStream in;
 
-        if(img.file_ext.equals("webm"))
+        if(img.file_ext.equals("webm") || img.file_ext.equals("mp4"))
         {
             in = getVideo(img.id);
         }
@@ -1441,17 +1445,48 @@ public class E621Middleware extends E621 {
 		    StatusLine statusLine = response.getStatusLine();
 		    if(statusLine.getStatusCode() == HttpStatus.SC_OK)
 		    {
+				File f;
+
+				do
+				{
+					f = new File(ctx.getExternalCacheDir(), UUID.randomUUID().toString());
+				}
+				while(f.exists());
+
 				try
 				{
-					return response.getEntity().getContent();
+					f.createNewFile();
 				}
-				catch (IOException e)
+				catch(IOException e)
 				{
 					e.printStackTrace();
+					return null;
+				}
+
+				OutputStream out = null;
+				try
+				{
+					out = new BufferedOutputStream(new FileOutputStream(f));
+					response.getEntity().writeTo(out);
+					out.close();
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+					f.delete();
 
 					return null;
 				}
-		    }
+
+				try
+				{
+					return new BufferedInputStream(new TemporaryFileInputStream(f));
+				}
+				catch(FileNotFoundException e)
+				{
+					return null;
+				}
+			}
 		    else
 		    {
 				Log.d(LOG_TAG,"Return code for " + url + ":" + statusLine.getStatusCode());
