@@ -191,6 +191,22 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 					{
 						final ImageNavigator i = image.getRelative(position-image.getPosition());
 
+						if(i == null)
+						{
+							runOnUiThread(new Runnable()
+							{
+								@Override
+								public void run()
+								{
+									Toast.makeText(ImageFullScreenActivity.this,"Could not retrieve post",Toast.LENGTH_SHORT).show();
+
+									finish();
+								}
+							});
+
+							return;
+						}
+
 						findViewById(R.id.view_pager).setTag(-i.getId());
 
                         image = i;

@@ -10,6 +10,8 @@ public abstract class ImageNavigator implements Serializable
 
 		while(diff > 0)
 		{
+			if(in == null) return null;
+
 			in = in.next();
 
 			diff--;
@@ -17,6 +19,8 @@ public abstract class ImageNavigator implements Serializable
 
 		while(diff < 0)
 		{
+			if(in == null) return null;
+
 			in = in.prev();
 
 			diff++;

@@ -648,7 +648,7 @@ public class SearchActivity extends BaseActivity
 	
 	private ProgressBar generateProgressBar()
 	{
-		ProgressBar bar = new ProgressBar(getApplicationContext());
+		ProgressBar bar = new ProgressBar(this);
 
 		RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
 				RelativeLayout.LayoutParams.WRAP_CONTENT, 
