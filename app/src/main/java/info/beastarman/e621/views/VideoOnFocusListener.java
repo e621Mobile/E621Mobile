@@ -113,9 +113,9 @@ public class VideoOnFocusListener implements FocusableRelativeLayout.OnFocusList
 				player.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
 				{
 					@Override
-					public void onPrepared(MediaPlayer mediaPlayer)
+					public void onPrepared(final MediaPlayer mediaPlayer)
 					{
-						controller.setMediaPlayer(new VideoControllerView.MediaPlayerControl()
+						final VideoControllerView.MediaPlayerControl mediaPlayerControl = new VideoControllerView.MediaPlayerControl()
 						{
 							public boolean canPause()
 							{
@@ -240,10 +240,14 @@ public class VideoOnFocusListener implements FocusableRelativeLayout.OnFocusList
 
 								pauseView(rl);
 							}
-						});
+						};
+
+						controller.setMediaPlayer(mediaPlayerControl);
 						controller.setAnchorView((FrameLayout) v);
 						controller.show(0);
 						player.setLooping(true);
+						player.seekTo(0);
+						player.start();
 
 						int videoWidth = player.getVideoWidth();
 						int videoHeight = player.getVideoHeight();
@@ -270,6 +274,8 @@ public class VideoOnFocusListener implements FocusableRelativeLayout.OnFocusList
 							public void run()
 							{
 								videoSurface.setLayoutParams(lp);
+								mediaPlayerControl.pause();
+								controller.show(0);
 							}
 						});
 					}
@@ -436,7 +442,7 @@ public class VideoOnFocusListener implements FocusableRelativeLayout.OnFocusList
 					@Override
 					public void onPrepared(MediaPlayer mediaPlayer)
 					{
-						controller.setMediaPlayer(new VideoControllerView.MediaPlayerControl()
+						VideoControllerView.MediaPlayerControl mediaPlayerControl = new VideoControllerView.MediaPlayerControl()
 						{
 							public boolean canPause()
 							{
@@ -559,7 +565,9 @@ public class VideoOnFocusListener implements FocusableRelativeLayout.OnFocusList
 
 								pauseView(rl);
 							}
-						});
+						};
+
+						controller.setMediaPlayer(mediaPlayerControl);
 						controller.setAnchorView((FrameLayout) v);
 						controller.show(0);
 						player.setLooping(true);
