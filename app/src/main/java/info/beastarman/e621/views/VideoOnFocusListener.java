@@ -41,9 +41,17 @@ public class VideoOnFocusListener implements FocusableRelativeLayout.OnFocusList
 		this.fragment = fragment;
 	}
 
+	int disableFocusToggle = 0;
+
 	@Override
 	public void onSetFocus(final FocusableRelativeLayout rl)
 	{
+		if(disableFocusToggle>0)
+		{
+			disableFocusToggle--;
+			return;
+		}
+
 		fragment.getActivity().runOnUiThread(new Runnable()
 		{
 			@Override
@@ -348,6 +356,11 @@ public class VideoOnFocusListener implements FocusableRelativeLayout.OnFocusList
 	@Override
 	public void onUnsetFocus(FocusableRelativeLayout rl)
 	{
+		if(disableFocusToggle>0)
+		{
+			return;
+		}
+
 		rl.removeView(v);
 	}
 
@@ -355,6 +368,8 @@ public class VideoOnFocusListener implements FocusableRelativeLayout.OnFocusList
 	{
 		player.deleteOnClose = false;
 		rl.removeView(v);
+
+		disableFocusToggle=1;
 	}
 
 	public void restore(final FocusableRelativeLayout rl, final int position)
