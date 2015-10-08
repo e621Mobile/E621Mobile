@@ -55,7 +55,7 @@ public class MainActivity extends SlideMenuBaseActivity
         File nomedia = e621.noMediaFile();
 
 		int newVersion = e621.isNewVersion();
-		
+
 		if(e621.isFirstRun())
 		{
 			AlertDialog.Builder confirmFullUpdateBuilder = new AlertDialog.Builder(this);
@@ -276,6 +276,9 @@ public class MainActivity extends SlideMenuBaseActivity
 				break;
 			case 21:
 				message = getString(R.string.version_21);
+				break;
+			case 22:
+				message = getString(R.string.version_22);
 				break;
 			default:
 				break;
