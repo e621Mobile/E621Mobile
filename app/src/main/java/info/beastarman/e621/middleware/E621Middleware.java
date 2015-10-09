@@ -568,6 +568,8 @@ public class E621Middleware extends E621 {
 	@Override
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
+		if(url.startsWith("//")) url = "https:"+url;
+
 		if(url.contains("password"))
 		{
 			android.util.Log.i(LOG_TAG + "_Request","GET password containing request");
@@ -583,6 +585,8 @@ public class E621Middleware extends E621 {
 	@Override
 	protected HttpResponse tryHttpPost(String url, List<NameValuePair> pairs, Integer tries) throws ClientProtocolException, IOException
 	{
+		if(url.startsWith("//")) url = "https:"+url;
+
 		android.util.Log.i(LOG_TAG + "_Request","POST " + url);
 		
 		return super.tryHttpPost(url, pairs, tries);
