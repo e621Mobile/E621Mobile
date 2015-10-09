@@ -116,13 +116,16 @@ public class E621Image implements Serializable
 		E621Image img = new E621Image();
 
 		img.file_url = json.optString("file_url","");
-		if(img.file_url.startsWith("/")) img.file_url = "http://e621.net" + img.file_url;
+		if(img.file_url.startsWith("//")) img.file_url = "http:" + img.file_url;
+		else if(img.file_url.startsWith("/")) img.file_url = "http://e621.net" + img.file_url;
 
 		img.sample_url = json.optString("sample_url",img.file_url);
-		if(img.sample_url.startsWith("/")) img.sample_url = "http://e621.net" + img.sample_url;
+		if(img.sample_url.startsWith("//")) img.sample_url = "http:" + img.sample_url;
+		else if(img.sample_url.startsWith("/")) img.sample_url = "http://e621.net" + img.sample_url;
 
 		img.preview_url = json.optString("preview_url",img.sample_url);
-		if(img.preview_url.startsWith("/")) img.preview_url = "http://e621.net" + img.preview_url;
+		if(img.preview_url.startsWith("//")) img.preview_url = "http:" + img.preview_url;
+		else if(img.preview_url.startsWith("/")) img.preview_url = "http://e621.net" + img.preview_url;
 
 		img.description = json.optString("description","").trim();
 
