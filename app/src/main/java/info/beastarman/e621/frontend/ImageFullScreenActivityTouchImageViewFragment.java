@@ -153,7 +153,11 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 			{
 				final float scale = Math.max(1, Math.max(imageSize.left / 2048f, imageSize.right / 2048f));
 
-				getActivity().runOnUiThread(new Runnable()
+				Activity activity = getActivity();
+
+				if(activity==null) return;
+
+				activity.runOnUiThread(new Runnable()
 				{
 					@Override
 					public void run()
@@ -176,7 +180,11 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 			}
 			else if(file_ext.equals("gif"))
 			{
-				getActivity().runOnUiThread(new Runnable()
+				Activity activity = getActivity();
+
+				if(activity==null) return;
+
+				activity.runOnUiThread(new Runnable()
 				{
 					@Override
 					public void run()
@@ -222,7 +230,11 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 			}
 			else
 			{
-				getActivity().runOnUiThread(new Runnable()
+				Activity activity = getActivity();
+
+				if(activity==null) return;
+
+				activity.runOnUiThread(new Runnable()
 				{
 					@Override
 					public void run()
@@ -235,50 +247,50 @@ public class ImageFullScreenActivityTouchImageViewFragment extends Fragment
 						rl.addView(ll);
 
 						ll.setOnLongClickListener(new View.OnLongClickListener()
-                        {
-                            @Override
-                            public boolean onLongClick(View view)
-                            {
-                                final Intent i = new Intent();
-                                i.setAction(Intent.ACTION_VIEW);
+						{
+							@Override
+							public boolean onLongClick(View view)
+							{
+								final Intent i = new Intent();
+								i.setAction(Intent.ACTION_VIEW);
 
-                                if(file_url != null)
-                                {
-                                    i.setData(Uri.parse(file_url));
-                                    startActivity(i);
-                                }
-                                else
-                                {
-                                    new Thread(new Runnable()
-                                    {
-                                        @Override
-                                        public void run()
-                                        {
-                                            try
-                                            {
-                                                E621Image img = E621Middleware.getInstance().post__show(id);
-                                                i.setData(Uri.parse(img.file_url));
+								if(file_url != null)
+								{
+									i.setData(Uri.parse(file_url));
+									startActivity(i);
+								}
+								else
+								{
+									new Thread(new Runnable()
+									{
+										@Override
+										public void run()
+										{
+											try
+											{
+												E621Image img = E621Middleware.getInstance().post__show(id);
+												i.setData(Uri.parse(img.file_url));
 
-                                                getActivity().runOnUiThread(new Runnable()
-                                                {
-                                                    @Override
-                                                    public void run()
-                                                    {
-                                                        startActivity(i);
-                                                    }
-                                                });
-                                            }
-                                            catch(IOException e)
-                                            {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    }).start();
-                                }
+												getActivity().runOnUiThread(new Runnable()
+												{
+													@Override
+													public void run()
+													{
+														startActivity(i);
+													}
+												});
+											}
+											catch(IOException e)
+											{
+												e.printStackTrace();
+											}
+										}
+									}).start();
+								}
 
-                                return true;
-                            }
-                        });
+								return true;
+							}
+						});
 
 						ll.setOnClickListener(toggleListener());
 
