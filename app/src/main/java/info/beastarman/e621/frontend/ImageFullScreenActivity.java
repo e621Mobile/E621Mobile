@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Set;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.api.E621;
 import info.beastarman.e621.api.E621Comment;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
@@ -156,9 +157,26 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 				position += Math.floor(positionOffset);
 				positionOffset -= Math.floor(positionOffset);
 
-				if(positionOffset == 0.0 && (previousPosition==null || previousPosition!=position))
+				if(positionOffset > 0.5f)
 				{
-					View v = mPagerAdapter.getRegisteredFragment(position).getView().findViewById(R.id.focusableRelativeLayout);
+					positionOffset-=1.0f;
+					position+=1;
+				}
+
+				Integer newPosition = null;
+
+				if(previousPosition == null)
+				{
+					newPosition = position;
+				}
+				else if((positionOffset < 0.25f && position < previousPosition) || (positionOffset > -0.25 && position > previousPosition))
+				{
+					newPosition = position;
+				}
+
+				if(newPosition != null && newPosition!=previousPosition)
+				{
+					View v = mPagerAdapter.getRegisteredFragment(newPosition).getView().findViewById(R.id.focusableRelativeLayout);
 
 					if(v instanceof FocusableRelativeLayout)
 					{
@@ -175,7 +193,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 						}
 					}
 
-					previousPosition = position;
+					previousPosition = newPosition;
 				}
 			}
 
