@@ -123,4 +123,11 @@
         \n\n
         I am working on a way to answer back to all feedback you send me. Meanwhile, keep em coming!
     </string>
+
+    <string name="version_24">Beta Updates:
+        \n
+        Reduced memory usage further
+        \n\n
+        Stability improvements on image screen
+    </string>
 </resources>
