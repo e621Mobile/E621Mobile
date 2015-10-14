@@ -20,9 +20,9 @@ public class TemporaryFileInputStream extends FileInputStream
 		this.file = file;
 	}
 
-	public TemporaryFileInputStream(String path) throws FileNotFoundException
+	public void resetInputStream() throws IOException
 	{
-		this(new File(path));
+		getChannel().position(0);
 	}
 
 	@Override

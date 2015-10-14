@@ -21,8 +21,7 @@ public class RunDebugActivity extends Activity
 
         if(isDebuggable)
         {
-            intent = new Intent(this,SearchActivity.class);
-			intent.putExtra(SearchActivity.SEARCH, "type:webm");
+			intent = new Intent(this,MainActivity.class);
         }
 
         startActivity(intent);

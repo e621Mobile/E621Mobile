@@ -20,6 +20,7 @@ import com.google.android.gms.analytics.Tracker;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -27,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.backend.SingleUseFileStorage;
+import info.beastarman.e621.backend.TemporaryFileInputStream;
 import info.beastarman.e621.middleware.E621Middleware;
 
 public class BaseActivity extends Activity implements UncaughtExceptionHandler
@@ -222,23 +225,33 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 
 		uncaughtException();
 	}
-	
-	public Bitmap decodeFile(InputStream in, int width, int height)
+
+	static SingleUseFileStorage _singleUseFileStorage = null;
+	SingleUseFileStorage getSingleUseFileStorage()
 	{
-		byte[] bytes = null;
+		if(_singleUseFileStorage == null)
+		{
+			File f = new File(getCacheDir(),"BaseActivity/SingleUseFielStorage/");
+			f.mkdirs();
+			_singleUseFileStorage = new SingleUseFileStorage(f);
+		}
+
+		return _singleUseFileStorage;
+	}
+	
+	public Bitmap decodeFile(InputStream source, int width, int height)
+	{
+		TemporaryFileInputStream in = null;
 
 		try
 		{
-			bytes = IOUtils.toByteArray(in);
+			in = getSingleUseFileStorage().store(source);
 		}
 		catch(IOException e)
 		{
 			e.printStackTrace();
-
 			return null;
 		}
-
-		in = new ByteArrayInputStream(bytes);
 
 		//Decode image size
 		BitmapFactory.Options o = new BitmapFactory.Options();
@@ -247,7 +260,7 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 
 		try
 		{
-			in.close();
+			in.resetInputStream();
 		}
 		catch (IOException e)
 		{
@@ -263,8 +276,6 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 			scale*=2;
 		}
 
-		in = new ByteArrayInputStream(bytes);
-
 		//Decode with inSampleSize
 		BitmapFactory.Options o2 = new BitmapFactory.Options();
 		o2.inSampleSize=scale;
@@ -277,9 +288,6 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 		{
 			e.printStackTrace();
 		}
-
-		bytes = null;
-		System.gc();
 
 		if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())
 		{
@@ -316,6 +324,14 @@ public class BaseActivity extends Activity implements UncaughtExceptionHandler
 			public void run()
 			{
 				Bitmap bitmap = decodeFile(in, imgView.getLayoutParams().width, imgView.getLayoutParams().height);
+				try
+				{
+					in.close();
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
 				
 				Message msg = handler.obtainMessage();
 		    	msg.obj = bitmap;

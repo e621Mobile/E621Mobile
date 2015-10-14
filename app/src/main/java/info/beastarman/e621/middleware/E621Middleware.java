@@ -148,6 +148,19 @@ public class E621Middleware extends E621 {
 
     private static String CLIENT = "E621AndroidAppBstrm";
 
+	static SingleUseFileStorage tempCache = null;
+	static SingleUseFileStorage getTempCache()
+	{
+		if(tempCache == null)
+		{
+			File tempCacheFile = new File(getInstance().ctx.getCacheDir(),"E621Middleware/TempoCache");
+			tempCacheFile.mkdirs();
+			tempCache = new SingleUseFileStorage(tempCacheFile);
+		}
+
+		return tempCache;
+	}
+
     protected E621Middleware(Context new_ctx) {
         super(CLIENT);
 
@@ -1512,19 +1525,18 @@ public class E621Middleware extends E621 {
 		}
 	}
 
-    public static Bitmap decodeFileKeepRatio(InputStream in, int width, int height)
+    public static Bitmap decodeFileKeepRatio(InputStream source, int width, int height)
     {
-        byte[] bytes = null;
-
-        try {
-            bytes = IOUtils.toByteArray(in);
-        } catch (IOException e) {
-            e.printStackTrace();
-
-            return null;
-        }
-
-        in = new ByteArrayInputStream(bytes);
+		TemporaryFileInputStream in = null;
+		try
+		{
+			in = getTempCache().store(source);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
 
         //Decode image size
         BitmapFactory.Options o = new BitmapFactory.Options();
@@ -1532,7 +1544,7 @@ public class E621Middleware extends E621 {
         BitmapFactory.decodeStream(in, null, o);
 
         try {
-            in.close();
+            in.resetInputStream();
         } catch (IOException e) {
             e.printStackTrace();
 
@@ -1545,8 +1557,6 @@ public class E621Middleware extends E621 {
             scale *= 2;
         }
 
-        in = new ByteArrayInputStream(bytes);
-
         //Decode with inSampleSize
         BitmapFactory.Options o2 = new BitmapFactory.Options();
         o2.inSampleSize = scale;
@@ -1557,9 +1567,6 @@ public class E621Middleware extends E621 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        bytes = null;
-        System.gc();
 
         if (bitmap_temp == null)
         {
@@ -1585,27 +1592,26 @@ public class E621Middleware extends E621 {
 		}
     }
 
-	public static Bitmap decodeFile(InputStream in, int width, int height)
+	public static Bitmap decodeFile(InputStream source, int width, int height)
     {
-        byte[] bytes = null;
+		TemporaryFileInputStream in = null;
+		try
+		{
+			in = getTempCache().store(source);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
 
-        try {
-            bytes = IOUtils.toByteArray(in);
-        } catch (IOException e) {
-            e.printStackTrace();
-
-            return null;
-        }
-
-        in = new ByteArrayInputStream(bytes);
-
-        //Decode image size
+		//Decode image size
         BitmapFactory.Options o = new BitmapFactory.Options();
         o.inJustDecodeBounds = true;
         BitmapFactory.decodeStream(in, null, o);
 
         try {
-            in.close();
+            in.resetInputStream();
         } catch (IOException e) {
             e.printStackTrace();
 
@@ -1618,8 +1624,6 @@ public class E621Middleware extends E621 {
             scale *= 2;
         }
 
-        in = new ByteArrayInputStream(bytes);
-
         //Decode with inSampleSize
         BitmapFactory.Options o2 = new BitmapFactory.Options();
         o2.inSampleSize = scale;
@@ -1630,9 +1634,6 @@ public class E621Middleware extends E621 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        bytes = null;
-        System.gc();
 
         if (bitmap_temp == null)
         {
@@ -1826,12 +1827,21 @@ public class E621Middleware extends E621 {
 		{
 			if(storeInCache.obj && save)
 			{
-				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				in.obj.compress(Bitmap.CompressFormat.JPEG, 90, bos);
-				byte[] bitmapdata = bos.toByteArray();
-				ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+				SingleUseFileStorage.SingleUseFile singleUseFile = getTempCache().getSingleUseFile();
+				try
+				{
+					OutputStream out = singleUseFile.getOutputStream();
+					in.obj.compress(Bitmap.CompressFormat.JPEG, 90, out);
+					out.close();
 
-				thumb_cache.createOrUpdate(String.valueOf(id),bs);
+					TemporaryFileInputStream temporaryFileInputStream = singleUseFile.getInputStream();
+					thumb_cache.createOrUpdate(String.valueOf(id), temporaryFileInputStream);
+					temporaryFileInputStream.close();
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
 			}
 
 			return in.obj;
@@ -2018,48 +2028,52 @@ public class E621Middleware extends E621 {
                         return;
                     }
 
-                    byte[] byteArray;
+					TemporaryFileInputStream tempInputStream;
 
-                    try
-                    {
-                        byteArray = IOUtils.toByteArray(inputStream);
-                    }
-                    catch (IOException e)
-                    {
-                        e.printStackTrace();
-                        return;
-                    }
-                    finally
-                    {
-                        try
-                        {
-                            inputStream.close();
-                        } catch (IOException e)
-                        {
-                            e.printStackTrace();
-                        }
-                    }
+					try
+					{
+						tempInputStream = getTempCache().store(inputStream);
+					}
+					catch(IOException e)
+					{
+						e.printStackTrace();
+						return;
+					}
+					finally
+					{
+						try
+						{
+							inputStream.close();
+						}
+						catch(IOException e)
+						{
+							e.printStackTrace();
+						}
+					}
 
-                    byte[] b2 = byteArray.clone();
-
-                    inputStream = new ByteArrayInputStream(byteArray);
-
-                    if (size == E621Image.PREVIEW)
+					if (size == E621Image.PREVIEW)
                     {
-                        thumb_cache.createOrUpdate(String.valueOf(img), inputStream);
+                        thumb_cache.createOrUpdate(String.valueOf(img), tempInputStream);
                     }
                     else
                     {
-                        full_cache.createOrUpdate(String.valueOf(img), inputStream);
+                        full_cache.createOrUpdate(String.valueOf(img), tempInputStream);
                     }
 
-                    inputStream = new ByteArrayInputStream(b2);
+					try
+					{
+						tempInputStream.resetInputStream();
+					}
+					catch(IOException e)
+					{
+						e.printStackTrace();
+					}
 
-                    synchronized (lock)
+					synchronized (lock)
                     {
                         if (in.obj == null)
                         {
-                            in.obj = inputStream;
+                            in.obj = tempInputStream;
                         }
                     }
                 }
@@ -2120,49 +2134,54 @@ public class E621Middleware extends E621 {
 
             InputStream inputStream = getImageFromInternet(url);
 
-            if (in == null || inputStream == null)
+            if (inputStream == null)
             {
                 return null;
             }
 
-            byte[] byteArray;
+			TemporaryFileInputStream tempInputStream;
 
-            try
-            {
-                byteArray = IOUtils.toByteArray(inputStream);
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-                return null;
-            }
-            finally
-            {
-                try
-                {
-                    inputStream.close();
-                } catch (IOException e)
-                {
-                    e.printStackTrace();
-                }
-            }
-
-            byte[] b2 = byteArray.clone();
-
-            inputStream = new ByteArrayInputStream(byteArray);
+			try
+			{
+				tempInputStream = getTempCache().store(inputStream);
+			}
+			catch(IOException e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+			finally
+			{
+				try
+				{
+					inputStream.close();
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
 
             if (size == E621Image.PREVIEW)
             {
-                thumb_cache.createOrUpdate(String.valueOf(img), inputStream);
+                thumb_cache.createOrUpdate(String.valueOf(img), tempInputStream);
             }
             else
             {
-                full_cache.createOrUpdate(String.valueOf(img), inputStream);
+                full_cache.createOrUpdate(String.valueOf(img), tempInputStream);
             }
 
-            inputStream = new ByteArrayInputStream(b2);
+			try
+			{
+				tempInputStream.resetInputStream();
+			}
+			catch(IOException e)
+			{
+				e.printStackTrace();
+				return null;
+			}
 
-            in.obj = inputStream;
+			in.obj = tempInputStream;
         }
 
         return in.obj;
@@ -2586,7 +2605,7 @@ public class E621Middleware extends E621 {
 						
 						try {
 							BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(f));
-							out.write(IOUtils.toByteArray(in));
+							IOUtils.copy(in,out);
 							out.close();
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
@@ -3048,20 +3067,42 @@ public class E621Middleware extends E621 {
 						
 						if(in == null) return;
 						
-						byte[] data;
-						
-						try {
-							data = IOUtils.toByteArray(in);
-						} catch (IOException e) {
+						TemporaryFileInputStream temporaryFileInputStream = null;
+						try
+						{
+							temporaryFileInputStream = getTempCache().store(in);
+						}
+						catch(IOException e)
+						{
+							e.printStackTrace();
 							return;
 						}
-						
-				        //Decode image size
+						finally
+						{
+							try
+							{
+								in.close();
+							}
+							catch(IOException e)
+							{
+								e.printStackTrace();
+							}
+						}
+
 				        BitmapFactory.Options o = new BitmapFactory.Options();
 				        o.inJustDecodeBounds = true;
-				        BitmapFactory.decodeStream(new ByteArrayInputStream(data),null,o);
+				        BitmapFactory.decodeStream(temporaryFileInputStream,null,o);
 
-				        //Find the correct scale value. It should be the power of 2.
+						try
+						{
+							temporaryFileInputStream.resetInputStream();
+						}
+						catch(IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						//Find the correct scale value. It should be the power of 2.
 				        int scale=1;
 				        while(o.outWidth/scale/2>=width && o.outHeight/scale/2>=height)
 				        {
@@ -3071,9 +3112,18 @@ public class E621Middleware extends E621 {
 				        //Decode with inSampleSize
 				        BitmapFactory.Options o2 = new BitmapFactory.Options();
 				        o2.inSampleSize=scale;
-				        Bitmap bitmap_temp = BitmapFactory.decodeStream(new ByteArrayInputStream(data), null, o2);
-				        
-				        Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
+				        Bitmap bitmap_temp = BitmapFactory.decodeStream(temporaryFileInputStream, null, o2);
+
+						try
+						{
+							temporaryFileInputStream.close();
+						}
+						catch(IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
 				        
 				        bitmap_temp.recycle();
 						

@@ -4,7 +4,6 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -153,7 +152,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 
 					try
 					{
-						is = new BufferedInputStream(new FileInputStream(new File(base_path, id)));
+						is = new BufferedInputStream(new FileInputStream(f));
 						ret.obj = singleUseFileStorage.store(is);
 						is.close();
 					}
@@ -207,7 +206,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 
 					ret[0] = true;
 				}
-				catch (IOException e)
+				catch(IOException e)
 				{
 					e.printStackTrace();
 
