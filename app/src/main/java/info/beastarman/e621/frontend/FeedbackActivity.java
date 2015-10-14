@@ -4,6 +4,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import info.beastarman.e621.R;
 
 public class FeedbackActivity extends ErrorReportActivity

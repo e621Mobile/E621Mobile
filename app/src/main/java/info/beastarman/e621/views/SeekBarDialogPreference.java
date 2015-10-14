@@ -1,6 +1,5 @@
 package info.beastarman.e621.views;
 
-import info.beastarman.e621.R;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Parcel;
@@ -11,6 +10,8 @@ import android.view.View;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+
+import info.beastarman.e621.R;
 
 /**
  * A {@link DialogPreference} that provides a user with the means to select an integer from a {@link SeekBar}, and persist it.

@@ -5,9 +5,6 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 
-import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
-import info.beastarman.e621.middleware.OfflineImageNavigator;
-
 public class RunDebugActivity extends Activity
 {
     @Override

@@ -17,9 +17,6 @@ import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.StandardExceptionParser;
 import com.google.android.gms.analytics.Tracker;
 
-import org.apache.commons.io.IOUtils;
-
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +24,6 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Set;
 
-import info.beastarman.e621.R;
 import info.beastarman.e621.backend.SingleUseFileStorage;
 import info.beastarman.e621.backend.TemporaryFileInputStream;
 import info.beastarman.e621.middleware.E621Middleware;

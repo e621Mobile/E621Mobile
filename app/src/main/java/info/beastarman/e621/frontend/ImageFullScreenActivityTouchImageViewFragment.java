@@ -3,28 +3,21 @@ package info.beastarman.e621.frontend;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Point;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621Image;
@@ -38,10 +31,7 @@ import info.beastarman.e621.middleware.ImageNavilagorLazyRelative;
 import info.beastarman.e621.middleware.TouchImageViewHandler;
 import info.beastarman.e621.views.FocusableRelativeLayout;
 import info.beastarman.e621.views.GIFView;
-import info.beastarman.e621.views.MediaInputStreamPlayer;
-import info.beastarman.e621.views.SurfaceViewDetach;
 import info.beastarman.e621.views.TouchImageView;
-import info.beastarman.e621.views.VideoControllerView;
 import info.beastarman.e621.views.VideoOnFocusListener;
 
 public class ImageFullScreenActivityTouchImageViewFragment extends Fragment

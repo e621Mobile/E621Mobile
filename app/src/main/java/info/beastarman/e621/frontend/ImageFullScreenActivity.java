@@ -6,15 +6,12 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Debug;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.Editable;
 import android.text.Html;
@@ -53,7 +50,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,7 +61,6 @@ import java.util.List;
 import java.util.Set;
 
 import info.beastarman.e621.R;
-import info.beastarman.e621.api.E621;
 import info.beastarman.e621.api.E621Comment;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Search;
@@ -82,7 +77,6 @@ import info.beastarman.e621.middleware.NowhereToGoImageNavigator;
 import info.beastarman.e621.middleware.OnlineImageNavigator;
 import info.beastarman.e621.views.DTextView;
 import info.beastarman.e621.views.FocusableRelativeLayout;
-import info.beastarman.e621.views.SurfaceViewDetach;
 import info.beastarman.e621.views.VideoOnFocusListener;
 
 public class ImageFullScreenActivity extends BaseFragmentActivity

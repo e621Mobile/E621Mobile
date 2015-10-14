@@ -1,13 +1,13 @@
 package info.beastarman.e621.views;
 
-import info.beastarman.e621.R;
+import android.content.Context;
+import android.content.res.TypedArray;
+import android.util.AttributeSet;
 
 import java.util.HashSet;
 import java.util.concurrent.Semaphore;
 
-import android.content.Context;
-import android.content.res.TypedArray;
-import android.util.AttributeSet;
+import info.beastarman.e621.R;
 
 public class LazyRunScrollView extends ObservableScrollView
 {

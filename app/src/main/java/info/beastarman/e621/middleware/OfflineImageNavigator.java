@@ -1,7 +1,5 @@
 package info.beastarman.e621.middleware;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 
 public class OfflineImageNavigator extends ImageNavigator

@@ -39,8 +39,6 @@ import android.widget.ImageView;
 import android.widget.OverScroller;
 import android.widget.Scroller;
 
-import info.beastarman.e621.middleware.E621Middleware;
-
 public class TouchImageView extends ImageView {
 	
 	private static final String DEBUG = "DEBUG";

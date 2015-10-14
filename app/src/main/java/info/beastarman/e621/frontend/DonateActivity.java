@@ -1,12 +1,5 @@
 package info.beastarman.e621.frontend;
 
-import info.beastarman.e621.R;
-import info.beastarman.e621.backend.DonationManager;
-import info.beastarman.e621.middleware.E621Middleware;
-import info.beastarman.e621.views.DynamicLinearLayout;
-import info.beastarman.e621.views.ObservableScrollView;
-import info.beastarman.e621.views.ScrollViewListener;
-
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
@@ -17,7 +10,6 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.URLSpan;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -30,6 +22,12 @@ import android.widget.Toast;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+
+import info.beastarman.e621.R;
+import info.beastarman.e621.backend.DonationManager;
+import info.beastarman.e621.views.DynamicLinearLayout;
+import info.beastarman.e621.views.ObservableScrollView;
+import info.beastarman.e621.views.ScrollViewListener;
 
 public class DonateActivity extends BaseActivity implements Runnable, ScrollViewListener
 {

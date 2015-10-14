@@ -2,11 +2,7 @@ package info.beastarman.e621.views;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.RelativeLayout;
-
-import info.beastarman.e621.api.E621;
-import info.beastarman.e621.middleware.E621Middleware;
 
 public class FocusableRelativeLayout extends RelativeLayout
 {
