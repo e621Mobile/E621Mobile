@@ -17,6 +17,7 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.text.Html;
+import android.widget.EditText;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -522,6 +523,31 @@ public class SettingsActivity extends PreferenceActivity
 
 		protected void fixInconsistencies()
 		{
+			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+			builder.setTitle("Posts to fix");
+
+			final EditText input = new EditText(activity);
+			input.setHint("Search Query");
+			builder.setView(input);
+
+			builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					fixInconsistencies(input.getText().toString());
+				}
+			});
+			builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.cancel();
+				}
+			});
+
+			builder.show();
+		}
+
+		protected void fixInconsistencies(final String query)
+		{
 			final StepsProgressDialog dialog = new StepsProgressDialog(activity);
 			dialog.show();
 
@@ -542,22 +568,22 @@ public class SettingsActivity extends PreferenceActivity
 							{
 								if(obj == E621Middleware.FixState.TAGS)
 								{
-									lastMsg = "Looking for images with few tags";
+									lastMsg = "Looking for posts with few tags";
 								}
 								else if(obj == E621Middleware.FixState.CORRUPT)
 								{
-									lastMsg = "Looking for corrupted image files";
+									lastMsg = "Looking for corrupted posts";
 								}
 								else if(obj == E621Middleware.FixState.FIXING)
 								{
-									lastMsg = "Redownloading corrupted image files";
+									lastMsg = "Redownloading corrupted posts";
 								}
 							}
 							else if(obj instanceof E621DownloadedImages.UpdateStates)
 							{
 								if(obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_DB)
 								{
-									lastMsg = "Fixing images with few tags";
+									lastMsg = "Fixing posts with few tags";
 								}
 							}
 
@@ -585,7 +611,7 @@ public class SettingsActivity extends PreferenceActivity
 
 							extra = "";
 						}
-					});
+					},query);
 
 					activity.runOnUiThread(new Runnable()
 					{

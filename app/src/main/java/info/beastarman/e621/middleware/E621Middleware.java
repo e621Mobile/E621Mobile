@@ -91,6 +91,7 @@ import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.backend.PendingTask;
 import info.beastarman.e621.backend.PersistentHttpClient;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
+import info.beastarman.e621.backend.SingleUseFileStorage;
 import info.beastarman.e621.backend.TemporaryFileInputStream;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.views.MediaInputStreamPlayer;
@@ -2761,7 +2762,7 @@ public class E621Middleware extends E621 {
 		FIXING,
 	}
 
-	public void fixMe(EventManager eventManager)
+	public void fixMe(EventManager eventManager, String query)
 	{
 		eventManager.trigger(FixState.TAGS);
 
@@ -2769,7 +2770,7 @@ public class E621Middleware extends E621 {
 
 		eventManager.trigger(FixState.CORRUPT);
 
-		ArrayList<E621DownloadedImage> images = localSearch(0,-1,"");
+		ArrayList<E621DownloadedImage> images = localSearch(0,-1,query);
 
 		final ArrayList<Integer> redownload = new ArrayList<Integer>();
 

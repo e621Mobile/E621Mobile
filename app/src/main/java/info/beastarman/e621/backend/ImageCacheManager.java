@@ -40,6 +40,8 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 
 	ImageDatabaseHelper imageDbHelper;
 
+	SingleUseFileStorage singleUseFileStorage;
+
 	private class ImageDatabaseHelper extends SQLiteOpenHelper
 	{
 		private ImageDatabaseHelper(Context ctx, File f)
@@ -82,6 +84,10 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		accessWatcher = new AccessWatcher(ctx, new File(base_path, ".access.sqlite3"));
 
 		imageDbHelper = new ImageDatabaseHelper(ctx,cache_file);
+
+		File fTemp = new File(base_path,"singleUseCache/");
+		fTemp.mkdirs();
+		singleUseFileStorage = new SingleUseFileStorage(fTemp);
 
 		clean();
 	}
@@ -136,14 +142,31 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 			{
 				if(hasFile(id))
 				{
+					InputStream is = null;
+
 					try
 					{
-						ret.obj = new BufferedInputStream(new FileInputStream(new File(base_path, id)));
-						ret.obj = new ByteArrayInputStream(IOUtils.toByteArray(ret.obj));
+						is = new BufferedInputStream(new FileInputStream(new File(base_path, id)));
+						ret.obj = singleUseFileStorage.store(is);
+						is.close();
 					}
 					catch(IOException e)
 					{
 						e.printStackTrace();
+					}
+					finally
+					{
+						if(is != null)
+						{
+							try
+							{
+								is.close();
+							}
+							catch(IOException e)
+							{
+								e.printStackTrace();
+							}
+						}
 					}
 				}
 			}
