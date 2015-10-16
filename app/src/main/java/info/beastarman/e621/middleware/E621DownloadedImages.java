@@ -684,7 +684,7 @@ public class E621DownloadedImages
 
             while(tags == null && tries > 0)
 			{
-				tags = e621.tag__index(10000, page, null, null, max_id, null, null);
+				tags = e621.tag__index(1000, page, null, null, max_id, null, null);
 
                 tries--;
 			}
@@ -700,7 +700,7 @@ public class E621DownloadedImages
 			
 			page++;
 		}
-		while(tags.size() == 10000);
+		while(tags.size() == 1000);
 	}
 	
 	private void updateTagAliasBase(final E621Middleware e621, EventManager em)
