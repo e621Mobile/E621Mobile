@@ -402,6 +402,40 @@ public class E621TagDatabase
 		
 		return ret.obj;
 	}
+
+	public int getTagCount()
+	{
+		final GTFO<Integer> ret = new GTFO<Integer>();
+		ret.obj = 0;
+
+		lock.read(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
+				Cursor c = null;
+
+				try
+				{
+					c = db.rawQuery("SELECT COUNT(*) FROM tag;", null);
+
+					if(c == null || !c.moveToFirst() || c.isAfterLast())
+					{
+						return;
+					}
+
+					ret.obj = c.getInt(0);
+				}
+				finally
+				{
+					if(c != null) c.close();
+				}
+			}
+		});
+
+		return ret.obj;
+	}
 	
 	public E621Tag[] getAllTags()
 	{

@@ -33,7 +33,9 @@ import info.beastarman.e621.backend.DonationManager;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.backend.PendingTask;
+import info.beastarman.e621.middleware.E621DownloadedImages;
 import info.beastarman.e621.middleware.Mascot;
+import info.beastarman.e621.middleware.PendingTaskUpdateTagBase;
 import info.beastarman.e621.middleware.PendingTaskUpdateVideosWebmMp4;
 import info.beastarman.e621.views.NoHorizontalScrollView;
 
@@ -107,18 +109,137 @@ public class MainActivity extends SlideMenuBaseActivity
 		{
 			if(task instanceof PendingTaskUpdateVideosWebmMp4)
 			{
-				notifications.addView(getVideoUpdateView((PendingTaskUpdateVideosWebmMp4)task), 0);
+				notifications.addView(getVideoUpdateView((PendingTaskUpdateVideosWebmMp4) task), 0);
+			}
+			else if(task instanceof PendingTaskUpdateTagBase)
+			{
+				notifications.addView(getUpdateTagBaseView((PendingTaskUpdateTagBase) task), 0);
 			}
 		}
 	}
 
+	private View getUpdateTagBaseView(final PendingTaskUpdateTagBase task)
+	{
+		final View v = getLayoutInflater().inflate(R.layout.notification_generic,null);
+
+		final TextView tv = (TextView) v.findViewById(R.id.notification_generic_text);
+		tv.setText("Pending action: Update tags");
+
+		final View clickable = v.findViewById(R.id.notification_generic_scroll);
+
+		task.addEventManager(new EventManager()
+		{
+			String last = "";
+
+			private void updateText(final String text)
+			{
+				runOnUiThread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						tv.setText(text);
+					}
+				});
+			}
+
+			@Override
+			public void onTrigger(final Object obj)
+			{
+				if(obj instanceof PendingTaskUpdateVideosWebmMp4.States)
+				{
+					if(obj.equals(PendingTaskUpdateVideosWebmMp4.States.START))
+					{
+						runOnUiThread(new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								clickable.setClickable(false);
+								clickable.setEnabled(false);
+								clickable.setFocusable(false);
+								clickable.setFocusableInTouchMode(false);
+
+								tv.setText("Starting...");
+							}
+						});
+					}
+					else
+					{
+						runOnUiThread(new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								((ViewGroup) v.getParent()).removeView(v);
+							}
+						});
+					}
+				}
+				else
+				{
+					if(obj == E621DownloadedImages.UpdateStates.CLEANING)
+					{
+						last = "Cleaning metadata";
+						updateText(last);
+					}
+					else if(obj == E621DownloadedImages.UpdateStates.TAG_SYNC)
+					{
+						last = "Synchronizing tags";
+						updateText(last);
+					}
+					else if(obj == E621DownloadedImages.UpdateStates.TAG_ALIAS_SYNC)
+					{
+						last = "Synchronizing tag aliases";
+						updateText(last);
+					}
+					else if(obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_SYNC)
+					{
+						last = "Synchronizing image tags";
+						updateText(last);
+					}
+					else if(obj == E621DownloadedImages.UpdateStates.IMAGE_TAG_DB)
+					{
+						last = "Saving image tags into database";
+						updateText(last);
+					}
+					else if(obj == E621DownloadedImages.UpdateStates.COMPLETED)
+					{
+						updateText("Finished");
+					}
+					else if(obj instanceof Pair)
+					{
+						Pair<String, String> pair = ((Pair<String, String>) obj);
+
+						updateText(last + " (" + pair.left + "/" + pair.right + ")");
+					}
+				}
+			}
+		});
+
+		if(clickable.isEnabled())
+		{
+			clickable.setOnClickListener(new View.OnClickListener()
+			{
+				@Override
+				public void onClick(View view)
+				{
+					if(clickable.isEnabled()) task.start();
+				}
+			});
+		}
+
+		return v;
+	}
+
 	private View getVideoUpdateView(final PendingTaskUpdateVideosWebmMp4 task)
 	{
-		final View v = getLayoutInflater().inflate(R.layout.notification_videos_webm_mp4,null);
+		final View v = getLayoutInflater().inflate(R.layout.notification_generic,null);
 
-		final TextView tv = (TextView) v.findViewById(R.id.notification_videos_webm_mp4_text);
+		final TextView tv = (TextView) v.findViewById(R.id.notification_generic_text);
+		tv.setText("Pending action: Downloaded videos update");
 
-		final View clickable = v.findViewById(R.id.notification_videos_webm_mp4_scroll);
+		final View clickable = v.findViewById(R.id.notification_generic_scroll);
 
 		task.addEventManager(new EventManager()
 		{

@@ -407,6 +407,7 @@ public class E621Middleware extends E621 {
 		ArrayList<PendingTask> tasks = new ArrayList<PendingTask>();
 
 		tasks.add(getPendingTaskUpdateVideosWebmMp4());
+		tasks.add(getPendingTaskUpdateTagBase());
 
 		for (Iterator<PendingTask> it=tasks.iterator(); it.hasNext();)
 		{
@@ -459,7 +460,18 @@ public class E621Middleware extends E621 {
 		return pendingTaskUpdateVideosWebmMp4;
 	}
 
-    public int isNewVersion()
+	PendingTask _pendingTaskUpdateTagBase = null;
+	private PendingTask getPendingTaskUpdateTagBase()
+	{
+		if(_pendingTaskUpdateTagBase==null)
+		{
+			_pendingTaskUpdateTagBase = new PendingTaskUpdateTagBase(this);
+		}
+
+		return _pendingTaskUpdateTagBase;
+	}
+
+	public int isNewVersion()
     {
         PackageManager manager = ctx.getPackageManager();
         PackageInfo info = null;
