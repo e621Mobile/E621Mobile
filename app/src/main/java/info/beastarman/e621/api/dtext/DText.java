@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import info.beastarman.e621.backend.errorReport.ErrorReportReport;
 import info.beastarman.e621.frontend.ImageFullScreenActivity;
 import info.beastarman.e621.frontend.SearchActivity;
 import info.beastarman.e621.middleware.E621Middleware;
@@ -462,7 +463,14 @@ public class DText extends DTextObject implements Iterable<DTextObject>, Seriali
 		{
 			if(fail)
 			{
-				E621Middleware.getInstance().sendReport("DText Error parsing:\n\n" + originalText,false);
+				E621Middleware e621 = E621Middleware.getInstance();
+
+				ErrorReportReport report = e621.getBaseReport();
+
+				report.log = originalText;
+				report.tags.add("dtext");
+
+				e621.getErrorReportManager().sendReport(report);
 
 				objects.clear();
 

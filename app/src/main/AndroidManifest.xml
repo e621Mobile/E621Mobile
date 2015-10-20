@@ -66,11 +66,6 @@
             android:label="@string/title_activity_settings" >
         </activity>
         <activity
-            android:name="info.beastarman.e621.frontend.AlphaSettingsActivity"
-            android:parentActivityName="info.beastarman.e621.frontend.SettingsActivity"
-            android:label="@string/alpha_settings" >
-        </activity>
-        <activity
             android:name="info.beastarman.e621.frontend.DownloadsActivity"
             android:label="@string/title_activity_downloads"
             android:parentActivityName="info.beastarman.e621.frontend.MainActivity"

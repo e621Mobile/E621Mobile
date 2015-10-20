@@ -15,11 +15,11 @@ import java.util.Locale;
  */
 public class ErrorReportReport
 {
-	String hash;
-	String log;
-	String text;
-	ArrayList<String> tags;
-	Date time;
+	public String hash = "";
+	public String log = "";
+	public String text = "";
+	public ArrayList<String> tags = new ArrayList<String>();
+	public Date time = new Date();
 
 	private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-d HH:mm:ss.SZZZZZ", Locale.US);
 
@@ -63,5 +63,9 @@ public class ErrorReportReport
 		this.text = text;
 		this.tags = tags;
 		this.time = new Date();
+	}
+
+	public ErrorReportReport()
+	{
 	}
 }

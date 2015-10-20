@@ -6,6 +6,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import info.beastarman.e621.R;
+import info.beastarman.e621.backend.errorReport.ErrorReportReport;
 
 public class FeedbackActivity extends ErrorReportActivity
 {
@@ -22,6 +23,11 @@ public class FeedbackActivity extends ErrorReportActivity
 		
 		EditText area = (EditText) findViewById(R.id.errorDescription);
 		area.setHint("Type your message here.");
+	}
+
+	protected void fillTags(ErrorReportReport report)
+	{
+		report.tags.add("feature");
 	}
 	
 	@Override

@@ -21,6 +21,7 @@ import java.util.Date;
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
+import info.beastarman.e621.backend.errorReport.ErrorReportReport;
 import info.beastarman.e621.middleware.AndroidAppUpdater;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.middleware.E621Middleware;
@@ -95,6 +96,11 @@ public class ErrorReportActivity extends Activity
         }).start();
     }
 
+	protected void fillTags(ErrorReportReport report)
+	{
+		report.tags.add("crash");
+	}
+
 	public void sendReport(View v)
 	{
 		EditText error_description = (EditText) findViewById(R.id.errorDescription);
@@ -119,7 +125,18 @@ public class ErrorReportActivity extends Activity
 					}
 				}
 
-				e621.sendReport(log,text,sendStatistics.isChecked());
+				ErrorReportReport report = e621.getBaseReport();
+
+				if(sendStatistics.isChecked())
+				{
+					report.log = log;
+				}
+
+				report.text = text;
+
+				fillTags(report);
+
+				e621.getErrorReportManager().sendReport(report);
 			}
 		}).start();
 		

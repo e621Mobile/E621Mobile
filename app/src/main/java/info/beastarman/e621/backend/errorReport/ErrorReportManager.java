@@ -22,7 +22,7 @@ public class ErrorReportManager
 		this.app_id = app_id;
 	}
 
-	void sendReport(ErrorReportReport report)
+	public void sendReport(ErrorReportReport report)
 	{
 		try
 		{

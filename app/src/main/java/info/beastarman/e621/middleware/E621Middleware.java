@@ -32,11 +32,8 @@ import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -57,7 +54,6 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,7 +62,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -92,6 +87,8 @@ import info.beastarman.e621.backend.PersistentHttpClient;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 import info.beastarman.e621.backend.SingleUseFileStorage;
 import info.beastarman.e621.backend.TemporaryFileInputStream;
+import info.beastarman.e621.backend.errorReport.ErrorReportManager;
+import info.beastarman.e621.backend.errorReport.ErrorReportReport;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.views.MediaInputStreamPlayer;
 import info.beastarman.e621.views.StepsProgressDialog;
@@ -399,6 +396,47 @@ public class E621Middleware extends E621 {
                     interval, alarmIntent);
         }
     }
+
+	ErrorReportManager errorReportManager = null;
+	public ErrorReportManager getErrorReportManager()
+	{
+		if(errorReportManager == null)
+		{
+			errorReportManager = new ErrorReportManager("e621_adv");
+		}
+
+		return errorReportManager;
+	}
+
+	public ErrorReportReport getBaseReport()
+	{
+		ErrorReportReport report = new ErrorReportReport();
+
+		PackageManager manager = ctx.getPackageManager();
+		PackageInfo info = null;
+
+		try
+		{
+			info = manager.getPackageInfo (ctx.getPackageName(), 0);
+		}
+		catch(PackageManager.NameNotFoundException e2)
+		{
+
+		}
+
+		String model = Build.MODEL;
+
+		if (!model.startsWith(Build.MANUFACTURER))
+		{
+			model = Build.MANUFACTURER + " " + model;
+		}
+
+		report.tags.add("androidVersion:"+Build.VERSION.SDK_INT);
+		report.tags.add("model:"+model);
+		report.tags.add("appVersion:"+(info == null ? "(null)" : info.versionCode));
+
+		return report;
+	}
 
 	private final String updateVideosWebmMp4 = "updateVideosWebmMp4";
 
@@ -2939,33 +2977,7 @@ public class E621Middleware extends E621 {
 	
 	public void sync(EventManager eventManager)
 	{
-		Log.d(LOG_TAG,"Begin sync");
-
-		eventManager.trigger(SyncState.REPORTS);
-
-		for(String file : report_path.list())
-		{
-			File report = new File(report_path,file);
-			
-			try
-			{
-				FileInputStream in = new FileInputStream(report);
-				
-				sendReportOnline(IOUtils.toString(in));
-				
-				in.close();
-				report.delete();
-			}
-			catch (FileNotFoundException e)
-			{
-			}
-			catch(ClientProtocolException e)
-			{
-			}
-			catch (IOException e)
-			{
-			}
-		}
+		Log.d(LOG_TAG, "Begin sync");
 
 		eventManager.trigger(SyncState.FAILED_DOWNLOADS);
 		
@@ -3547,90 +3559,6 @@ public class E621Middleware extends E621 {
 		
 		event.trigger(BackupStates.SUCCESS);
 		return true;
-	}
-	
-	public void sendReport(final String message, final boolean errorReport)
-	{
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-                sendReport(generateErrorReport(),message,errorReport);
-			}
-		}).start();
-	}
-
-
-
-	public void sendReport(final String report, final String message, final boolean errorReport)
-	{
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				String message_trim = message.trim();
-
-				String r = "";
-
-				if(errorReport)
-				{
-					r = report;
-				}
-
-				if(message_trim.length() > 0)
-				{
-					r += "\n\n-----------\n\n" + message_trim;
-				}
-
-				try
-				{
-					sendReportOnline(r);
-				}
-				catch(ClientProtocolException e)
-				{
-					saveReportForLater(r);
-				}
-				catch (IOException e)
-				{
-					saveReportForLater(r);
-				}
-			}
-		}).start();
-	}
-	
-	private void sendReportOnline(String report) throws ClientProtocolException, IOException
-	{
-		HttpClient httpclient = new DefaultHttpClient();
-		
-		HttpPost post = new HttpPost("http://beastarman.info/report/e621/");
-		
-		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);  
-		nameValuePairs.add(new BasicNameValuePair("text", report));
-		post.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
-		
-		httpclient.execute(post);
-	}
-	
-	private void saveReportForLater(String report)
-	{
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.US);
-        String currentTimeStamp = dateFormat.format(new Date());
-		
-		File report_file = new File(report_path,currentTimeStamp + ".txt");
-		
-		try
-		{
-			report_file.createNewFile();
-			
-			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(report_file));
-			out.write(report.getBytes());
-			out.close();
-		}
-		catch (IOException e)
-		{
-		}
 	}
 	
 	public Boolean post_favorite(int id, boolean create)
@@ -4638,36 +4566,6 @@ public class E621Middleware extends E621 {
         return ((netInfo != null) && netInfo.isConnected());
     }
 
-    public String getErrorReportHeader()
-    {
-        String log = "";
-
-        PackageManager manager = ctx.getPackageManager();
-        PackageInfo info = null;
-
-        try
-        {
-            info = manager.getPackageInfo (ctx.getPackageName(), 0);
-        }
-        catch(PackageManager.NameNotFoundException e2)
-        {
-
-        }
-
-        String model = Build.MODEL;
-
-        if (!model.startsWith(Build.MANUFACTURER))
-        {
-            model = Build.MANUFACTURER + " " + model;
-        }
-
-        log +=	"Android version: " +  Build.VERSION.SDK_INT + "\n" +
-                "Model: " + model + "\n" +
-                "App version: " + (info == null ? "(null)" : info.versionCode);
-
-        return log;
-    }
-
     public String getErrorReportSettings()
     {
         String log = "";
@@ -4723,9 +4621,7 @@ public class E621Middleware extends E621 {
 
     public String generateErrorReport()
     {
-        String log = getErrorReportHeader() + "\n\n";
-
-        log += getErrorReportSettings() + "\n\n";
+        String log = getErrorReportSettings() + "\n\n";
 
         log += getErrorReportLog();
 
