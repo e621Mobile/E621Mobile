@@ -10,4 +10,6 @@ public interface ErrorReportPendingStorageInterface
 	void addReport(ErrorReportReport report);
 
 	ArrayList<ErrorReportReport> getReports();
+
+	void removeReport(String hash);
 }

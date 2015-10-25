@@ -402,7 +402,9 @@ public class E621Middleware extends E621 {
 	{
 		if(errorReportManager == null)
 		{
-			errorReportManager = new ErrorReportManager("e621_adv");
+			File f = new File(sd_path,"ErrorReportManager/");
+			f.mkdirs();
+			errorReportManager = new ErrorReportManager("e621_adv",f);
 		}
 
 		return errorReportManager;
@@ -2979,8 +2981,12 @@ public class E621Middleware extends E621 {
 	{
 		Log.d(LOG_TAG, "Begin sync");
 
+		eventManager.trigger(SyncState.REPORTS);
+
+		getErrorReportManager().sendPendingReports();
+
 		eventManager.trigger(SyncState.FAILED_DOWNLOADS);
-		
+
 		for(String file : failed_download_manager.getFiles())
 		{
 			E621Image img = null;
