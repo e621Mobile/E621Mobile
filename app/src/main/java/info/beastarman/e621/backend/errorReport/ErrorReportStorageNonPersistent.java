@@ -7,17 +7,17 @@ import java.util.ArrayList;
  */
 public class ErrorReportStorageNonPersistent implements ErrorReportStorageInterface
 {
-	ArrayList<String> reports = new ArrayList<String>();
+	ArrayList<ErrorReportReport> reports = new ArrayList<ErrorReportReport>();
 
 	@Override
-	public void addReport(String report)
+	public void addReport(ErrorReportReport report)
 	{
 		reports.add(report);
 	}
 
 	@Override
-	public ArrayList<String> getReports()
+	public ArrayList<ErrorReportReport> getReports()
 	{
-		return (ArrayList<String>) reports.clone();
+		return (ArrayList<ErrorReportReport>) reports.clone();
 	}
 }

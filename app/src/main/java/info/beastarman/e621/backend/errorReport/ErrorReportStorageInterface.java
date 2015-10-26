@@ -7,7 +7,7 @@ import java.util.ArrayList;
  */
 public interface ErrorReportStorageInterface
 {
-	void addReport(String report);
+	void addReport(ErrorReportReport report);
 
-	ArrayList<String> getReports();
+	ArrayList<ErrorReportReport> getReports();
 }
