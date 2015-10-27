@@ -2,8 +2,11 @@ package info.beastarman.e621.frontend;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -59,13 +62,13 @@ public class ErrorReportMessagesActivity extends BaseActivity
 	{
 		LinearLayout messageArea = (LinearLayout) findViewById(R.id.messageArea);
 
-		messageArea.addView(getMessageView("Original report:\n\n"+report.text,true));
+		messageArea.addView(getMessageView("Original report:\n\n" + report.text, true));
 
 		if(messages != null)
 		{
 			for(ErrorReportMessage message : messages.getMessages())
 			{
-				messageArea.addView(getMessageView(message.text,true));
+				messageArea.addView(getMessageView(message.text,message.author.equals("user")));
 			}
 		}
 	}
@@ -77,5 +80,36 @@ public class ErrorReportMessagesActivity extends BaseActivity
 		((TextView)v.findViewById(R.id.message)).setText(message);
 
 		return v;
+	}
+
+	public void sendMessage(final View _)
+	{
+		final String text = ((EditText)findViewById(R.id.messageInput)).getText().toString();
+		LinearLayout messageArea = (LinearLayout) findViewById(R.id.messageArea);
+
+		final View v = getMessageView(text, true);
+
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					e621.getErrorReportManager().sendMessage(report.hash,text);
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+
+					((ViewGroup)v.getParent()).removeView(v);
+
+					Toast.makeText(ErrorReportMessagesActivity.this,"COuld not send emssage",Toast.LENGTH_SHORT).show();
+				}
+			}
+		}).start();
+
+		messageArea.addView(v);
+		((EditText)findViewById(R.id.messageInput)).setText("");
 	}
 }

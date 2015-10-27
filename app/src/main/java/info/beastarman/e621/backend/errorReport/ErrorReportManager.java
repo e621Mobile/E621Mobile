@@ -152,4 +152,9 @@ public class ErrorReportManager
 	{
 		return api.getMessages(hash);
 	}
+
+	public void sendMessage(String hash, String text) throws IOException
+	{
+		api.addMessage(hash,text,"user");
+	}
 }
