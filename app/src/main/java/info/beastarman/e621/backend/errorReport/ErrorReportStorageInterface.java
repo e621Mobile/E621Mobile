@@ -14,4 +14,6 @@ public interface ErrorReportStorageInterface
 	int getLastMessageID(String reportHash);
 
 	void updateLastMessageID(String reportHash, int messageID);
+	
+	ErrorReportReport getReport(String reportHash);
 }

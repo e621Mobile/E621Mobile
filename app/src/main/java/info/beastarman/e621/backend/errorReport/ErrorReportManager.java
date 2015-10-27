@@ -130,10 +130,26 @@ public class ErrorReportManager
 			@Override
 			public int compare(ErrorReportReport a, ErrorReportReport b)
 			{
-				return (int) (b.time.getTime() - a.time.getTime());
+				long _a = 0;
+				long _b = 0;
+
+				if(a.time != null) _a = a.time.getTime();
+				if(b.time != null) _b = b.time.getTime();
+
+				return (int) (_b - _a);
 			}
 		});
 
 		return ret;
+	}
+
+	public ErrorReportReport getReport(String reportHash)
+	{
+		return errorReportStorage.getReport(reportHash);
+	}
+
+	public ErrorReportGetMessagesResponse getMessages(String hash) throws IOException
+	{
+		return api.getMessages(hash);
 	}
 }

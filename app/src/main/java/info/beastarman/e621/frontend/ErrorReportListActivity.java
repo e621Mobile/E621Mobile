@@ -1,5 +1,6 @@
 package info.beastarman.e621.frontend;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
@@ -57,6 +58,18 @@ public class ErrorReportListActivity extends BaseActivity
 
 		if(report.time != null) ((TextView)v.findViewById(R.id.date)).setText(DATE_FORMAT.format(report.time));
 		else v.findViewById(R.id.date).setVisibility(View.GONE);
+
+		v.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				Intent i = new Intent(ErrorReportListActivity.this,ErrorReportMessagesActivity.class);
+				i.putExtra(ErrorReportMessagesActivity.REPORT_HASH,report.hash);
+
+				startActivity(i);
+			}
+		});
 
 		new Thread(new Runnable()
 		{

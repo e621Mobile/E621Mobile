@@ -187,6 +187,37 @@ public class ErrorReportStorage implements ErrorReportStorageInterface
 		}
 	}
 
+	@Override
+	public ErrorReportReport getReport(String reportHash)
+	{
+		try
+		{
+			File f = new File(basePath,reportHash);
+
+			if(!f.exists()) return null;
+
+			InputStream is = new BufferedInputStream(new FileInputStream(f));
+			JSONObject jsonObject = new JSONObject(IOUtils.toString(is));
+			is.close();
+
+			return new ErrorReportReport(jsonObject);
+		}
+		catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch(JSONException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
 	private JSONObject generateJsonObject(ErrorReportReport report)
 	{
 		return generateJsonObject(report,0);
@@ -203,6 +234,7 @@ public class ErrorReportStorage implements ErrorReportStorageInterface
 			jsonObject.put("text",report.text);
 			jsonObject.put("log",report.log);
 			jsonObject.put("hash",report.hash);
+			jsonObject.put("time",DATE_FORMAT.format(report.time));
 			jsonObject.put("lastMessageID",lastMessageID);
 
 			JSONArray jsonArray = new JSONArray();

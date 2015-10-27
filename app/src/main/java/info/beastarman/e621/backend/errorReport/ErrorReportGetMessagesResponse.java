@@ -44,4 +44,9 @@ public class ErrorReportGetMessagesResponse extends ErrorReportResponse
 			}
 		}
 	}
+	
+	public ArrayList<ErrorReportMessage> getMessages()
+	{
+		return messages;
+	}
 }
