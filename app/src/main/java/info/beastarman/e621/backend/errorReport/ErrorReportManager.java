@@ -156,5 +156,9 @@ public class ErrorReportManager
 	public void sendMessage(String hash, String text) throws IOException
 	{
 		api.addMessage(hash,text,"user");
+
+		ErrorReportGetMessagesResponse response = api.getMessages(hash);
+
+		errorReportStorage.updateLastMessageID(hash, response.maxId);
 	}
 }

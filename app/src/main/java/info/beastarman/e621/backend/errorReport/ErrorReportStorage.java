@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -234,7 +235,7 @@ public class ErrorReportStorage implements ErrorReportStorageInterface
 			jsonObject.put("text",report.text);
 			jsonObject.put("log",report.log);
 			jsonObject.put("hash",report.hash);
-			jsonObject.put("time",DATE_FORMAT.format(report.time));
+			jsonObject.put("time",DATE_FORMAT.format(report.time!=null?report.time:new Date()));
 			jsonObject.put("lastMessageID",lastMessageID);
 
 			JSONArray jsonArray = new JSONArray();

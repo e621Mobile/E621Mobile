@@ -1,6 +1,7 @@
 package info.beastarman.e621.frontend;
 
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -77,7 +78,11 @@ public class ErrorReportMessagesActivity extends BaseActivity
 	{
 		View v = getLayoutInflater().inflate(R.layout.activity_error_report_messages_item_layout,null,false);
 
-		((TextView)v.findViewById(R.id.message)).setText(message);
+		TextView messageView = ((TextView)v.findViewById(R.id.message));
+
+		messageView.setText(message);
+
+		if(fromUser) messageView.setGravity(Gravity.RIGHT);
 
 		return v;
 	}
