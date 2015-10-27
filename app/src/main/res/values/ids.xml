@@ -9,6 +9,7 @@
     <item type="id" name="wrapper"/>
     <item type="id" name="DTextRules"/>
     <item type="id" name="syncNotificationId"/>
+    <item type="id" name="newMessageNotificationId"/>
     <item type="id" name="touchImageView"/>
     <item type="id" name="focusableRelativeLayout"/>
 </resources>

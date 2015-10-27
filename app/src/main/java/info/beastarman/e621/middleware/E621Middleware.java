@@ -1,6 +1,7 @@
 package info.beastarman.e621.middleware;
 
 import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
@@ -22,6 +23,7 @@ import android.os.FileObserver;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -67,6 +69,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
+import info.beastarman.e621.R;
 import info.beastarman.e621.api.E621;
 import info.beastarman.e621.api.E621Comment;
 import info.beastarman.e621.api.E621Image;
@@ -88,7 +91,9 @@ import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 import info.beastarman.e621.backend.SingleUseFileStorage;
 import info.beastarman.e621.backend.TemporaryFileInputStream;
 import info.beastarman.e621.backend.errorReport.ErrorReportManager;
+import info.beastarman.e621.backend.errorReport.ErrorReportMessage;
 import info.beastarman.e621.backend.errorReport.ErrorReportReport;
+import info.beastarman.e621.frontend.MainActivity;
 import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.views.MediaInputStreamPlayer;
 import info.beastarman.e621.views.StepsProgressDialog;
@@ -2985,6 +2990,8 @@ public class E621Middleware extends E621 {
 
 		getErrorReportManager().sendPendingReports();
 
+		syncMessages();
+
 		eventManager.trigger(SyncState.FAILED_DOWNLOADS);
 
 		for(String file : failed_download_manager.getFiles())
@@ -3179,6 +3186,36 @@ public class E621Middleware extends E621 {
 		isInterruptTriggerEnabled = true;
 		
 		triggerInterruptedSearchEvents();
+	}
+
+	public void syncMessages()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				ArrayList<ErrorReportMessage> newMessages = getErrorReportManager().updateUnreadMessages();
+
+				for(ErrorReportMessage message : newMessages)
+				{
+					NotificationCompat.Builder mBuilder =
+							new NotificationCompat.Builder(ctx)
+								.setSmallIcon(R.drawable.ic_launcher)
+								.setContentTitle("New reply on report")
+								.setContentText(message.text);
+
+					Intent intent = new Intent(ctx, MainActivity.class);
+					PendingIntent resultPendingIntent = PendingIntent.getActivity(ctx, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+					mBuilder.setContentIntent(resultPendingIntent);
+
+					NotificationManager mNotifyMgr = (NotificationManager) ctx.getSystemService(ctx.NOTIFICATION_SERVICE);
+
+					mNotifyMgr.notify(message.reportHash,R.id.newMessageNotificationId, mBuilder.build());
+				}
+			}
+		}).start();
 	}
 	
 	public void backup()

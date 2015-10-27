@@ -13,6 +13,7 @@ public class ErrorReportMessage
 	public String author;
 	public int local_id;
 	public Date time;
+	public String reportHash = null;
 
 	private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-d HH:mm:ss.SZZZZZ", Locale.US);
 

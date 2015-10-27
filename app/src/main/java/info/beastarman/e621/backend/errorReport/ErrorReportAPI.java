@@ -55,7 +55,7 @@ public class ErrorReportAPI
 
 		HttpGet get = new HttpGet(uri);
 
-		return new ErrorReportGetMessagesResponse(client.<JSONObject>execute(get, new JsonObjectResponseHandler()));
+		return new ErrorReportGetMessagesResponse(client.<JSONObject>execute(get, new JsonObjectResponseHandler()), report);
 	}
 
 	public ErrorReportResponse addMessage(String report, String message, String author) throws IOException

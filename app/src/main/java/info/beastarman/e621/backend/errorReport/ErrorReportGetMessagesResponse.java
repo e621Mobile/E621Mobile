@@ -12,8 +12,14 @@ import java.util.ArrayList;
 public class ErrorReportGetMessagesResponse extends ErrorReportResponse
 {
 	ArrayList<ErrorReportMessage> messages;
+	int maxId = 0;
 
 	public ErrorReportGetMessagesResponse(JSONObject jsonObject)
+	{
+		this(jsonObject,null);
+	}
+
+	public ErrorReportGetMessagesResponse(JSONObject jsonObject,String report)
 	{
 		super(jsonObject);
 
@@ -26,7 +32,10 @@ public class ErrorReportGetMessagesResponse extends ErrorReportResponse
 
 				for(int i=0; i<jsonArray.length(); i++)
 				{
-					messages.add(new ErrorReportMessage(jsonArray.getJSONObject(i)));
+					ErrorReportMessage m = new ErrorReportMessage(jsonArray.getJSONObject(i));
+					m.reportHash = report;
+					messages.add(m);
+					maxId = Math.max(maxId,m.local_id);
 				}
 			}
 			catch(JSONException e)

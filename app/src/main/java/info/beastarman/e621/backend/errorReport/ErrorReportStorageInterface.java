@@ -10,4 +10,8 @@ public interface ErrorReportStorageInterface
 	void addReport(ErrorReportReport report);
 
 	ArrayList<ErrorReportReport> getReports();
+
+	int getLastMessageID(String reportHash);
+
+	void updateLastMessageID(String reportHash, int messageID);
 }

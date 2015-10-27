@@ -120,4 +120,101 @@ public class ErrorReportStorage implements ErrorReportStorageInterface
 
 		return reports;
 	}
+
+	@Override
+	public int getLastMessageID(String reportHash)
+	{
+		try
+		{
+			File f = new File(basePath,reportHash);
+
+			if(!f.exists()) return 0;
+
+			InputStream is = new BufferedInputStream(new FileInputStream(f));
+			JSONObject jsonObject = new JSONObject(IOUtils.toString(is));
+			is.close();
+
+			return jsonObject.optInt("lastMessageID",0);
+		}
+		catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch(JSONException e)
+		{
+			e.printStackTrace();
+		}
+
+		return 0;
+	}
+
+	@Override
+	public void updateLastMessageID(String reportHash, int messageID)
+	{
+		try
+		{
+			File f = new File(basePath,reportHash);
+
+			if(!f.exists()) return;
+
+			InputStream is = new BufferedInputStream(new FileInputStream(f));
+			ErrorReportReport report = new ErrorReportReport(new JSONObject(IOUtils.toString(is)));
+			is.close();
+
+			OutputStream out = new BufferedOutputStream(new FileOutputStream(f));
+			out.write(generateJsonObject(report,messageID).toString().getBytes());
+			out.close();
+		}
+		catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch(JSONException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private JSONObject generateJsonObject(ErrorReportReport report)
+	{
+		return generateJsonObject(report,0);
+	}
+
+	private JSONObject generateJsonObject(ErrorReportReport report, int lastMessageID)
+	{
+		JSONObject jsonObject = null;
+
+		try
+		{
+			jsonObject = new JSONObject();
+
+			jsonObject.put("text",report.text);
+			jsonObject.put("log",report.log);
+			jsonObject.put("hash",report.hash);
+			jsonObject.put("lastMessageID",lastMessageID);
+
+			JSONArray jsonArray = new JSONArray();
+
+			for(String tag : report.tags)
+			{
+				jsonArray.put(tag);
+			}
+
+			jsonObject.put("tags",jsonArray);
+		}
+		catch(JSONException e)
+		{
+			e.printStackTrace();
+		}
+
+		return jsonObject;
+	}
 }

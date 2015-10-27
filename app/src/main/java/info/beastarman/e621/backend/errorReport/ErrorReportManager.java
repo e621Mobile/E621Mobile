@@ -1,7 +1,5 @@
 package info.beastarman.e621.backend.errorReport;
 
-import android.util.Log;
-
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.File;
@@ -9,7 +7,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import info.beastarman.e621.backend.PersistentHttpClient;
-import info.beastarman.e621.middleware.E621Middleware;
 
 /**
  * Created by beastarman on 10/17/2015.
@@ -19,7 +16,7 @@ public class ErrorReportManager
 	private static ErrorReportAPI api = new ErrorReportAPI(new PersistentHttpClient(new DefaultHttpClient(),3), "http://beastarman.info/report/");
 	private String app_id;
 	private String user = "user";
-	ErrorReportStorageInterface errorReportStorage = new ErrorReportStorageNonPersistent();
+	ErrorReportStorageInterface errorReportStorage;
 	ErrorReportPendingStorageInterface pendingStorageInterface;
 
 	public ErrorReportManager(String app_id, File basePath)
@@ -41,10 +38,6 @@ public class ErrorReportManager
 				report.hash = response.getHash();
 
 				errorReportStorage.addReport(report);
-			}
-			else
-			{
-				Log.d(E621Middleware.LOG_TAG, "Oh crap");
 			}
 		}
 		catch(IOException e)
@@ -79,5 +72,31 @@ public class ErrorReportManager
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public ArrayList<ErrorReportMessage> updateUnreadMessages()
+	{
+		ArrayList<ErrorReportReport> reports = errorReportStorage.getReports();
+		ArrayList<ErrorReportMessage> newMessages = new ArrayList<ErrorReportMessage>();
+
+		for(ErrorReportReport report : reports)
+		{
+			try
+			{
+				ErrorReportGetMessagesResponse response = api.getMessages(report.hash);
+
+				int lastId = errorReportStorage.getLastMessageID(report.hash);
+
+				newMessages.addAll(response.messages.subList(lastId,response.maxId));
+
+				errorReportStorage.updateLastMessageID(report.hash, response.maxId);
+			}
+			catch(IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+
+		return newMessages;
 	}
 }
