@@ -130,4 +130,6 @@
         \n\n
         Stability improvements on image screen
     </string>
+    <string name="errorReportListHeader">Below is a list of all your previous Error Reports. Click on any of them to send a message to the developer</string>
+    <string name="noReports">No reports made yet</string>
 </resources>

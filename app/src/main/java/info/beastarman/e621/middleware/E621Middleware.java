@@ -3195,7 +3195,7 @@ public class E621Middleware extends E621 {
 			@Override
 			public void run()
 			{
-				ArrayList<ErrorReportMessage> newMessages = getErrorReportManager().updateUnreadMessages();
+				ArrayList<ErrorReportMessage> newMessages = getErrorReportManager().getAndUpdateUnreadMessages();
 
 				for(ErrorReportMessage message : newMessages)
 				{
@@ -3212,7 +3212,7 @@ public class E621Middleware extends E621 {
 
 					NotificationManager mNotifyMgr = (NotificationManager) ctx.getSystemService(ctx.NOTIFICATION_SERVICE);
 
-					mNotifyMgr.notify(message.reportHash,R.id.newMessageNotificationId, mBuilder.build());
+					mNotifyMgr.notify(message.reportHash, R.id.newMessageNotificationId, mBuilder.build());
 				}
 			}
 		}).start();

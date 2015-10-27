@@ -157,6 +157,10 @@
             android:summary="Send me usage info and a description of whatever problems you are facing"
             android:key="sendErrorReport"/>
         <Preference
+            android:title="Reports and replies"
+            android:summary="Take a look at all your previous reports or talk to the dev"
+            android:key="reportsAndReplies"/>
+        <Preference
             android:title="Change Log"
             android:summary="See what is new on this and previous versions"
             android:key="changeLog"/>

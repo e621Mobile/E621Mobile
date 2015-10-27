@@ -15,7 +15,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * Created by beastarman on 10/26/2015.
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 public class ErrorReportStorage implements ErrorReportStorageInterface
 {
 	File basePath;
+	private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-d HH:mm:ss.SZZZZZ", Locale.US);
 
 	public ErrorReportStorage(File basePath)
 	{
@@ -40,6 +43,7 @@ public class ErrorReportStorage implements ErrorReportStorageInterface
 			jsonObject.put("text",report.text);
 			jsonObject.put("log",report.log);
 			jsonObject.put("hash",report.hash);
+			jsonObject.put("time",DATE_FORMAT.format(report.time));
 
 			JSONArray jsonArray = new JSONArray();
 

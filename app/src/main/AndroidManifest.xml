@@ -87,6 +87,11 @@
             android:exported="true"
             android:windowSoftInputMode="stateHidden" >
         </activity>
+        <activity
+            android:name="info.beastarman.e621.frontend.ErrorReportListActivity"
+            android:label="Reports"
+            android:windowSoftInputMode="stateHidden"
+            android:parentActivityName="info.beastarman.e621.frontend.SettingsActivity"/>
 
         <receiver
             android:name="info.beastarman.e621.middleware.E621SyncReciever"

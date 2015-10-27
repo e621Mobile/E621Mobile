@@ -486,6 +486,19 @@ public class SettingsActivity extends PreferenceActivity
 				}
 			});
 
+			Preference reportsAndReplies = (Preference) getPreferenceManager().findPreference("reportsAndReplies");
+			reportsAndReplies.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference arg0)
+				{
+					Intent intent = new Intent(activity.getApplicationContext(), ErrorReportListActivity.class);
+					startActivity(intent);
+
+					return true;
+				}
+			});
+
 			Preference sendErrorReport = (Preference) getPreferenceManager().findPreference("sendErrorReport");
 			sendErrorReport.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 			{

@@ -74,7 +74,12 @@ public class ErrorReportManager
 		}
 	}
 
-	public ArrayList<ErrorReportMessage> updateUnreadMessages()
+	public ArrayList<ErrorReportMessage> getAndUpdateUnreadMessages()
+	{
+		return getUnreadMessages(true);
+	}
+
+	public ArrayList<ErrorReportMessage> getUnreadMessages(boolean update)
 	{
 		ArrayList<ErrorReportReport> reports = errorReportStorage.getReports();
 		ArrayList<ErrorReportMessage> newMessages = new ArrayList<ErrorReportMessage>();
@@ -89,7 +94,7 @@ public class ErrorReportManager
 
 				newMessages.addAll(response.messages.subList(lastId,response.maxId));
 
-				errorReportStorage.updateLastMessageID(report.hash, response.maxId);
+				if(update) errorReportStorage.updateLastMessageID(report.hash, response.maxId);
 			}
 			catch(IOException e)
 			{
@@ -98,5 +103,28 @@ public class ErrorReportManager
 		}
 
 		return newMessages;
+	}
+
+	public int hasUnreadMessages(String report)
+	{
+		int ret = 0;
+
+		try
+		{
+			ErrorReportGetMessagesResponse response = api.getMessages(report);
+
+			ret = response.maxId - errorReportStorage.getLastMessageID(report);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return ret;
+	}
+
+	public ArrayList<ErrorReportReport> getReports()
+	{
+		return errorReportStorage.getReports();
 	}
 }
