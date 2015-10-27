@@ -18,21 +18,26 @@
         android:layout_alignParentEnd="true"
         android:padding="10dp"/>
 
-    <LinearLayout
-        android:orientation="vertical"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/textView3"
-        android:id="@+id/reportsLayout">
+        android:layout_below="@+id/textView3">
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/reportsLayout">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="@string/noReports"
-            android:id="@+id/noReportsText"
-            android:layout_gravity="center_horizontal"
-            android:textColor="@color/white"
-            android:paddingTop="20dp"/>
-    </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/noReports"
+                    android:id="@+id/noReportsText"
+                    android:layout_gravity="center_horizontal"
+                    android:textColor="@color/white"
+                    android:paddingTop="20dp"/>
+            </LinearLayout>
+    </ScrollView>
+
 </RelativeLayout>

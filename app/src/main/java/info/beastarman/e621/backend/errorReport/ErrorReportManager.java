@@ -1,19 +1,17 @@
 package info.beastarman.e621.backend.errorReport;
 
-import org.apache.http.impl.client.DefaultHttpClient;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-
-import info.beastarman.e621.backend.PersistentHttpClient;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Created by beastarman on 10/17/2015.
  */
 public class ErrorReportManager
 {
-	private static ErrorReportAPI api = new ErrorReportAPI(new PersistentHttpClient(new DefaultHttpClient(),3), "http://beastarman.info/report/");
+	private static ErrorReportAPI api = new ErrorReportAPI("http://beastarman.info/report/");
 	private String app_id;
 	private String user = "user";
 	ErrorReportStorageInterface errorReportStorage;
@@ -125,6 +123,17 @@ public class ErrorReportManager
 
 	public ArrayList<ErrorReportReport> getReports()
 	{
-		return errorReportStorage.getReports();
+		ArrayList<ErrorReportReport> ret = errorReportStorage.getReports();
+
+		Collections.sort(ret, new Comparator<ErrorReportReport>()
+		{
+			@Override
+			public int compare(ErrorReportReport a, ErrorReportReport b)
+			{
+				return (int) (b.time.getTime() - a.time.getTime());
+			}
+		});
+
+		return ret;
 	}
 }

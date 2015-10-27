@@ -15,7 +15,7 @@ public class ErrorReportMessage
 	public Date time;
 	public String reportHash = null;
 
-	private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-d HH:mm:ss.SZZZZZ", Locale.US);
+	private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-d HH:mm:ss.SSSSSSZZZZZ", Locale.US);
 
 	public ErrorReportMessage(JSONObject jsonObject)
 	{

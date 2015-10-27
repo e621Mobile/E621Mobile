@@ -5,6 +5,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 
@@ -14,19 +15,23 @@ import java.util.LinkedList;
 import java.util.List;
 
 import info.beastarman.e621.backend.JsonObjectResponseHandler;
+import info.beastarman.e621.backend.PersistentHttpClient;
 
 /**
  * Created by beastarman on 10/17/2015.
  */
 public class ErrorReportAPI
 {
-	private HttpClient client;
 	private String base_url;
 
-	public ErrorReportAPI(HttpClient client, String base_url)
+	public ErrorReportAPI(String base_url)
 	{
-		this.client = client;
 		this.base_url = base_url;
+	}
+
+	HttpClient getClient()
+	{
+		return new PersistentHttpClient(new DefaultHttpClient(),3);
 	}
 
 	public ErrorReportReportResponse report(String app, String text, String log, List<String> tags) throws IOException
@@ -46,7 +51,7 @@ public class ErrorReportAPI
 		HttpPost post = new HttpPost(uri);
 		post.setEntity(new UrlEncodedFormEntity(params));
 
-		return new ErrorReportReportResponse(client.<JSONObject>execute(post, new JsonObjectResponseHandler()));
+		return new ErrorReportReportResponse(getClient().<JSONObject>execute(post, new JsonObjectResponseHandler()));
 	}
 
 	public ErrorReportGetMessagesResponse getMessages(String report) throws IOException
@@ -55,7 +60,7 @@ public class ErrorReportAPI
 
 		HttpGet get = new HttpGet(uri);
 
-		return new ErrorReportGetMessagesResponse(client.<JSONObject>execute(get, new JsonObjectResponseHandler()), report);
+		return new ErrorReportGetMessagesResponse(getClient().<JSONObject>execute(get, new JsonObjectResponseHandler()), report);
 	}
 
 	public ErrorReportResponse addMessage(String report, String message, String author) throws IOException
@@ -70,6 +75,6 @@ public class ErrorReportAPI
 		HttpPost post = new HttpPost(uri);
 		post.setEntity(new UrlEncodedFormEntity(params));
 
-		return new ErrorReportResponse(client.<JSONObject>execute(post, new JsonObjectResponseHandler()));
+		return new ErrorReportResponse(getClient().<JSONObject>execute(post, new JsonObjectResponseHandler()));
 	}
 }
