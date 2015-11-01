@@ -31,8 +31,17 @@ public class TemporaryFileInputStream extends FileInputStream
 		{
 			if(file != null)
 			{
-				file.delete();
+				final File deleteme = file;
 				file = null;
+
+				new Thread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						deleteme.delete();
+					}
+				}).start();
 			}
 		}
 	}
