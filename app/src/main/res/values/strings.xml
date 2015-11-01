@@ -139,6 +139,13 @@
         \n\n
         Feedback reply system. Now you can get replies from your feedback and error reports. Check it out at the settings screen.
     </string>
+
+    <string name="version_26">Fixed tagging and local search problems.
+        \n\n
+        Greatly reduced memory usage.
+        \n\n
+        Report reply system.
+    </string>
     <string name="errorReportListHeader">Below is a list of all your previous Error Reports. Click on any of them to send a message to the developer</string>
     <string name="noReports">No reports made yet</string>
 </resources>
