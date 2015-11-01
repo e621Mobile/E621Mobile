@@ -46,6 +46,8 @@
 		Developed by Douglas Vanny Bento (me@beastarman.info)
     </string>
     <string name="changelog">
+        Version 0.2a.10: Fixed tagging and local search problems. Greatly reduced memory usage. Report reply system.
+        \n\n
         Version 0.2a.9 beta: Full Video Playback Support. Memory usage reduction. Cache fixes.
         \n\n
         Version 0.2a.6: Video Playback. Disable Sync or set custom interval. Sharing.
@@ -129,6 +131,13 @@
         Reduced memory usage further
         \n\n
         Stability improvements on image screen
+    </string>
+
+    <string name="version_25">Beta Updates:
+        \n
+        Fixed serious tagging problem. Update metadata and local search and image tags should work again.
+        \n\n
+        Feedback reply system. Now you can get replies from your feedback and error reports. Check it out at the settings screen.
     </string>
     <string name="errorReportListHeader">Below is a list of all your previous Error Reports. Click on any of them to send a message to the developer</string>
     <string name="noReports">No reports made yet</string>

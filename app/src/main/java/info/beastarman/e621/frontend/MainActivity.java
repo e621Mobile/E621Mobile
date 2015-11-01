@@ -402,6 +402,9 @@ public class MainActivity extends SlideMenuBaseActivity
 			case 24:
 				message = getString(R.string.version_24);
 				break;
+			case 25:
+				message = getString(R.string.version_25);
+				break;
 			default:
 				break;
 		}
