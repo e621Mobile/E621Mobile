@@ -1618,13 +1618,9 @@ public class E621Middleware extends E621 {
         o2.inSampleSize = scale;
         Bitmap bitmap_temp = BitmapFactory.decodeStream(in, null, o2);
 
-        try {
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+		in.close();
 
-        if (bitmap_temp == null)
+		if (bitmap_temp == null)
         {
             return null;
         }
@@ -1685,13 +1681,9 @@ public class E621Middleware extends E621 {
         o2.inSampleSize = scale;
         Bitmap bitmap_temp = BitmapFactory.decodeStream(in, null, o2);
 
-        try {
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+		in.close();
 
-        if (bitmap_temp == null)
+		if (bitmap_temp == null)
         {
             return null;
         }
@@ -3150,14 +3142,7 @@ public class E621Middleware extends E621 {
 				        o2.inSampleSize=scale;
 				        Bitmap bitmap_temp = BitmapFactory.decodeStream(temporaryFileInputStream, null, o2);
 
-						try
-						{
-							temporaryFileInputStream.close();
-						}
-						catch(IOException e)
-						{
-							e.printStackTrace();
-						}
+						temporaryFileInputStream.close();
 
 						Bitmap ret = Bitmap.createScaledBitmap(bitmap_temp,width,height,false);
 				        

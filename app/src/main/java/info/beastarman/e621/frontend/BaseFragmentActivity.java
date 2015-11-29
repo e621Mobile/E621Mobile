@@ -261,13 +261,7 @@ public class BaseFragmentActivity extends FragmentActivity implements UncaughtEx
 		o2.inSampleSize=scale;
 		Bitmap bitmap_temp = BitmapFactory.decodeStream(in, null, o2);
 
-		try
-		{
-			in.close();
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		in.close();
 
 		if(width == bitmap_temp.getWidth() && height == bitmap_temp.getHeight())
 		{

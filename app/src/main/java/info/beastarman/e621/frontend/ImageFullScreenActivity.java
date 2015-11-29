@@ -235,12 +235,24 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		});
 	}
 
+	public void setShareIntent(final Intent i)
+	{
+		runOnUiThread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				mShareActionProvider.setShareIntent(i);
+			}
+		});
+	}
+
     @Override
     public void setTitle(CharSequence title)
     {
         super.setTitle(title);
 
-        if(mShareActionProvider != null) mShareActionProvider.setShareIntent(shareIntent());
+        if(mShareActionProvider != null) setShareIntent(shareIntent());
     }
 
     private void setupTabHost(final TabHost tabHost)
@@ -321,7 +333,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 		getMenuInflater().inflate(R.menu.image_full_screen, menu);
 
         mShareActionProvider = (ShareActionProvider) menu.findItem(R.id.action_share).getActionProvider();
-        mShareActionProvider.setShareIntent(shareIntent());
+        setShareIntent(shareIntent());
 
 		mMenu = menu;
 
@@ -456,7 +468,7 @@ public class ImageFullScreenActivity extends BaseFragmentActivity
 	{
         if(mShareActionProvider != null)
         {
-            mShareActionProvider.setShareIntent(shareIntent());
+            setShareIntent(shareIntent());
         }
 
 		new Thread(new Runnable()
