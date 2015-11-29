@@ -15,17 +15,46 @@ public class TemporaryFileInputStream extends FileInputStream
 		this.file = file;
 	}
 
+	long mark = -1;
+
+	@Override
+	public boolean markSupported() {
+		return true;
+	}
+
+	@Override
+	public synchronized void mark(int readlimit) {
+		try {
+			mark = getChannel().position();
+		} catch (IOException ex)
+		{
+			mark = -1;
+		}
+	}
+
+	@Override
+	public synchronized void reset() throws IOException {
+		if (mark == -1) {
+			throw new IOException("not marked");
+		}
+		getChannel().position(mark);
+	}
+
 	public void resetInputStream() throws IOException
 	{
 		getChannel().position(0);
 	}
 
 	@Override
-	public void close() throws IOException
+	public void close()
 	{
 		try
 		{
 			super.close();
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
 		}
 		finally
 		{
