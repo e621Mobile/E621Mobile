@@ -1,5 +1,7 @@
 package info.beastarman.e621.backend;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,10 +36,15 @@ public class TemporaryFileInputStream extends FileInputStream
 
 	@Override
 	public synchronized void reset() throws IOException {
-		if (mark == -1) {
-			throw new IOException("not marked");
+		if (mark == -1)
+		{
+			Log.w("TemporaryFileInputStream","Not marked");
+			getChannel().position(0);
 		}
-		getChannel().position(mark);
+		else
+		{
+			getChannel().position(mark);
+		}
 	}
 
 	public void resetInputStream() throws IOException
