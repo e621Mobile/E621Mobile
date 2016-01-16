@@ -211,6 +211,8 @@ public class DonationManager
 			ArrayList<Donator> donators = retrieveDonators();
 			monthDonations = 0f;
 
+			if(donators == null) return 0f;
+
 			for(Donator donator : donators)
 			{
 				monthDonations += donator.recent_total;

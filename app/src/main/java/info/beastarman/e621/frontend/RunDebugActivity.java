@@ -18,7 +18,7 @@ public class RunDebugActivity extends Activity
 
         if(isDebuggable)
         {
-			intent = new Intent(this,ErrorReportListActivity.class);
+			//intent = new Intent(this,ErrorReportListActivity.class);
         }
 
         startActivity(intent);
