@@ -1,0 +1,11 @@
+[#Bug Fix - Crash on Donation Screen]
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'origin/master'.
+#
+# Changes to be committed:
+#	modified:   app/app.iml
+#	modified:   app/src/main/java/info/beastarman/e621/backend/DonationManager.java
+#	modified:   app/src/main/java/info/beastarman/e621/frontend/RunDebugActivity.java
+#

@@ -255,6 +255,17 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		if(max_size > 0) accessWatcher.remove(new String[]{id});
 	}
 
+	@Override
+	public boolean hasSpaceLeft()
+	{
+		if(max_size < 1)
+		{
+			return true;
+		}
+
+		return totalSize() < max_size;
+	}
+
 	public void removeFiles(final String[] ids)
 	{
 		lock.write(new Runnable() {

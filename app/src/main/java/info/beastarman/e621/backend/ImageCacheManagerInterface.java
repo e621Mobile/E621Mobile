@@ -6,24 +6,26 @@ import java.util.Locale;
 
 public interface ImageCacheManagerInterface {
 
-	public static final SimpleDateFormat dateFormat = new SimpleDateFormat(
+	SimpleDateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 
-	public abstract boolean hasFile(String id);
+	boolean hasFile(String id);
 
-	public abstract InputStream getFile(String id);
+	InputStream getFile(String id);
 
-	public abstract boolean createOrUpdate(String id, InputStream in);
+	boolean createOrUpdate(String id, InputStream in);
 
-	public abstract void removeFile(String id);
+	void removeFile(String id);
 
-	public abstract void clean();
+	boolean hasSpaceLeft();
 
-	public abstract long totalSize();
+	void clean();
 
-	public abstract String[] fileList();
+	long totalSize();
 
-	public void setMaxSize(long maxSize);
+	String[] fileList();
+
+	void setMaxSize(long maxSize);
 
 	void removeFiles(String[] ids);
 

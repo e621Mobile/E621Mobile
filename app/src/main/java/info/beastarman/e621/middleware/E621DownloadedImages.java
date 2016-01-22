@@ -17,9 +17,11 @@ import java.util.List;
 import info.beastarman.e621.api.E621Image;
 import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621TagAlias;
+import info.beastarman.e621.backend.CombinedImageCacheManager;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.backend.ImageCacheManager;
+import info.beastarman.e621.backend.ImageCacheManagerInterface;
 import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 
@@ -27,7 +29,7 @@ public class E621DownloadedImages
 {
 	File base_path;
 	File image_tag_file;
-	ImageCacheManager images;
+	ImageCacheManagerInterface images;
 	public E621TagDatabase tags;
 
 	int version = 1;
@@ -92,8 +94,11 @@ public class E621DownloadedImages
 	{
 		this.base_path = base_path;
 		this.image_tag_file = new File(base_path,".image_tag.sqlite3");
-		this.images = new ImageCacheManager(ctx,base_path,0);
 		this.tags = new E621TagDatabase(ctx, new File(base_path,".tags.sqlite3"));
+
+		ArrayList<ImageCacheManagerInterface> managers = new ArrayList<ImageCacheManagerInterface>();
+		managers.add(new ImageCacheManager(ctx,base_path,0));
+		this.images = new CombinedImageCacheManager(managers);
 
 		dbHelper = new DatabaseHelper(ctx,image_tag_file);
 	}

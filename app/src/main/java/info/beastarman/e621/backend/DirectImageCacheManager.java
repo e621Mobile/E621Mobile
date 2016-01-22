@@ -46,8 +46,6 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 		File fTemp = new File(base_path,"singleUseCache/");
 		fTemp.mkdirs();
 		singleUseFileStorage = new SingleUseFileStorage(fTemp);
-
-		clean();
 	}
 
 	private File[] listFiles()
@@ -127,7 +125,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 			@Override
 			public void run()
 			{
-				ret.obj = getFileObj(id)!=null;
+				ret.obj = getFileObj(id) != null;
 			}
 		});
 
@@ -184,6 +182,8 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 	@Override
 	public boolean createOrUpdate(final String id, final InputStream in)
 	{
+		if(!hasSpaceLeft()) return false;
+
 		final boolean[] ret = new boolean[]{false};
 
 		getLock(id).write(new Runnable()
@@ -250,7 +250,7 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 
 		for(File f : listFiles())
 		{
-			ret.put(f.getName().split("\\s",2)[1],f.length());
+			ret.put(f.getName().split("\\s", 2)[1], f.length());
 		}
 
 		return ret;
@@ -261,41 +261,24 @@ public class DirectImageCacheManager implements ImageCacheManagerInterface
 	{
 		for(File f : listFiles())
 		{
-			removeFile(f.getName().split("\\s",2)[1]);
+			removeFile(f.getName().split("\\s", 2)[1]);
 		}
+	}
+
+	@Override
+	public boolean hasSpaceLeft()
+	{
+		if(max_size < 1)
+		{
+			return true;
+		}
+
+		return totalSize() < max_size;
 	}
 	
 	@Override
 	public void clean()
 	{
-		if(max_size < 1)
-		{
-			return;
-		}
-		
-		long size = totalSize();
-		long local_max_size = max_size;
-		
-		if(size > local_max_size)
-		{
-			final long remove_until = (long) Math.floor(max_size*0.8);
-
-			File[] files = listFiles();
-
-			Arrays.sort(files);
-
-			for(File f : files)
-			{
-				size -= f.length();
-
-				removeFile(f.getName().split("\\s",2)[1]);
-
-				if (size <= remove_until)
-				{
-					break;
-				}
-			}
-		}
 	}
 
 	@Override
