@@ -87,7 +87,7 @@ public class CombinedImageCacheManager implements ImageCacheManagerInterface
 	@Override
 	public long totalSize()
 	{
-		int total =  0;
+		long total =  0;
 
 		for(ImageCacheManagerInterface i : managers)
 		{

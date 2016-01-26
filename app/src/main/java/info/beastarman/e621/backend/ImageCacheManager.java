@@ -83,8 +83,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 		File fTemp = new File(base_path,"singleUseCache/");
 		fTemp.mkdirs();
 		singleUseFileStorage = new SingleUseFileStorage(fTemp);
-
-		clean();
 	}
 
 	@Override
@@ -173,6 +171,8 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 	@Override
 	public boolean createOrUpdate(final String id, final InputStream in)
 	{
+		if(!hasSpaceLeft()) return false;
+
 		final boolean[] ret = new boolean[]{false};
 		final File outputFile = new File(base_path, id);
 
@@ -221,10 +221,6 @@ public class ImageCacheManager implements ImageCacheManagerInterface
 				{
 					throwable.printStackTrace();
 					outputFile.delete();
-				}
-				finally
-				{
-					clean();
 				}
 			}
 		});
