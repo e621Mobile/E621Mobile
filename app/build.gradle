@@ -29,4 +29,5 @@ dependencies {
     compile 'com.google.android.gms:play-services:5.+'
     compile files('libs/commons-codec-1.9.jar')
     compile files('libs/commons-lang3-3.4.jar')
+    compile files('libs/gson-2.5.jar')
 }
