@@ -10,7 +10,7 @@ import java.util.Comparator;
  * Created by beastarman on 10/17/2015.
  */
 public class ErrorReportManager implements ErrorReportManagerInterface {
-	private static ErrorReportAPI api = new ErrorReportAPI("http://beastarman.info/report/");
+	private static ErrorReportAPI api = new ErrorReportAPI("");
 	private String app_id;
 	private String user = "user";
 	ErrorReportStorageInterface errorReportStorage;

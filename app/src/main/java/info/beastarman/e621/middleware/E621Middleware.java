@@ -453,7 +453,6 @@ public class E621Middleware extends E621 {
 	{
 		ArrayList<PendingTask> tasks = new ArrayList<PendingTask>();
 
-		tasks.add(getPendingTaskUpdateVideosWebmMp4());
 		tasks.add(getPendingTaskUpdateTagBase());
 
 		for (Iterator<PendingTask> it=tasks.iterator(); it.hasNext();)
@@ -465,46 +464,6 @@ public class E621Middleware extends E621 {
 		}
 
 		return tasks;
-	}
-
-	PendingTaskUpdateVideosWebmMp4 pendingTaskUpdateVideosWebmMp4 = null;
-
-	private PendingTaskUpdateVideosWebmMp4 getPendingTaskUpdateVideosWebmMp4()
-	{
-		if(pendingTaskUpdateVideosWebmMp4 == null)
-		{
-			pendingTaskUpdateVideosWebmMp4 = new PendingTaskUpdateVideosWebmMp4(this)
-			{
-				@Override
-				public boolean isNeeded()
-				{
-					boolean flag = settings.getBoolean(updateVideosWebmMp4, false);
-
-					if(!flag && e621.localSearch(0, 1, "type:webm").size() > 0)
-					{
-						return true;
-					}
-					else
-					{
-						if(!flag)
-						{
-							settings.edit().putBoolean(updateVideosWebmMp4, true).commit();
-						}
-
-						return false;
-					}
-				}
-
-				@Override
-				protected void onComplete()
-				{
-					settings.edit().putBoolean(updateVideosWebmMp4, true).commit();
-					super.onComplete();
-				}
-			};
-		}
-
-		return pendingTaskUpdateVideosWebmMp4;
 	}
 
 	PendingTask _pendingTaskUpdateTagBase = null;
@@ -909,21 +868,6 @@ public class E621Middleware extends E621 {
 		return settings.getInt("commentsSorting", DATE_ASC);
 	}
 
-    private String getWebmPreviewUrl(int id)
-    {
-        return "http://beastarman.info/media/E621Webm/thumb/"+id+".jpg";
-    }
-
-	private String getWebmSampleUrl(int id)
-	{
-		return "http://beastarman.info/media/E621Webm/image/"+id+".jpg";
-	}
-
-	private String getWebmVideoUrl(int id)
-	{
-		return "http://beastarman.info/media/E621Webm/video/"+id+".mp4";
-	}
-
 	@Override
 	public E621Image post__show(Integer id) throws IOException
 	{
@@ -934,21 +878,6 @@ public class E621Middleware extends E621 {
 		else
 		{
 			E621Image img = super.post__show(id);
-
-            if(img.file_ext.equals("webm"))
-            {
-                img.preview_url = getWebmPreviewUrl(img.id);
-                img.preview_height = 120;
-                img.preview_width = 120;
-
-                img.sample_url = getWebmSampleUrl(img.id);
-                img.sample_height = 480;
-                img.sample_width = 480;
-
-				img.file_url = getWebmVideoUrl(img.id);
-
-				img.file_ext = "mp4";
-            }
 			
 			e621ImageCache.put(img.id, img);
 			
@@ -962,31 +891,6 @@ public class E621Middleware extends E621 {
 		tags = prepareQuery(tags);
 		
 		E621Search ret = super.post__index(tags, page, limit);
-		
-		if(ret != null)
-		{
-			for(E621Image img : ret.images)
-			{
-                if(img.file_ext.equals("webm"))
-                {
-					img.preview_url = getWebmPreviewUrl(img.id);
-					img.preview_height = 120;
-					img.preview_width = 120;
-
-					img.sample_url = getWebmSampleUrl(img.id);
-                    img.sample_height = 480;
-                    img.sample_width = 480;
-
-					img.file_url = getWebmVideoUrl(img.id);
-
-					img.file_ext = "mp4";
-                }
-
-				e621ImageCache.put(img.id, img);
-			}
-			
-			searchCount.put(tags, ret.count);
-		}
 		
 		return ret;
 	}
@@ -2460,7 +2364,6 @@ public class E621Middleware extends E621 {
 
     public void generateWebmThumbnail(int id)
     {
-        webm_thumbnails.createOrUpdate(String.valueOf(id), getImageFromInternet(getWebmSampleUrl(id)));
     }
 
     public InputStream getDownloadedImageThumb(final E621DownloadedImage id)
