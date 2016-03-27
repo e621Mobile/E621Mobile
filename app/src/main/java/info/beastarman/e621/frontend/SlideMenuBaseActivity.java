@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
-import info.beastarman.e621.middleware.AndroidAppUpdater;
-import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
+import info.beastarman.e621.middleware.AndroidAppUpdaterInterface;
+import info.beastarman.e621.middleware.AndroidAppVersion;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.middleware.E621Middleware.InterruptedSearch;
 import info.beastarman.e621.views.StepsProgressDialog;
@@ -726,7 +726,7 @@ public class SlideMenuBaseActivity extends BaseActivity
 	
 	public void update(View v)
 	{
-		final AndroidAppUpdater appUpdater = e621.getAndroidAppUpdater();
+		final AndroidAppUpdaterInterface appUpdater = e621.getAndroidAppUpdater();
 		
 		new Thread(new Runnable()
 		{

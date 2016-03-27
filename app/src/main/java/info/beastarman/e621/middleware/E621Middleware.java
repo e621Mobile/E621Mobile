@@ -96,7 +96,6 @@ import info.beastarman.e621.backend.errorReport.ErrorReportManagerInterface;
 import info.beastarman.e621.backend.errorReport.ErrorReportMessage;
 import info.beastarman.e621.backend.errorReport.ErrorReportReport;
 import info.beastarman.e621.frontend.MainActivity;
-import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
 import info.beastarman.e621.views.MediaInputStreamPlayer;
 import info.beastarman.e621.views.StepsProgressDialog;
 
@@ -4408,21 +4407,14 @@ public class E621Middleware extends E621 {
 		return new ArrayList<String>(settings.getStringSet("mascots", new HashSet<String>(Arrays.asList("Narse"))));
 	}
 	
-	public AndroidAppUpdater getAndroidAppUpdater()
+	public AndroidAppUpdaterInterface getAndroidAppUpdater()
 	{
-		try
-		{
-			AndroidAppUpdater updater = new AndroidAppUpdater(new URL("http://beastarman.info/android/last_json/e621Mobile/"));
+        AndroidAppUpdaterInterface updater = new DummyAndroidAppUpdater();
 
-			updater.setBeta(betaReleases());
+        updater.setBeta(betaReleases());
 
-			return updater;
-		}
-		catch (MalformedURLException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+        return updater;
+    }
 	
 	public static enum UpdateState
 	{

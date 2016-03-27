@@ -21,29 +21,7 @@ import java.net.URL;
 
 import info.beastarman.e621.backend.PersistentHttpClient;
 
-public class AndroidAppUpdater
-{
-	public static class AndroidAppVersion
-	{
-		public int versionCode;
-		public String versionName;
-		public String apkURL;
-		public String domain;
-		
-		public AndroidAppVersion(int versionCode, String versionName, String apkURL, String domain)
-		{
-			this.versionCode = versionCode;
-			this.versionName = versionName;
-			this.apkURL = apkURL;
-			this.domain = domain;
-		}
-		
-		public String getFullApkURL()
-		{
-			return domain + apkURL;
-		}
-	}
-
+public class AndroidAppUpdater implements AndroidAppUpdaterInterface {
 	private URL _url;
 	private boolean beta = false;
 	
@@ -52,6 +30,7 @@ public class AndroidAppUpdater
 		this._url = url;
 	}
 
+	@Override
 	public void setBeta(boolean beta)
 	{
 		this.beta = beta;
@@ -75,6 +54,7 @@ public class AndroidAppUpdater
 		return url;
 	}
 	
+	@Override
 	public AndroidAppVersion getLatestVersionInfo()
 	{
 		final HttpParams httpParams = new BasicHttpParams();

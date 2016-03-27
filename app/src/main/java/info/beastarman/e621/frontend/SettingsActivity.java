@@ -16,7 +16,6 @@ import android.preference.MultiSelectListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
-import android.text.Html;
 import android.widget.EditText;
 
 import java.io.File;
@@ -28,8 +27,8 @@ import info.beastarman.e621.R;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.GTFO;
 import info.beastarman.e621.backend.Pair;
-import info.beastarman.e621.middleware.AndroidAppUpdater;
-import info.beastarman.e621.middleware.AndroidAppUpdater.AndroidAppVersion;
+import info.beastarman.e621.middleware.AndroidAppUpdaterInterface;
+import info.beastarman.e621.middleware.AndroidAppVersion;
 import info.beastarman.e621.middleware.E621DownloadedImages;
 import info.beastarman.e621.middleware.E621Middleware;
 import info.beastarman.e621.views.BlackListDialog;
@@ -921,7 +920,7 @@ public class SettingsActivity extends PreferenceActivity
     	
     	protected void update()
     	{
-    		final AndroidAppUpdater appUpdater = e621.getAndroidAppUpdater();
+    		final AndroidAppUpdaterInterface appUpdater = e621.getAndroidAppUpdater();
 
 			final AlertDialog.Builder confirmDialogBuilder = new AlertDialog.Builder(activity).setTitle("Please wait...").setCancelable(true).
 				setMessage("Retrieving update info.");
