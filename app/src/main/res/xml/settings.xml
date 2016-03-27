@@ -176,9 +176,5 @@
             android:title="About e621"
             android:summary="Read about e621.net"
             android:key="aboutE621"/>
-        <Preference
-            android:title="Donate"
-            android:summary="Buy me a beer"
-            android:key="donate"/>
     </PreferenceCategory>
 </PreferenceScreen>

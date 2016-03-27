@@ -293,18 +293,6 @@ public class SettingsActivity extends PreferenceActivity
 				}
 			});
 
-			final Preference donate = (Preference) getPreferenceManager().findPreference("donate");
-			donate.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
-			{
-				@Override
-				public boolean onPreferenceClick(Preference arg0)
-				{
-					donate.setSummary(Html.fromHtml("Buy me porn"));
-					donate();
-					return true;
-				}
-			});
-
 			Preference aboutE621 = (Preference) getPreferenceManager().findPreference("aboutE621");
 			aboutE621.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 			{
@@ -517,21 +505,6 @@ public class SettingsActivity extends PreferenceActivity
 
 			CheckBoxPreference betaReleases = (CheckBoxPreference) findPreference("betaReleases");
 			betaReleases.setChecked(e621.betaReleases());
-		}
-
-		@Override
-		public void onStart()
-		{
-			super.onStart();
-
-			final Preference donate = (Preference) getPreferenceManager().findPreference("donate");
-			donate.setSummary("Buy me a beer");
-		}
-
-		protected void donate()
-		{
-			Intent i = new Intent(activity, DonateActivity.class);
-			startActivity(i);
 		}
 
 		protected void fixInconsistencies()

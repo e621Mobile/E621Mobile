@@ -233,36 +233,42 @@ public class E621Image implements Serializable
 
 	private static String getValueFromNode(Element node, String name)
 	{
-		return node.getElementsByTagName(name).item(0).getTextContent();
+		try {
+			return node.getElementsByTagName(name).item(0).getTextContent();
+		}
+		catch (Exception e)
+		{
+			return "";
+		}
 	}
 	
 	public static E621Image fromXML(Element xml)
 	{
 		E621Image img = new E621Image();
 
-		img.file_url = getValueFromNode(xml,"file_url");
+		img.file_url = getValueFromNode(xml, "file_url");
 		if(img.file_url.startsWith("//")) img.file_url = "http:" + img.file_url;
 		else if(img.file_url.startsWith("/")) img.file_url = "http://e621.net" + img.file_url;
 
-		img.sample_url = getValueFromNode(xml,"sample_url");
+		img.sample_url = getValueFromNode(xml, "sample_url");
 		if(img.sample_url.startsWith("//")) img.sample_url = "http:" + img.sample_url;
 		else if(img.sample_url.startsWith("/")) img.sample_url = "http://e621.net" + img.sample_url;
 
-		img.preview_url = getValueFromNode(xml,"preview_url");
+		img.preview_url = getValueFromNode(xml, "preview_url");
 		if(img.preview_url.startsWith("//")) img.preview_url = "http:" + img.preview_url;
 		else if(img.preview_url.startsWith("/")) img.preview_url = "http://e621.net" + img.preview_url;
 
-		img.description = getValueFromNode(xml,"description").trim();
+		img.description = getValueFromNode(xml, "description").trim();
 
 		img.id = Integer.parseInt(getValueFromNode(xml,"id"));
-		img.rating = getValueFromNode(xml,"rating"); 
-		img.file_ext = getValueFromNode(xml,"file_ext");
-		img.has_comments = getValueFromNode(xml,"has_comments").equals("true");
-		img.has_children= getValueFromNode(xml,"has_children").equals("true");
+		img.rating = getValueFromNode(xml, "rating");
+		img.file_ext = getValueFromNode(xml, "file_ext");
+		img.has_comments = getValueFromNode(xml, "has_comments").equals("true");
+		img.has_children= getValueFromNode(xml, "has_children").equals("true");
 
 		try
 		{
-			img.file_size = Integer.parseInt(getValueFromNode(xml,"file_size"));
+			img.file_size = Integer.parseInt(getValueFromNode(xml, "file_size"));
 		}
 		catch (NumberFormatException e)
 		{
@@ -271,21 +277,21 @@ public class E621Image implements Serializable
 
 		try
 		{
-			img.creator_id = Integer.parseInt(getValueFromNode(xml,"creator_id"));
+			img.creator_id = Integer.parseInt(getValueFromNode(xml, "creator_id"));
 		}
 		catch (NumberFormatException e)
 		{
 			img.creator_id = 0;
 		}
 
-		img.author = getValueFromNode(xml,"author");
+		img.author = getValueFromNode(xml, "author");
 		
-		if(getValueFromNode(xml,"parent_id").length() > 0)
+		if(getValueFromNode(xml, "parent_id").length() > 0)
 		{
-			img.parent_id = getValueFromNode(xml,"parent_id");
+			img.parent_id = getValueFromNode(xml, "parent_id");
 		}
 		
-		String children = getValueFromNode(xml,"children").trim();
+		String children = getValueFromNode(xml, "children").trim();
 		if(children.length() > 0)
 		{
 			img.children = new ArrayList<String>(Arrays.asList(children.split(",")));
@@ -297,14 +303,14 @@ public class E621Image implements Serializable
 
 		try
 		{
-			img.created_at_raw = getValueFromNode(xml,"created_at");
+			img.created_at_raw = getValueFromNode(xml, "created_at");
 			img.created_at = DATE_FORMAT_XML.parse(img.created_at_raw);
 		} catch (ParseException e)
 		{
 			e.printStackTrace();
 		}
 
-		String sources = StringEscapeUtils.unescapeXml(getValueFromNode(xml,"sources"));
+		String sources = StringEscapeUtils.unescapeXml(getValueFromNode(xml, "sources"));
 		img.sources = new ArrayList<String>();
 
 		if(sources.length() > 0)
@@ -324,7 +330,7 @@ public class E621Image implements Serializable
 			}
 		}
 
-		String artist = StringEscapeUtils.unescapeXml(getValueFromNode(xml,"artist"));
+		String artist = StringEscapeUtils.unescapeXml(getValueFromNode(xml, "artist"));
 		img.artist = new ArrayList<String>();
 
 		if(artist.length() > 0)
@@ -344,7 +350,7 @@ public class E621Image implements Serializable
 			}
 		}
 		
-		String status = getValueFromNode(xml,"status");
+		String status = getValueFromNode(xml, "status");
 		
 		if(status.equals("active"))
 		{
@@ -364,30 +370,30 @@ public class E621Image implements Serializable
 		}
 		
 		try{
-			img.preview_width = Integer.parseInt(getValueFromNode(xml,"preview_width"));
+			img.preview_width = Integer.parseInt(getValueFromNode(xml, "preview_width"));
 		} catch (NumberFormatException e) {}
 		try{
-			img.preview_height = Integer.parseInt(getValueFromNode(xml,"preview_height"));
+			img.preview_height = Integer.parseInt(getValueFromNode(xml, "preview_height"));
 		} catch (NumberFormatException e) {}
 		try{
-			img.sample_width = Integer.parseInt(getValueFromNode(xml,"sample_width"));
+			img.sample_width = Integer.parseInt(getValueFromNode(xml, "sample_width"));
 		} catch (NumberFormatException e) {}
 		try{
-			img.sample_height = Integer.parseInt(getValueFromNode(xml,"sample_height"));
+			img.sample_height = Integer.parseInt(getValueFromNode(xml, "sample_height"));
 		} catch (NumberFormatException e) {}
 		try{
-			img.width = Integer.parseInt(getValueFromNode(xml,"width"));
+			img.width = Integer.parseInt(getValueFromNode(xml, "width"));
 		} catch (NumberFormatException e) {}
 		try{
-			img.height = Integer.parseInt(getValueFromNode(xml,"height"));
+			img.height = Integer.parseInt(getValueFromNode(xml, "height"));
 		} catch (NumberFormatException e) {}
 		try{
-			img.score = Integer.parseInt(getValueFromNode(xml,"score"));
+			img.score = Integer.parseInt(getValueFromNode(xml, "score"));
 		} catch (NumberFormatException e) {}
 		try{
-			img.fav_count = Integer.parseInt(getValueFromNode(xml,"fav_count"));
+			img.fav_count = Integer.parseInt(getValueFromNode(xml, "fav_count"));
 		} catch (NumberFormatException e) {}
-		for(String tag : getValueFromNode(xml,"tags").split("\\s"))
+		for(String tag : getValueFromNode(xml, "tags").split("\\s"))
 		{
 			img.tags.add(new E621Tag(tag,null));
 		}
