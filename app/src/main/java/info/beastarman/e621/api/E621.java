@@ -545,8 +545,6 @@ public class E621
 	
 	protected HttpResponse tryHttpGet(String url, Integer tries) throws ClientProtocolException, IOException
 	{
-		url = Uri.parse(url).buildUpon().appendQueryParameter("client", client).build().toString();
-		
 		final HttpParams httpParams = new BasicHttpParams();
 	    HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT);
 	    HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT);
