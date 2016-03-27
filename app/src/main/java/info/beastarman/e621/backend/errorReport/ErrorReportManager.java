@@ -9,8 +9,7 @@ import java.util.Comparator;
 /**
  * Created by beastarman on 10/17/2015.
  */
-public class ErrorReportManager
-{
+public class ErrorReportManager implements ErrorReportManagerInterface {
 	private static ErrorReportAPI api = new ErrorReportAPI("http://beastarman.info/report/");
 	private String app_id;
 	private String user = "user";
@@ -25,6 +24,7 @@ public class ErrorReportManager
 		this.errorReportStorage = new ErrorReportStorage(new File(basePath,"reportStorage/"));
 	}
 
+	@Override
 	public void sendReport(ErrorReportReport report)
 	{
 		try
@@ -46,6 +46,7 @@ public class ErrorReportManager
 		}
 	}
 
+	@Override
 	public void sendPendingReports()
 	{
 		ArrayList<ErrorReportReport> reports = pendingStorageInterface.getReports();
@@ -72,11 +73,13 @@ public class ErrorReportManager
 		}
 	}
 
+	@Override
 	public ArrayList<ErrorReportMessage> getAndUpdateUnreadMessages()
 	{
 		return getUnreadMessages(true);
 	}
 
+	@Override
 	public ArrayList<ErrorReportMessage> getUnreadMessages(boolean update)
 	{
 		ArrayList<ErrorReportReport> reports = errorReportStorage.getReports();
@@ -103,6 +106,7 @@ public class ErrorReportManager
 		return newMessages;
 	}
 
+	@Override
 	public int hasUnreadMessages(String report)
 	{
 		int ret = 0;
@@ -121,6 +125,7 @@ public class ErrorReportManager
 		return ret;
 	}
 
+	@Override
 	public ArrayList<ErrorReportReport> getReports()
 	{
 		ArrayList<ErrorReportReport> ret = errorReportStorage.getReports();
@@ -143,16 +148,19 @@ public class ErrorReportManager
 		return ret;
 	}
 
+	@Override
 	public ErrorReportReport getReport(String reportHash)
 	{
 		return errorReportStorage.getReport(reportHash);
 	}
 
+	@Override
 	public ErrorReportGetMessagesResponse getMessages(String hash) throws IOException
 	{
 		return api.getMessages(hash);
 	}
 
+	@Override
 	public void sendMessage(String hash, String text) throws IOException
 	{
 		api.addMessage(hash,text,"user");

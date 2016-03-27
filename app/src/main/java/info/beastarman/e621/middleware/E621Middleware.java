@@ -90,7 +90,9 @@ import info.beastarman.e621.backend.PersistentHttpClient;
 import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 import info.beastarman.e621.backend.SingleUseFileStorage;
 import info.beastarman.e621.backend.TemporaryFileInputStream;
+import info.beastarman.e621.backend.errorReport.DummyErrorReportManager;
 import info.beastarman.e621.backend.errorReport.ErrorReportManager;
+import info.beastarman.e621.backend.errorReport.ErrorReportManagerInterface;
 import info.beastarman.e621.backend.errorReport.ErrorReportMessage;
 import info.beastarman.e621.backend.errorReport.ErrorReportReport;
 import info.beastarman.e621.frontend.MainActivity;
@@ -402,14 +404,14 @@ public class E621Middleware extends E621 {
         }
     }
 
-	ErrorReportManager errorReportManager = null;
-	public ErrorReportManager getErrorReportManager()
+	ErrorReportManagerInterface errorReportManager = null;
+	public ErrorReportManagerInterface getErrorReportManager()
 	{
 		if(errorReportManager == null)
 		{
 			File f = new File(sd_path,"ErrorReportManager/");
 			f.mkdirs();
-			errorReportManager = new ErrorReportManager("e621_adv",f);
+			errorReportManager = new DummyErrorReportManager();
 		}
 
 		return errorReportManager;
