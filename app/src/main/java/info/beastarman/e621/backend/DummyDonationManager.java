@@ -35,7 +35,7 @@ public class DummyDonationManager implements DonationManagerInterface {
 
     @Override
     public Donator getHighlight() {
-        return new Donator();
+        return null;
     }
 
     @Override

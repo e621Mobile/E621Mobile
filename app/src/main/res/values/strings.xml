@@ -42,8 +42,6 @@
         Thank you very much for using this app!
         \n\n
 		This unofficial app has no warranty whatsoever and has no official relationship with e621 staff.
-		\n\n
-		Developed by Douglas Vanny Bento (me@beastarman.info)
     </string>
     <string name="changelog">
         Version 0.2a.10: Fixed tagging and local search problems. Greatly reduced memory usage. Report reply system.
