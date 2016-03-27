@@ -78,7 +78,8 @@ import info.beastarman.e621.api.E621Tag;
 import info.beastarman.e621.api.E621Vote;
 import info.beastarman.e621.backend.BackupManager;
 import info.beastarman.e621.backend.DirectImageCacheManager;
-import info.beastarman.e621.backend.DonationManager;
+import info.beastarman.e621.backend.DonationManagerInterface;
+import info.beastarman.e621.backend.DummyDonationManager;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.FileName;
 import info.beastarman.e621.backend.GTFO;
@@ -91,7 +92,6 @@ import info.beastarman.e621.backend.ReadWriteLockerWrapper;
 import info.beastarman.e621.backend.SingleUseFileStorage;
 import info.beastarman.e621.backend.TemporaryFileInputStream;
 import info.beastarman.e621.backend.errorReport.DummyErrorReportManager;
-import info.beastarman.e621.backend.errorReport.ErrorReportManager;
 import info.beastarman.e621.backend.errorReport.ErrorReportManagerInterface;
 import info.beastarman.e621.backend.errorReport.ErrorReportMessage;
 import info.beastarman.e621.backend.errorReport.ErrorReportReport;
@@ -4692,9 +4692,9 @@ public class E621Middleware extends E621 {
 		return download_manager.hasTags();
 	}
 
-	DonationManager donationManager = new DonationManager(Uri.parse("http://beastarman.info/donations/ong/e621/"));
+	DonationManagerInterface donationManager = new DummyDonationManager();
 
-	public DonationManager getDonationManager()
+	public DonationManagerInterface getDonationManager()
 	{
 		return donationManager;
 	}

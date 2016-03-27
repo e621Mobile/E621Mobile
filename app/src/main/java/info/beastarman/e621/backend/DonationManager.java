@@ -24,8 +24,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Random;
 
-public class DonationManager
-{
+public class DonationManager implements DonationManagerInterface {
 	private final Uri baseUrl;
 	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZZZZZ");
 
@@ -186,6 +185,7 @@ public class DonationManager
 
 	private Float totalDonations = null;
 
+	@Override
 	public Float getTotalDonations()
 	{
 		if(totalDonations == null)
@@ -204,6 +204,7 @@ public class DonationManager
 
 	private Float monthDonations = null;
 
+	@Override
 	public Float getMonthDonations()
 	{
 		if(monthDonations == null)
@@ -220,6 +221,7 @@ public class DonationManager
 		return monthDonations;
 	}
 
+	@Override
 	public ArrayList<Donator> getDonators()
 	{
 		ArrayList<Donator> ret = retrieveDonators();
@@ -231,6 +233,7 @@ public class DonationManager
 		return ret;
 	}
 
+	@Override
 	public ArrayList<Donator> getNewestDonators()
 	{
 		ArrayList<Donator> ret = retrieveDonators();
@@ -242,6 +245,7 @@ public class DonationManager
 		return ret;
 	}
 
+	@Override
 	public ArrayList<Donator> getOldestDonators()
 	{
 		ArrayList<Donator> ret = retrieveDonators();
@@ -255,6 +259,7 @@ public class DonationManager
 
 	private static Random random = new Random();
 
+	@Override
 	public Donator getHighlight()
 	{
 		ArrayList<Donator> highlight = retrieveHighlight();
@@ -264,26 +269,7 @@ public class DonationManager
 		return highlight.get(random.nextInt(highlight.size()));
 	}
 
-	public class Donator
-	{
-		public final Uri url;
-		public final String name;
-		public final float ammount;
-		public final Float recent_total;
-		public final Date firstDonation;
-		public final Date lastDonation;
-
-		public Donator(Uri url, String name, float ammount, Date firstDonation, Date lastDonation, Float recent_total)
-		{
-			this.url = url;
-			this.name = name;
-			this.ammount = ammount;
-			this.firstDonation = firstDonation;
-			this.lastDonation = lastDonation;
-			this.recent_total = recent_total;
-		}
-	}
-
+	@Override
 	public Donator donatorFromJSONObject(JSONObject object)
 	{
 		try

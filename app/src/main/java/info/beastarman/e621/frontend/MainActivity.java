@@ -29,7 +29,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 
 import info.beastarman.e621.R;
-import info.beastarman.e621.backend.DonationManager;
+import info.beastarman.e621.backend.Donator;
 import info.beastarman.e621.backend.EventManager;
 import info.beastarman.e621.backend.Pair;
 import info.beastarman.e621.backend.PendingTask;
@@ -311,7 +311,7 @@ public class MainActivity extends SlideMenuBaseActivity
 			@Override
 			public void run()
 			{
-				final DonationManager.Donator donator = e621.getDonationManager().getHighlight();
+				final Donator donator = e621.getDonationManager().getHighlight();
 				final RelativeLayout wrapper = (RelativeLayout) findViewById(R.id.donation_highlight_wrapper);
 				final NoHorizontalScrollView s = (NoHorizontalScrollView) findViewById(R.id.donation_highlight_scroll);
 				final TextView text = (TextView) findViewById(R.id.donation_highlight_text);
