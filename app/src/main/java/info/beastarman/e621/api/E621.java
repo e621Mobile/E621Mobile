@@ -549,6 +549,7 @@ public class E621
 	    HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT);
 	    HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT);
 		HttpClient httpclient = new DefaultHttpClient(httpParams);
+		HttpProtocolParams.setUserAgent(httpclient.getParams(), "E621Mobile(by e621Mobile(Github))");
 		
 		for(;tries>=0; tries--)
 		{
@@ -571,6 +572,7 @@ public class E621
 		final HttpParams httpParams = new BasicHttpParams();
 	    HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT);
 		HttpClient httpclient = new DefaultHttpClient(httpParams);
+		HttpProtocolParams.setUserAgent(httpclient.getParams(), "E621Mobile(by e621Mobile(Github))");
 		
 		for(;tries>=0; tries--)
 		{
